@@ -229,7 +229,9 @@ set(VEC_FILES
   exec/format/parquet/vparquet_file_metadata.cpp
   exec/format/parquet/vparquet_page_reader.cpp
   exec/format/parquet/schema_desc.cpp
-  exec/format/parquet/vparquet_column_reader.cpp)
+  exec/format/parquet/vparquet_column_reader.cpp
+  exec/scan/vscan_node.cpp
+  )
 
 add_library(Vec STATIC
     ${VEC_FILES}
