@@ -211,6 +211,9 @@ protected:
     TypeInfoPtr _type_info;
     // unit : byte
     // except for strings, other types have fixed lengths
+    // Note that, the struct type itself has fixed length, but due to
+    // its number of subfields is a variable, so the actual length of
+    // a struct field is not fixed.
     uint32_t _length;
     // Since the length of the STRING type cannot be determined,
     // only dynamic memory can be used. Mempool cannot realize realloc.
@@ -254,6 +257,29 @@ private:
     int32_t _precision;
     int32_t _scale;
     int32_t _unique_id;
+};
+
+class StructField : public Field {
+public:
+    explicit StructField(const TabletColumn& column) : Field(column) {}
+
+    char* allocate_memory(char* cell_ptr, char* variable_ptr) const override {
+        auto struct_v = (StructValue*)cell_ptr;
+        struct_v->set_values(reinterpret_cast<void**>(variable_ptr));
+        variable_ptr += _length;
+        for (size_t i = 0; i < get_sub_field_count(); i++) {
+            variable_ptr += get_sub_field(i)->get_variable_len();
+        }
+        return variable_ptr;
+    }
+
+    size_t get_variable_len() const override {
+        size_t variable_len = _length;
+        for (size_t i = 0; i < get_sub_field_count(); i++) {
+            variable_len += get_sub_field(i)->get_variable_len();
+        }
+        return variable_len;
+    }
 };
 
 class ArrayField : public Field {
@@ -509,6 +535,15 @@ public:
                 return new VarcharField(column);
             case OLAP_FIELD_TYPE_STRING:
                 return new StringField(column);
+            case OLAP_FIELD_TYPE_STRUCT: {
+                auto* local = new StructField(column);
+                for (uint32_t i = 0; i < column.get_subtype_count(); i++) {
+                    std::unique_ptr<Field> sub_field(
+                            FieldFactory::create(column.get_sub_column(i)));
+                    local->add_sub_field(std::move(sub_field));
+                }
+                return local;
+            }
             case OLAP_FIELD_TYPE_ARRAY: {
                 std::unique_ptr<Field> item_field(FieldFactory::create(column.get_sub_column(0)));
                 auto* local = new ArrayField(column);
@@ -549,6 +584,15 @@ public:
                 return new VarcharField(column);
             case OLAP_FIELD_TYPE_STRING:
                 return new StringField(column);
+            case OLAP_FIELD_TYPE_STRUCT: {
+                auto* local = new StructField(column);
+                for (uint32_t i = 0; i < column.get_subtype_count(); i++) {
+                    std::unique_ptr<Field> sub_field(
+                            FieldFactory::create(column.get_sub_column(i)));
+                    local->add_sub_field(std::move(sub_field));
+                }
+                return local;
+            }
             case OLAP_FIELD_TYPE_ARRAY: {
                 std::unique_ptr<Field> item_field(FieldFactory::create(column.get_sub_column(0)));
                 auto* local = new ArrayField(column);
