@@ -20,6 +20,7 @@
 
 #include "vec/functions/function_helpers.h"
 
+#include "common/consts.h"
 #include "vec/columns/column_nullable.h"
 #include "vec/data_types/data_type_nullable.h"
 #include "vec/functions/function.h"
@@ -42,14 +43,14 @@ std::tuple<Block, ColumnNumbers> create_block_with_nested_columns(const Block& b
             for (int j = 0; j < i; ++j) {
                 if (args[j] == args[i]) {
                     is_in_res = true;
-                    pre_loc = j;
+                    pre_loc = res_args[j];
                     break;
                 }
             }
         }
 
         if (!is_in_res) {
-            const auto& col = block.get_by_position(i);
+            const auto& col = block.get_by_position(args[i]);
             if (col.type->is_nullable()) {
                 const DataTypePtr& nested_type =
                         static_cast<const DataTypeNullable&>(*col.type).get_nested_type();
@@ -75,6 +76,14 @@ std::tuple<Block, ColumnNumbers> create_block_with_nested_columns(const Block& b
             res_args[i] = res.columns() - 1;
         } else {
             res_args[i] = pre_loc;
+        }
+    }
+
+    // TODO: only support match function, rethink the logic
+    for (const auto& ctn : block) {
+        if (ctn.name.size() > BeConsts::BLOCK_TEMP_COLUMN_PREFIX.size() &&
+            starts_with(ctn.name, BeConsts::BLOCK_TEMP_COLUMN_PREFIX)) {
+            res.insert(ctn);
         }
     }
 

@@ -1592,10 +1592,11 @@ private:
                 Block tmp_block;
                 size_t tmp_res_index = 0;
                 if (source_is_nullable) {
-                    auto [t_block, tmp_args, tmp_res] =
-                            create_block_with_nested_columns(block, arguments, result);
+                    auto [t_block, tmp_args] =
+                            create_block_with_nested_columns(block, arguments, true);
                     tmp_block = std::move(t_block);
-                    tmp_res_index = tmp_res;
+                    tmp_res_index = tmp_block.columns();
+                    tmp_block.insert({nullptr, nested_type, ""});
 
                     /// Perform the requested conversion.
                     RETURN_IF_ERROR(
