@@ -31,7 +31,7 @@ build_version_prefix="doris"
 build_version_major=2
 build_version_minor=0
 build_version_patch=1
-build_version_rc_version="branch-2.0.1-rc01"
+build_version_rc_version="v20230814"
 
 build_version="${build_version_prefix}-${build_version_major}.${build_version_minor}.${build_version_patch}-${build_version_rc_version}"
 
