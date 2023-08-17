@@ -1085,6 +1085,8 @@ DECLARE_Int32(hdfs_hedged_read_thread_num);
 // Maybe overwritten by the value specified when creating catalog
 DECLARE_Int32(hdfs_hedged_read_threshold_time);
 
+DECLARE_mInt32(max_scanner_for_file_scan_node);
+
 #ifdef BE_TEST
 // test s3
 DECLARE_String(test_s3_resource);
