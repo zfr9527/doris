@@ -20,6 +20,8 @@
 
 #pragma once
 
+#include <span>
+
 #include "vec/common/hash_table/hash.h"
 #include "vec/common/hash_table/hash_table.h"
 #include "vec/common/hash_table/hash_table_allocator.h"
@@ -193,9 +195,82 @@ public:
     bool has_null_key_data() const { return false; }
 };
 
+template <typename Key, typename Cell, typename Hash = DefaultHash<Key>,
+          typename Grower = HashTableGrower<>, typename Allocator = HashTableAllocator>
+class JoinHashMapTable : public HashMapTable<Key, Cell, Hash, Grower, Allocator> {
+public:
+    using Self = JoinHashMapTable;
+    using Base = HashMapTable<Key, Cell, Hash, Grower, Allocator>;
+
+    using key_type = Key;
+    using value_type = typename Cell::value_type;
+    using mapped_type = typename Cell::Mapped;
+
+    using LookupResult = typename Base::LookupResult;
+
+    using HashMapTable<Key, Cell, Hash, Grower, Allocator>::HashMapTable;
+
+    void expanse_for_add_elem(size_t num_elem) {
+        bucket_size = calc_bucket_size(num_elem + 1);
+        first.resize(bucket_size, 0);
+        next.resize(num_elem + 1, 0);
+    }
+
+    static uint32_t calc_bucket_size(size_t num_elem) {
+        size_t expect_bucket_size = static_cast<size_t>(num_elem) + (num_elem - 1) / 7;
+        return phmap::priv::NormalizeCapacity(expect_bucket_size) + 1;
+    }
+
+    void build(std::span<Key> keys) {
+        build_keys = keys;
+        const auto num_elem = keys.size();
+        for (size_t i = 1; i < num_elem; i++) {
+            uint32_t bucket_num = Base::hash(keys[i]) & (bucket_size - 1);
+            next[i] = first[bucket_num];
+            first[bucket_num] = i;
+        }
+    }
+
+    uint32_t bucket_num(const Key& key) const { return Base::hash(key) & (bucket_size - 1); }
+
+    LookupResult ALWAYS_INLINE find(Key key) { return Base::find(key); }
+    LookupResult ALWAYS_INLINE find(Key x, size_t hash_value) { return Base::find(x, hash_value); }
+
+    auto find(Key* __restrict keys, const size_t* __restrict hash_values, int probe_idx, int n,
+              std::vector<uint32_t>& probe_idxs, std::vector<int>& build_idxs) {
+        auto matched_cnt = 0;
+        while (probe_idx < n && matched_cnt < 4096) {
+            uint32_t bucket_num = hash_values[probe_idx] & (bucket_size - 1);
+            auto build_idx = first[bucket_num];
+            while (build_idx) {
+                if (keys[probe_idx] == build_keys[build_idx]) {
+                    probe_idxs[matched_cnt] = probe_idx;
+                    build_idxs[matched_cnt] = build_idx;
+                    matched_cnt++;
+                }
+                build_idx = next[build_idx];
+            }
+            probe_idx++;
+        }
+        return std::pair {probe_idx, matched_cnt};
+    }
+
+private:
+    uint32_t bucket_size = 0;
+    std::vector<uint32_t> first;
+    std::vector<uint32_t> next;
+    std::span<Key> build_keys;
+    Cell cell;
+    doris::vectorized::Arena* pool;
+};
+
 template <typename Key, typename Mapped, typename Hash = DefaultHash<Key>,
           typename Grower = HashTableGrower<>, typename Allocator = HashTableAllocator>
 using HashMap = HashMapTable<Key, HashMapCell<Key, Mapped, Hash>, Hash, Grower, Allocator>;
+
+template <typename Key, typename Mapped, typename Hash = DefaultHash<Key>,
+          typename Grower = HashTableGrower<>, typename Allocator = HashTableAllocator>
+using JoinHashMap = HashMapTable<Key, HashMapCell<Key, Mapped, Hash>, Hash, Grower, Allocator>;
 
 template <typename Key, typename Mapped, typename Hash = DefaultHash<Key>,
           typename Grower = HashTableGrower<>, typename Allocator = HashTableAllocator>

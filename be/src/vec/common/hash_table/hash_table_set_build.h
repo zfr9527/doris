@@ -24,10 +24,9 @@ namespace doris::vectorized {
 template <class HashTableContext, bool is_intersect>
 struct HashTableBuild {
     HashTableBuild(int rows, ColumnRawPtrs& build_raw_ptrs,
-                   VSetOperationNode<is_intersect>* operation_node, uint8_t offset,
+                   VSetOperationNode<is_intersect>* operation_node, 
                    RuntimeState* state)
             : _rows(rows),
-              _offset(offset),
               _build_raw_ptrs(build_raw_ptrs),
               _operation_node(operation_node),
               _state(state) {}
@@ -48,9 +47,9 @@ struct HashTableBuild {
         size_t k = 0;
         auto creator = [&](const auto& ctor, auto& key, auto& origin) {
             HashTableContext::try_presis_key(key, origin, arena);
-            ctor(key, Mapped {k, _offset});
+            ctor(key, Mapped {k});
         };
-        auto creator_for_null_key = [&](auto& mapped) { mapped = {k, _offset}; };
+        auto creator_for_null_key = [&](auto& mapped) { mapped = {k}; };
 
         for (; k < _rows; ++k) {
             if (k % CHECK_FRECUENCY == 0) {
@@ -63,7 +62,6 @@ struct HashTableBuild {
 
 private:
     const int _rows;
-    const uint8_t _offset;
     ColumnRawPtrs& _build_raw_ptrs;
     VSetOperationNode<is_intersect>* _operation_node;
     RuntimeState* _state;
@@ -71,8 +69,8 @@ private:
 
 template <class HashTableContext, bool is_intersect>
 struct HashTableBuildX {
-    HashTableBuildX(int rows, ColumnRawPtrs& build_raw_ptrs, uint8_t offset, RuntimeState* state)
-            : _rows(rows), _offset(offset), _build_raw_ptrs(build_raw_ptrs), _state(state) {}
+    HashTableBuildX(int rows, ColumnRawPtrs& build_raw_ptrs, RuntimeState* state)
+            : _rows(rows), _build_raw_ptrs(build_raw_ptrs), _state(state) {}
 
     Status operator()(pipeline::SetSinkLocalState<is_intersect>& local_state,
                       HashTableContext& hash_table_ctx) {
@@ -91,9 +89,9 @@ struct HashTableBuildX {
         size_t k = 0;
         auto creator = [&](const auto& ctor, auto& key, auto& origin) {
             HashTableContext::try_presis_key(key, origin, local_state._arena);
-            ctor(key, Mapped {k, _offset});
+            ctor(key, Mapped {k});
         };
-        auto creator_for_null_key = [&](auto& mapped) { mapped = {k, _offset}; };
+        auto creator_for_null_key = [&](auto& mapped) { mapped = {k}; };
 
         for (; k < _rows; ++k) {
             if (k % CHECK_FRECUENCY == 0) {
@@ -106,7 +104,6 @@ struct HashTableBuildX {
 
 private:
     const int _rows;
-    const uint8_t _offset;
     ColumnRawPtrs& _build_raw_ptrs;
     RuntimeState* _state;
     std::vector<size_t> _build_side_hash_values;

@@ -106,14 +106,13 @@ using ProfileCounter = RuntimeProfile::Counter;
 template <class HashTableContext, typename Parent>
 struct ProcessHashTableBuild {
     ProcessHashTableBuild(int rows, Block& acquired_block, ColumnRawPtrs& build_raw_ptrs,
-                          Parent* parent, int batch_size, uint8_t offset, RuntimeState* state)
+                          Parent* parent, int batch_size, RuntimeState* state)
             : _rows(rows),
               _skip_rows(0),
               _acquired_block(acquired_block),
               _build_raw_ptrs(build_raw_ptrs),
               _parent(parent),
               _batch_size(batch_size),
-              _offset(offset),
               _state(state),
               _build_side_compute_hash_timer(parent->_build_side_compute_hash_timer) {}
 
@@ -180,7 +179,7 @@ struct ProcessHashTableBuild {
         auto creator = [&](const auto& ctor, auto& key, auto& origin) {
             HashTableContext::try_presis_key(key, origin, arena);
             inserted = true;
-            ctor(key, Mapped {k, _offset});
+            ctor(key, Mapped {k});
         };
 
         bool build_unique = _parent->build_unique();
@@ -212,13 +211,13 @@ struct ProcessHashTableBuild {
         } else if (has_runtime_filter && !build_unique) {
             EMPLACE_IMPL(
                     if (inserted) { inserted_rows.push_back(k); } else {
-                        mapped.insert({k, _offset}, *_parent->arena());
+                        mapped.insert({k}, *_parent->arena());
                         inserted_rows.push_back(k);
                     });
         } else if (!has_runtime_filter && build_unique) {
             EMPLACE_IMPL(if (!inserted) { _skip_rows++; });
         } else {
-            EMPLACE_IMPL(if (!inserted) { mapped.insert({k, _offset}, *_parent->arena()); });
+            EMPLACE_IMPL(if (!inserted) { mapped.insert({k}, *_parent->arena()); });
         }
         _parent->_build_rf_cardinality += inserted_rows.size();
 
@@ -239,7 +238,6 @@ private:
     ColumnRawPtrs& _build_raw_ptrs;
     Parent* _parent;
     int _batch_size;
-    uint8_t _offset;
     RuntimeState* _state;
 
     ProfileCounter* _build_side_compute_hash_timer;
@@ -325,8 +323,6 @@ using HashTableIteratorVariants =
         std::variant<std::monostate, ForwardIterator<RowRefList>,
                      ForwardIterator<RowRefListWithFlag>, ForwardIterator<RowRefListWithFlags>>;
 
-static constexpr auto HASH_JOIN_MAX_BUILD_BLOCK_COUNT = 128;
-
 class HashJoinNode final : public VJoinNodeBase {
 public:
     HashJoinNode(ObjectPool* pool, const TPlanNode& tnode, const DescriptorTbl& descs);
@@ -369,7 +365,7 @@ public:
     bool have_other_join_conjunct() const { return _have_other_join_conjunct; }
     bool is_right_semi_anti() const { return _is_right_semi_anti; }
     bool is_outer_join() const { return _is_outer_join; }
-    std::shared_ptr<std::vector<Block>> build_blocks() const { return _build_blocks; }
+    std::shared_ptr<Block> build_block() const { return _build_block; }
     std::vector<bool>* left_output_slot_flags() { return &_left_output_slot_flags; }
     std::vector<bool>* right_output_slot_flags() { return &_right_output_slot_flags; }
     bool* has_null_in_build_side() { return &_has_null_in_build_side; }
@@ -390,16 +386,16 @@ private:
         _short_circuit_for_probe =
                 (_has_null_in_build_side && _join_op == TJoinOp::NULL_AWARE_LEFT_ANTI_JOIN &&
                  !_is_mark_join) ||
-                (_build_blocks->empty() && _join_op == TJoinOp::INNER_JOIN && !_is_mark_join) ||
-                (_build_blocks->empty() && _join_op == TJoinOp::LEFT_SEMI_JOIN && !_is_mark_join) ||
-                (_build_blocks->empty() && _join_op == TJoinOp::RIGHT_OUTER_JOIN) ||
-                (_build_blocks->empty() && _join_op == TJoinOp::RIGHT_SEMI_JOIN) ||
-                (_build_blocks->empty() && _join_op == TJoinOp::RIGHT_ANTI_JOIN);
+                (!_build_block && _join_op == TJoinOp::INNER_JOIN && !_is_mark_join) ||
+                (!_build_block && _join_op == TJoinOp::LEFT_SEMI_JOIN && !_is_mark_join) ||
+                (!_build_block && _join_op == TJoinOp::RIGHT_OUTER_JOIN) ||
+                (!_build_block && _join_op == TJoinOp::RIGHT_SEMI_JOIN) ||
+                (!_build_block && _join_op == TJoinOp::RIGHT_ANTI_JOIN);
 
         //when build table rows is 0 and not have other_join_conjunct and not _is_mark_join and join type is one of LEFT_OUTER_JOIN/FULL_OUTER_JOIN/LEFT_ANTI_JOIN
         //we could get the result is probe table + null-column(if need output)
         _empty_right_table_need_probe_dispose =
-                (_build_blocks->empty() && !_have_other_join_conjunct && !_is_mark_join) &&
+                (!_build_block && !_have_other_join_conjunct && !_is_mark_join) &&
                 (_join_op == TJoinOp::LEFT_OUTER_JOIN || _join_op == TJoinOp::FULL_OUTER_JOIN ||
                  _join_op == TJoinOp::LEFT_ANTI_JOIN);
     }
@@ -467,7 +463,7 @@ private:
     HashTableIteratorVariants _outer_join_pull_visited_iter;
     HashTableIteratorVariants _probe_row_match_iter;
 
-    std::shared_ptr<std::vector<Block>> _build_blocks;
+    std::shared_ptr<Block> _build_block;
     Block _probe_block;
     ColumnRawPtrs _probe_columns;
     ColumnUInt8::MutablePtr _null_map_column;
@@ -501,7 +497,7 @@ private:
 
     Status _materialize_build_side(RuntimeState* state) override;
 
-    Status _process_build_block(RuntimeState* state, Block& block, uint8_t offset);
+    Status _process_build_block(RuntimeState* state, Block& block);
 
     Status _do_evaluate(Block& block, VExprContextSPtrs& exprs,
                         RuntimeProfile::Counter& expr_call_timer, std::vector<int>& res_col_ids);
