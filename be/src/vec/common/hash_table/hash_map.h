@@ -230,11 +230,6 @@ public:
         }
     }
 
-    uint32_t bucket_num(const Key& key) const { return Base::hash(key) & (bucket_size - 1); }
-
-    LookupResult ALWAYS_INLINE find(Key key) { return Base::find(key); }
-    LookupResult ALWAYS_INLINE find(Key x, size_t hash_value) { return Base::find(x, hash_value); }
-
     auto find_batch(const Key* __restrict keys, const size_t* __restrict hash_values, int probe_idx,
                     int probe_rows, std::vector<uint32_t>& probe_idxs,
                     std::vector<int>& build_idxs) {

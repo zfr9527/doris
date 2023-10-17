@@ -108,7 +108,6 @@ struct ProcessHashTableBuild {
     ProcessHashTableBuild(int rows, Block& acquired_block, ColumnRawPtrs& build_raw_ptrs,
                           Parent* parent, int batch_size, RuntimeState* state)
             : _rows(rows),
-              _skip_rows(0),
               _acquired_block(acquired_block),
               _build_raw_ptrs(build_raw_ptrs),
               _parent(parent),
@@ -182,7 +181,6 @@ struct ProcessHashTableBuild {
 
 private:
     const int _rows;
-    int _skip_rows;
     Block& _acquired_block;
     ColumnRawPtrs& _build_raw_ptrs;
     Parent* _parent;

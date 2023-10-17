@@ -193,19 +193,12 @@ Status ProcessHashTableProbe<JoinOpType, Parent>::do_process(HashTableType& hash
                                                              size_t probe_rows) {
     auto& probe_index = _parent->_probe_index;
 
-    using KeyGetter = typename HashTableType::State;
     using Mapped = typename HashTableType::Mapped;
 
     _init_probe_side<HashTableType>(hash_table_ctx, probe_rows, with_other_conjuncts,
                                     need_null_map_for_probe ? null_map->data() : nullptr);
 
     auto& mcol = mutable_block.mutable_columns();
-
-    //constexpr auto is_right_semi_anti_join =
-    //        JoinOpType == TJoinOp::RIGHT_ANTI_JOIN || JoinOpType == TJoinOp::RIGHT_SEMI_JOIN;
-
-    constexpr auto probe_all =
-            JoinOpType == TJoinOp::LEFT_OUTER_JOIN || JoinOpType == TJoinOp::FULL_OUTER_JOIN;
 
     int last_probe_index = probe_index;
 
@@ -239,35 +232,12 @@ Status ProcessHashTableProbe<JoinOpType, Parent>::do_process(HashTableType& hash
 
     {
         SCOPED_TIMER(_search_hashtable_timer);
-        using FindResult = KeyGetter::FindResult;
-        FindResult empty = {nullptr, false};
-        while (current_offset < _batch_size && probe_index < probe_rows) {
-            if constexpr (ignore_null && need_null_map_for_probe) {
-                if ((*null_map)[probe_index]) {
-                    if constexpr (probe_all) {
-                        // only full outer / left outer need insert the data of right table
-                        _emplace_element(-1, current_offset);
-                        _probe_indexs.emplace_back(probe_index);
-
-                        if constexpr (with_other_conjuncts) {
-                            _same_to_prev.emplace_back(false);
-                            _visited_map.emplace_back(nullptr);
-                        }
-                    } else {
-                        all_match_one = false;
-                    }
-                    probe_index++;
-                    continue;
-                }
-            }
-
-            auto [new_probe_idx, new_current_offset] = hash_table_ctx.hash_table->find_batch(
-                    hash_table_ctx.keys, hash_table_ctx.hash_values.data(), probe_index, probe_rows,
-                    _probe_indexs, _build_block_rows);
-            probe_index = new_probe_idx;
-            current_offset = new_current_offset;
-        }
-        probe_size = probe_index - last_probe_index + probe_row_match_iter.ok();
+        auto [new_probe_idx, new_current_offset] = hash_table_ctx.hash_table->find_batch(
+                hash_table_ctx.keys, hash_table_ctx.hash_values.data(), probe_index, probe_rows,
+                _probe_indexs, _build_block_rows);
+        probe_index = new_probe_idx;
+        current_offset = new_current_offset;
+        probe_size = probe_index - last_probe_index;
     }
 
     build_side_output_column(mcol, *_right_output_slot_flags, current_offset, with_other_conjuncts);
