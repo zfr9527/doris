@@ -731,7 +731,7 @@ public:
             return;
         }
 
-        if (!try_get_hash_map_context_fixed<PartitionedHashMap, HashCRC32,
+        if (!try_get_hash_map_context_fixed<JoinFixedHashMap, HashCRC32,
                                             vectorized::RowRefListWithFlags>(
                     *hash_table_variants, child_exprs_lists[0])) {
             hash_table_variants->emplace<

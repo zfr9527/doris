@@ -214,7 +214,7 @@ void VSetOperationNode<is_intersect>::hash_table_init() {
         }
         return;
     }
-    if (!try_get_hash_map_context_fixed<PartitionedHashMap, HashCRC32, RowRefListWithFlags>(
+    if (!try_get_hash_map_context_fixed<JoinFixedHashMap, HashCRC32, RowRefListWithFlags>(
                 *_hash_table_variants, _child_expr_lists[0])) {
         _hash_table_variants->emplace<SerializedHashTableContext<RowRefListWithFlags>>();
     }
@@ -229,7 +229,7 @@ Status VSetOperationNode<is_intersect>::sink(RuntimeState* state, Block* block, 
 
     if (block->rows() != 0) {
         if (_build_block.empty()) {
-            RETURN_IF_ERROR(_mutable_block.merge(*(block->create_same_struct_block(1, false))));
+            RETURN_IF_ERROR(_mutable_block.merge(*(block->create_same_struct_block(0, false))));
         }
         RETURN_IF_ERROR(_mutable_block.merge(*block));
         if (_mutable_block.rows() > std::numeric_limits<uint32_t>::max()) {
@@ -312,8 +312,7 @@ Status VSetOperationNode<is_intersect>::hash_table_build(RuntimeState* state) {
 }
 
 template <bool is_intersect>
-Status VSetOperationNode<is_intersect>::process_build_block(Block& block,
-                                                            RuntimeState* state) {
+Status VSetOperationNode<is_intersect>::process_build_block(Block& block, RuntimeState* state) {
     size_t rows = block.rows();
     if (rows == 0) {
         return Status::OK();

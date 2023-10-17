@@ -1058,7 +1058,7 @@ void HashJoinNode::_hash_table_init(RuntimeState* state) {
                     return;
                 }
 
-                if (!try_get_hash_map_context_fixed<PartitionedHashMap, HashCRC32, RowRefListType>(
+                if (!try_get_hash_map_context_fixed<JoinFixedHashMap, HashCRC32, RowRefListType>(
                             *_hash_table_variants, _build_expr_ctxs)) {
                     _hash_table_variants->emplace<SerializedHashTableContext<RowRefListType>>();
                 }
@@ -1066,16 +1066,6 @@ void HashJoinNode::_hash_table_init(RuntimeState* state) {
             _join_op_variants, make_bool_variant(_have_other_join_conjunct));
 
     DCHECK(!std::holds_alternative<std::monostate>(*_hash_table_variants));
-
-    std::visit(Overload {[&](std::monostate& arg) {
-                             LOG(FATAL) << "FATAL: uninited hash table";
-                             __builtin_unreachable();
-                         },
-                         [&](auto&& arg) {
-                             arg.hash_table->set_partitioned_threshold(
-                                     state->partitioned_hash_join_rows_threshold());
-                         }},
-               *_hash_table_variants);
 }
 
 void HashJoinNode::_process_hashtable_ctx_variants_init(RuntimeState* state) {

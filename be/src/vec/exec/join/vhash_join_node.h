@@ -119,7 +119,6 @@ struct ProcessHashTableBuild {
     template <bool ignore_null, bool short_circuit_for_null>
     Status run(HashTableContext& hash_table_ctx, ConstNullMapPtr null_map, bool* has_null_key) {
         using KeyGetter = typename HashTableContext::State;
-        using Mapped = typename HashTableContext::Mapped;
 
         Defer defer {[&]() {
             int64_t bucket_size = hash_table_ctx.hash_table->get_buffer_size_in_cells();
@@ -131,18 +130,14 @@ struct ProcessHashTableBuild {
                         hash_table_ctx.hash_table->get_collisions());
             COUNTER_SET(_parent->_build_buckets_fill_counter, filled_bucket_size);
 
-            auto hash_table_buckets = hash_table_ctx.hash_table->get_buffer_sizes_in_cells();
             std::string hash_table_buckets_info;
-            for (auto bucket_count : hash_table_buckets) {
-                hash_table_buckets_info += std::to_string(bucket_count) + ", ";
-            }
+
+            hash_table_buckets_info +=
+                    std::to_string(hash_table_ctx.hash_table->get_buffer_size_in_cells()) + ", ";
             _parent->add_hash_buckets_info(hash_table_buckets_info);
 
-            auto hash_table_sizes = hash_table_ctx.hash_table->sizes();
             hash_table_buckets_info.clear();
-            for (auto table_size : hash_table_sizes) {
-                hash_table_buckets_info += std::to_string(table_size) + ", ";
-            }
+            hash_table_buckets_info += std::to_string(hash_table_ctx.hash_table->size()) + ", ";
             _parent->add_hash_buckets_filled_info(hash_table_buckets_info);
         }};
 
@@ -173,60 +168,14 @@ struct ProcessHashTableBuild {
 
         auto& arena = *_parent->arena();
         auto old_build_arena_memory = arena.size();
-
-        size_t k = 0;
-        bool inserted = false;
-        auto creator = [&](const auto& ctor, auto& key, auto& origin) {
-            HashTableContext::try_presis_key(key, origin, arena);
-            inserted = true;
-            ctor(key, Mapped {k});
-        };
-
-        bool build_unique = _parent->build_unique();
-#define EMPLACE_IMPL(stmt)                                                    \
-    for (; k < _rows; ++k) {                                                  \
-        if (k % CHECK_FRECUENCY == 0) {                                       \
-            RETURN_IF_CANCELLED(_state);                                      \
-        }                                                                     \
-        if constexpr (short_circuit_for_null) {                               \
-            if ((*null_map)[k]) {                                             \
-                *has_null_key = true;                                         \
-                return Status::OK();                                          \
-            }                                                                 \
-        } else if constexpr (ignore_null) {                                   \
-            if ((*null_map)[k]) {                                             \
-                *has_null_key = true;                                         \
-                continue;                                                     \
-            }                                                                 \
-        }                                                                     \
-        inserted = false;                                                     \
-        [[maybe_unused]] auto& mapped =                                       \
-                hash_table_ctx.lazy_emplace(key_getter, k, creator, nullptr); \
-        stmt;                                                                 \
-    }
-
-        if (has_runtime_filter && build_unique) {
-            EMPLACE_IMPL(
-                    if (inserted) { inserted_rows.push_back(k); } else { _skip_rows++; });
-        } else if (has_runtime_filter && !build_unique) {
-            EMPLACE_IMPL(
-                    if (inserted) { inserted_rows.push_back(k); } else {
-                        mapped.insert({k}, *_parent->arena());
-                        inserted_rows.push_back(k);
-                    });
-        } else if (!has_runtime_filter && build_unique) {
-            EMPLACE_IMPL(if (!inserted) { _skip_rows++; });
-        } else {
-            EMPLACE_IMPL(if (!inserted) { mapped.insert({k}, *_parent->arena()); });
-        }
+        hash_table_ctx.hash_table->build(hash_table_ctx.keys, hash_table_ctx.hash_values.data(),
+                                         _rows);
         _parent->_build_rf_cardinality += inserted_rows.size();
 
         _parent->_build_arena_memory_usage->add(arena.size() - old_build_arena_memory);
 
         COUNTER_UPDATE(_parent->_build_table_expanse_timer,
                        hash_table_ctx.hash_table->get_resize_timer_value());
-        COUNTER_UPDATE(_parent->_build_table_convert_timer,
-                       hash_table_ctx.hash_table->get_convert_timer_value());
 
         return Status::OK();
     }

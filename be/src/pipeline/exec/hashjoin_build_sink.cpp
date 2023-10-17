@@ -306,7 +306,7 @@ void HashJoinBuildSinkLocalState::_hash_table_init(RuntimeState* state) {
                     }
                     return;
                 }
-                if (!try_get_hash_map_context_fixed<PartitionedHashMap, HashCRC32, RowRefListType>(
+                if (!try_get_hash_map_context_fixed<JoinFixedHashMap, HashCRC32, RowRefListType>(
                             *_shared_state->hash_table_variants, _build_expr_ctxs)) {
                     _shared_state->hash_table_variants
                             ->emplace<vectorized::SerializedHashTableContext<RowRefListType>>();
@@ -316,16 +316,6 @@ void HashJoinBuildSinkLocalState::_hash_table_init(RuntimeState* state) {
             vectorized::make_bool_variant(p._have_other_join_conjunct));
 
     DCHECK(!std::holds_alternative<std::monostate>(*_shared_state->hash_table_variants));
-
-    std::visit(vectorized::Overload {[&](std::monostate& arg) {
-                                         LOG(FATAL) << "FATAL: uninited hash table";
-                                         __builtin_unreachable();
-                                     },
-                                     [&](auto&& arg) {
-                                         arg.hash_table->set_partitioned_threshold(
-                                                 state->partitioned_hash_join_rows_threshold());
-                                     }},
-               *_shared_state->hash_table_variants);
 }
 
 HashJoinBuildSinkOperatorX::HashJoinBuildSinkOperatorX(ObjectPool* pool, const TPlanNode& tnode,

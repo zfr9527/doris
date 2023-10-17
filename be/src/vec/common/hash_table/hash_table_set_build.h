@@ -24,8 +24,7 @@ namespace doris::vectorized {
 template <class HashTableContext, bool is_intersect>
 struct HashTableBuild {
     HashTableBuild(int rows, ColumnRawPtrs& build_raw_ptrs,
-                   VSetOperationNode<is_intersect>* operation_node, 
-                   RuntimeState* state)
+                   VSetOperationNode<is_intersect>* operation_node, RuntimeState* state)
             : _rows(rows),
               _build_raw_ptrs(build_raw_ptrs),
               _operation_node(operation_node),

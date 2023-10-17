@@ -213,7 +213,6 @@ public:
     void expanse_for_add_elem(size_t num_elem) {
         bucket_size = calc_bucket_size(num_elem + 1);
         first.resize(bucket_size, 0);
-        next.resize(num_elem + 1, 0);
     }
 
     static uint32_t calc_bucket_size(size_t num_elem) {
@@ -221,11 +220,11 @@ public:
         return phmap::priv::NormalizeCapacity(expect_bucket_size) + 1;
     }
 
-    void build(std::span<Key> keys) {
+    void build(const Key* __restrict keys, const size_t* __restrict hash_values, int num_elem) {
         build_keys = keys;
-        const auto num_elem = keys.size();
+        next.resize(num_elem);
         for (size_t i = 1; i < num_elem; i++) {
-            uint32_t bucket_num = Base::hash(keys[i]) & (bucket_size - 1);
+            uint32_t bucket_num = hash_values[i] & (bucket_size - 1);
             next[i] = first[bucket_num];
             first[bucket_num] = i;
         }
@@ -236,10 +235,11 @@ public:
     LookupResult ALWAYS_INLINE find(Key key) { return Base::find(key); }
     LookupResult ALWAYS_INLINE find(Key x, size_t hash_value) { return Base::find(x, hash_value); }
 
-    auto find(Key* __restrict keys, const size_t* __restrict hash_values, int probe_idx, int n,
-              std::vector<uint32_t>& probe_idxs, std::vector<int>& build_idxs) {
+    auto find_batch(const Key* __restrict keys, const size_t* __restrict hash_values, int probe_idx,
+                    int probe_rows, std::vector<uint32_t>& probe_idxs,
+                    std::vector<int>& build_idxs) {
         auto matched_cnt = 0;
-        while (probe_idx < n && matched_cnt < 4096) {
+        while (probe_idx < probe_rows && matched_cnt < 4096) {
             uint32_t bucket_num = hash_values[probe_idx] & (bucket_size - 1);
             auto build_idx = first[bucket_num];
             while (build_idx) {
@@ -256,10 +256,10 @@ public:
     }
 
 private:
+    const Key* __restrict build_keys;
     uint32_t bucket_size = 0;
     std::vector<uint32_t> first;
     std::vector<uint32_t> next;
-    std::span<Key> build_keys;
     Cell cell;
     doris::vectorized::Arena* pool;
 };
@@ -268,9 +268,8 @@ template <typename Key, typename Mapped, typename Hash = DefaultHash<Key>,
           typename Grower = HashTableGrower<>, typename Allocator = HashTableAllocator>
 using HashMap = HashMapTable<Key, HashMapCell<Key, Mapped, Hash>, Hash, Grower, Allocator>;
 
-template <typename Key, typename Mapped, typename Hash = DefaultHash<Key>,
-          typename Grower = HashTableGrower<>, typename Allocator = HashTableAllocator>
-using JoinHashMap = HashMapTable<Key, HashMapCell<Key, Mapped, Hash>, Hash, Grower, Allocator>;
+template <typename Key, typename Mapped, typename Hash = DefaultHash<Key>>
+using JoinFixedHashMap = JoinHashMapTable<Key, HashMapCell<Key, Mapped, Hash>, Hash>;
 
 template <typename Key, typename Mapped, typename Hash = DefaultHash<Key>,
           typename Grower = HashTableGrower<>, typename Allocator = HashTableAllocator>
