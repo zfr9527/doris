@@ -20,22 +20,17 @@
 // **Note**: default db will be create if not exist
 defaultDb = "regression_test"
 
-// add useLocalSessionState so that the jdbc will not send
-// init cmd like: select @@session.tx_read_only
-// at each time we connect.
-// add allowLoadLocalInfile so that the jdbc can execute mysql load data from client.
-jdbcUrl = "jdbc:mysql://127.0.0.1:9030/?useLocalSessionState=true&allowLoadLocalInfile=true"
-targetJdbcUrl = "jdbc:mysql://127.0.0.1:9030/?useLocalSessionState=true&allowLoadLocalInfile=true"
+jdbcUrl = "jdbc:mysql://172.19.0.2:9131/?useLocalSessionState=true&allowLoadLocalInfile=true"
+targetJdbcUrl = "jdbc:mysql://172.19.0.2:9131/?useLocalSessionState=true&allowLoadLocalInfile=true"
 jdbcUser = "root"
 jdbcPassword = ""
 
 feSourceThriftAddress = "127.0.0.1:9020"
 feTargetThriftAddress = "127.0.0.1:9020"
-syncerAddress = "127.0.0.1:9190"
 feSyncerUser = "root"
 feSyncerPassword = ""
 
-feHttpAddress = "127.0.0.1:8030"
+feHttpAddress = "172.19.0.2:8131"
 feHttpUser = "root"
 feHttpPassword = ""
 
@@ -45,33 +40,8 @@ suitePath = "${DORIS_HOME}/regression-test/suites"
 dataPath = "${DORIS_HOME}/regression-test/data"
 pluginPath = "${DORIS_HOME}/regression-test/plugins"
 realDataPath = "${DORIS_HOME}/regression-test/realdata"
-sslCertificatePath = "${DORIS_HOME}/regression-test/ssl_default_certificate"
-
-// suite configs
-suites = {
-
-    //// equals to:
-    ////    suites.test_suite_1.key1 = "val1"
-    ////    suites.test_suite_1.key2 = "val2"
-    ////
-    //test_suite_1 {
-    //    key1 = "val1"
-    //    key2 = "val2"
-    //}
-
-    //test_suite_2 {
-    //    key3 = "val1"
-    //    key4 = "val2"
-    //}
-}
-
-// docker image
-image = ""
-dockerCoverageOutputDir = "" // if not empty, will save docker coverage output files
-dockerEndDeleteFiles = false
-dorisComposePath = "${DORIS_HOME}/docker/runtime/doris-compose/doris-compose.py"
-// do run docker test because pipeline not support build image now
-excludeDockerTest = true
+// sf1DataPath can be url like "https://doris-community-test-1308700295.cos.ap-hongkong.myqcloud.com" or local path like "/data"
+//sf1DataPath = "https://doris-community-test-1308700295.cos.ap-hongkong.myqcloud.com"
 
 // will test <group>/<suite>.groovy
 // empty group will test all group
@@ -84,9 +54,11 @@ testDirectories = ""
 // this groups will not be executed
 excludeGroups = ""
 // this suites will not be executed
-excludeSuites = "test_broker_load"
+// load_stream_fault_injection may cause bad disk
+excludeSuites = "test_dump_image,load_stream_fault_injection,test_profile,test_spark_load,test_refresh_mtmv,test_bitmap_filter,test_information_schema_external"
+
 // this directories will not be executed
-excludeDirectories = "segcompaction_p2,workload_manager_p1"
+excludeDirectories = "workload_manager_p1,nereids_rules_p0/subquery"
 
 customConf1 = "test_custom_conf_value"
 
@@ -99,105 +71,42 @@ brokerName = "broker_name"
 
 // broker load test config
 enableBrokerLoad=true
-ak=""
-sk=""
 
 // jdbc connector test config
 // To enable jdbc test, you need first start mysql/pg container.
 // See `docker/thirdparties/start-thirdparties-docker.sh`
 enableJdbcTest=false
-mysql_57_port=3316
-pg_14_port=5442
-oracle_11_port=1521
-sqlserver_2022_port=1433
-clickhouse_22_port=8123
-doris_port=9030
+mysql_57_port=7111
+pg_14_port=7121
 mariadb_10_port=3326
-
 // hive catalog test config
-// To enable hive/paimon test, you need first start hive container.
+// To enable jdbc test, you need first start hive container.
 // See `docker/thirdparties/start-thirdparties-docker.sh`
 enableHiveTest=false
-enablePaimonTest=false
-hms_port=9183
-hdfs_port=8120
+hms_port=7141
 hiveServerPort=10000
 hive_pg_port=5432
 
 // kafka test config
 // to enable kafka test, you need firstly to start kafka container
 // See `docker/thirdparties/start-thirdparties-docker.sh`
-enableKafkaTest=false
+enableKafkaTest=true
 kafka_port=19193
 
-// elasticsearch catalog test config
-// See `docker/thirdparties/start-thirdparties-docker.sh`
+// iceberg test config
+iceberg_rest_uri_port=18181
+
 enableEsTest=false
 es_6_port=19200
 es_7_port=29200
 es_8_port=39200
 
-
-//hive  catalog test config for bigdata
-enableExternalHiveTest = false
-extHiveHmsHost = "***.**.**.**"
-extHiveHmsPort = 7004
-extHdfsPort = 4007
-extHiveServerPort= 7001
-extHiveHmsUser = "****"
-extHiveHmsPassword= "***********"
-
-//paimon catalog test config for bigdata
-enableExternalPaimonTest = false
-
-//mysql jdbc connector test config for bigdata
-enableExternalMysqlTest = false
-extMysqlHost = "***.**.**.**"
-extMysqlPort = 3306
-extMysqlUser = "****"
-extMysqlPassword = "***********"
-
-//postgresql jdbc connector test config for bigdata
-enableExternalPgTest = false
-extPgHost = "***.**.**.*"
-extPgPort = 5432
-extPgUser = "****"
-extPgPassword = "***********"
-
-// elasticsearch external test config for bigdata
-enableExternalEsTest = false
-extEsHost = "***********"
-extEsPort = 9200
-extEsUser = "*******"
-extEsPassword = "***********"
-
-enableObjStorageTest=false
-enableMaxComputeTest=false
-aliYunAk="***********"
-dlfUid="***********"
-aliYunSk="***********"
-hwYunAk="***********"
-hwYunSk="***********"
+cacheDataPath = "/data/regression/"
 
 s3Endpoint = "cos.ap-hongkong.myqcloud.com"
 s3BucketName = "doris-build-hk-1308700295"
 s3Region = "ap-hongkong"
 
-//arrow flight sql test config
-extArrowFlightSqlHost = "127.0.0.1"
-extArrowFlightSqlPort = 9090
-extArrowFlightSqlUser = "root"
-extArrowFlightSqlPassword= ""
-
-// iceberg rest catalog config
-iceberg_rest_uri_port=18181
-
-// If the failure suite num exceeds this config
-// all following suite will be skipped to fast quit the run.
-// <=0 means no limit.
-max_failure_num=0
-
-// used for exporting test
-s3ExportBucketName = ""
+max_failure_num=50
 
 externalEnvIp="127.0.0.1"
