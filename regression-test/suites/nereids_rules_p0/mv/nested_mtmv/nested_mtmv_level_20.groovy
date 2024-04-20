@@ -313,6 +313,23 @@ suite("nested_mtmv_level_20") {
     def join_mv_list = [join_mv_1, join_mv_2, join_mv_3, join_mv_4, join_mv_5, join_mv_6, join_mv_7, join_mv_8, join_mv_9, join_mv_10]
     def sql_4, sql_5, sql_6, sql_7, sql_8, sql_9, sql_10
     def query_list = [sql_2, sql_3, sql_4, sql_5, sql_6, sql_7, sql_8, sql_9, sql_10]
+
+    def cost_time_list = []
+
+    long start_time_1 = System.currentTimeMillis()
+    sql """explain ${join_mv_1}"""
+    long end_time_1 = System.currentTimeMillis()
+    long cos_time_1 = end_time_1 - start_time_1
+    cost_time_list.add(cos_time_1)
+
+    for (int i = 0; i < 2; i++) {
+        long start_time = System.currentTimeMillis()
+        sql """explain ${query_list[i]}"""
+        long end_time = System.currentTimeMillis()
+        long cos_time = end_time - start_time
+        cost_time_list.add(cos_time)
+    }
+
     for (int i = 4; i <= 10; i++) {
         join_mv_list[i-1] = """
             select t2.l_orderkey, t2.l_partkey, t2.l_suppkey, t1.o_orderkey, t1.o_custkey, t1.ps_partkey, t1.ps_suppkey, t1.agg1, t1.agg2, t1.agg3, t1.agg4, t1.agg5, t1.agg6
@@ -338,6 +355,14 @@ suite("nested_mtmv_level_20") {
             contains "mv${i}(mv${i})"
         }
         compare_res(query_list[i-2] + " order by 1,2,3,4,5,6,7,8,9,10,11,12,13")
+
+        long start_time = System.currentTimeMillis()
+        sql """explain ${query_list[i-2]}"""
+        long end_time = System.currentTimeMillis()
+        long cos_time = end_time - start_time
+        cost_time_list.add(cos_time)
+
+        logger.info("cost_time_list: " + cost_time_list)
     }
 
 
