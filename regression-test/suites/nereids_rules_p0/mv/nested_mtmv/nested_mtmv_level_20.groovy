@@ -309,10 +309,14 @@ suite("nested_mtmv_level_20") {
     compare_res(sql_3 + " order by 1,2,3,4,5,6,7,8,9,10,11,12,13")
 
 
-    def join_mv_4, join_mv_5, join_mv_6, join_mv_7, join_mv_8, join_mv_9, join_mv_10
-    def join_mv_list = [join_mv_1, join_mv_2, join_mv_3, join_mv_4, join_mv_5, join_mv_6, join_mv_7, join_mv_8, join_mv_9, join_mv_10]
-    def sql_4, sql_5, sql_6, sql_7, sql_8, sql_9, sql_10
-    def query_list = [sql_2, sql_3, sql_4, sql_5, sql_6, sql_7, sql_8, sql_9, sql_10]
+    def join_mv_4, join_mv_5, join_mv_6, join_mv_7, join_mv_8, join_mv_9, join_mv_10,join_mv_11, join_mv_12, join_mv_13,
+            join_mv_14, join_mv_15, join_mv_16, join_mv_17,join_mv_18, join_mv_19, join_mv_20
+    def join_mv_list = [join_mv_1, join_mv_2, join_mv_3, join_mv_4, join_mv_5, join_mv_6, join_mv_7, join_mv_8,
+                        join_mv_9, join_mv_10, join_mv_11, join_mv_12, join_mv_13, join_mv_14, join_mv_15, join_mv_16,
+                        join_mv_17,join_mv_18, join_mv_19, join_mv_20]
+    def sql_4, sql_5, sql_6, sql_7, sql_8, sql_9, sql_10, sql_11, sql_12, sql_13, sql_14, sql_15, sql_16, sql_17, sql_18, sql_19, sql_20
+    def query_list = [sql_2, sql_3, sql_4, sql_5, sql_6, sql_7, sql_8, sql_9, sql_10, sql_11, sql_12, sql_13,
+                      sql_14, sql_15, sql_16, sql_17, sql_18, sql_19, sql_20]
 
     def cost_time_list = []
 
@@ -330,7 +334,7 @@ suite("nested_mtmv_level_20") {
         cost_time_list.add(cos_time)
     }
 
-    for (int i = 4; i <= 10; i++) {
+    for (int i = 4; i <= 20; i++) {
         join_mv_list[i-1] = """
             select t2.l_orderkey, t2.l_partkey, t2.l_suppkey, t1.o_orderkey, t1.o_custkey, t1.ps_partkey, t1.ps_suppkey, t1.agg1, t1.agg2, t1.agg3, t1.agg4, t1.agg5, t1.agg6
             from mv${i-1} as t1
