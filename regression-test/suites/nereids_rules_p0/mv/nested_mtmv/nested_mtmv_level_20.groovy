@@ -222,7 +222,7 @@ suite("nested_mtmv_level_20") {
         """
 
     create_mv(mv_1, join_mv_1)
-    job_name_1 = getJobName(db, mv_1)
+    def job_name_1 = getJobName(db, mv_1)
     waitingMTMVTaskFinished(job_name_1)
 
     create_mv(mv_2, join_mv_2)
@@ -231,7 +231,7 @@ suite("nested_mtmv_level_20") {
 
     create_mv(mv_3, join_mv_3)
     job_name_1 = getJobName(db, mv_3)
-    waitingMTMVTaskFinished(job_name_3)
+    waitingMTMVTaskFinished(job_name_1)
 
 
     def sql_2 = """
