@@ -218,7 +218,6 @@ suite("nested_mtmv_level_20") {
         from ${mv_2} as t1
         left join lineitem_1 as t2
         on t1.l_orderkey = t2.l_orderkey
-        where t1.agg2 > 2
         group by t2.l_orderkey, t2.l_partkey, t2.l_suppkey, t1.o_orderkey, t1.o_custkey, t1.ps_partkey, t1.ps_suppkey, t1.agg1, t1.agg2, t1.agg3, t1.agg4, t1.agg5, t1.agg6
         """
 
@@ -293,7 +292,6 @@ suite("nested_mtmv_level_20") {
         ) as t1
         left join lineitem_1 as t2
         on t1.l_orderkey = t2.l_orderkey
-        where t1.agg2 > 2
         group by t2.l_orderkey, t2.l_partkey, t2.l_suppkey, t1.o_orderkey, t1.o_custkey, t1.ps_partkey, t1.ps_suppkey, t1.agg1, t1.agg2, t1.agg3, t1.agg4, t1.agg5, t1.agg6
         """
 
@@ -321,7 +319,6 @@ suite("nested_mtmv_level_20") {
             from mv${i-1} as t1
             left join lineitem_1 as t2
             on t1.l_orderkey = t2.l_orderkey
-            where t1.agg2 > 2
             group by t2.l_orderkey, t2.l_partkey, t2.l_suppkey, t1.o_orderkey, t1.o_custkey, t1.ps_partkey, t1.ps_suppkey, t1.agg1, t1.agg2, t1.agg3, t1.agg4, t1.agg5, t1.agg6
             """
 
@@ -334,7 +331,6 @@ suite("nested_mtmv_level_20") {
             from (${query_list[i-3]}) as t1
             left join lineitem_1 as t2
             on t1.l_orderkey = t2.l_orderkey
-            where t1.agg2 > 2
             group by t2.l_orderkey, t2.l_partkey, t2.l_suppkey, t1.o_orderkey, t1.o_custkey, t1.ps_partkey, t1.ps_suppkey, t1.agg1, t1.agg2, t1.agg3, t1.agg4, t1.agg5, t1.agg6
             """
         explain {
