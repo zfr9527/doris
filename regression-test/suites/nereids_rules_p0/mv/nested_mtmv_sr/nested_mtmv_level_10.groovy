@@ -162,7 +162,7 @@ suite("nested_mtmv_level_10_sr") {
     def explain_check = { def cur_sql, def cur_mv_name ->
         sql "SET enable_materialized_view_rewrite=true"
         def explain_stmt = sql """explain ${cur_sql}"""
-        logger.info(explain_stmt)
+        logger.info("explain_stmt: " + explain_stmt)
         assertTrue(explain_stmt.indexOf(cur_mv_name) != -1)
     }
 
