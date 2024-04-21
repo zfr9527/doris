@@ -40,10 +40,10 @@ suite("nested_mtmv_level_20") {
     ) ENGINE=OLAP
     DUPLICATE KEY(`o_orderkey`, `o_custkey`)
     COMMENT 'OLAP'
-    auto partition by range (date_trunc(`o_orderdate`, 'day')) ()
+    partition by date_trunc('day', `o_orderdate`) 
     DISTRIBUTED BY HASH(`o_orderkey`) BUCKETS 96
     PROPERTIES (
-    "replication_allocation" = "tag.location.default: 1"
+    "replication_num" = "1"
     );"""
 
     sql """
@@ -70,10 +70,10 @@ suite("nested_mtmv_level_20") {
     ) ENGINE=OLAP
     DUPLICATE KEY(l_orderkey, l_linenumber, l_partkey, l_suppkey )
     COMMENT 'OLAP'
-    auto partition by range (date_trunc(`l_shipdate`, 'day')) ()
+    partition by date_trunc('day', `l_shipdate`)
     DISTRIBUTED BY HASH(`l_orderkey`) BUCKETS 96
     PROPERTIES (
-    "replication_allocation" = "tag.location.default: 1"
+    "replication_num" = "1"
     );"""
 
     sql """
@@ -91,7 +91,7 @@ suite("nested_mtmv_level_20") {
     COMMENT 'OLAP'
     DISTRIBUTED BY HASH(`ps_partkey`) BUCKETS 24
     PROPERTIES (
-    "replication_allocation" = "tag.location.default: 1"
+    "replication_num" = "1"
     );"""
 
     sql """
@@ -130,17 +130,17 @@ suite("nested_mtmv_level_20") {
     (3, null, 1, 99.5, 'yy'); 
     """
 
-    sql """analyze table orders_1 with sync;"""
-    sql """analyze table lineitem_1 with sync;"""
-    sql """analyze table partsupp_1 with sync;"""
+    sql """analyze table orders_1 with sync mode;"""
+    sql """analyze table lineitem_1 with sync mode;"""
+    sql """analyze table partsupp_1 with sync mode;"""
 
     def create_mv = { mv_name, mv_sql ->
         sql """DROP MATERIALIZED VIEW IF EXISTS ${mv_name};"""
         sql """DROP TABLE IF EXISTS ${mv_name}"""
         sql"""
         CREATE MATERIALIZED VIEW ${mv_name} 
-        BUILD IMMEDIATE REFRESH AUTO ON MANUAL 
         DISTRIBUTED BY RANDOM BUCKETS 2 
+        REFRESH ASYNC 
         PROPERTIES ('replication_num' = '1') 
         AS  
         ${mv_sql}
@@ -160,6 +160,25 @@ suite("nested_mtmv_level_20") {
             for (int col = 0; col < mv_origin_res[row].size(); col++) {
                 assertTrue(mv_origin_res[row][col] == origin_res[row][col])
             }
+        }
+    }
+
+    def explain_check = { def cur_sql, def cur_mv_name ->
+        sql "SET enable_materialized_view_rewrite=true"
+        def explain_stmt = sql """explain ${cur_sql}"""
+        logger.info("explain_stmt: " + explain_stmt)
+        assertTrue(explain_stmt.toString().indexOf(cur_mv_name.toString()) != -1)
+    }
+
+    def waitingMTMVTaskFinishedSR = { def cur_mv_name ->
+        sleep(2000)
+        def showStatus = "show materialized views  where name='${cur_mv_name}';"
+        while (true) {
+            def result = sql showStatus
+            if (result[0][4] == "true" && result[0][12] == "SUCCESS") {
+                break
+            }
+            sleep(2000)
         }
     }
 
@@ -222,17 +241,13 @@ suite("nested_mtmv_level_20") {
         """
 
     create_mv(mv_1, join_mv_1)
-    def job_name_1 = getJobName(db, mv_1)
-    waitingMTMVTaskFinished(job_name_1)
+    waitingMTMVTaskFinishedSR(mv_1)
 
     create_mv(mv_2, join_mv_2)
-    job_name_1 = getJobName(db, mv_2)
-    waitingMTMVTaskFinished(job_name_1)
+    waitingMTMVTaskFinishedSR(mv_2)
 
     create_mv(mv_3, join_mv_3)
-    job_name_1 = getJobName(db, mv_3)
-    waitingMTMVTaskFinished(job_name_1)
-
+    waitingMTMVTaskFinishedSR(mv_3)
 
     def sql_2 = """
         select l_orderkey, l_partkey, l_suppkey, o_orderkey, o_custkey, ps_partkey, ps_suppkey, 
@@ -295,17 +310,10 @@ suite("nested_mtmv_level_20") {
         group by t2.l_orderkey, t2.l_partkey, t2.l_suppkey, t1.o_orderkey, t1.o_custkey, t1.ps_partkey, t1.ps_suppkey, t1.agg1, t1.agg2, t1.agg3, t1.agg4, t1.agg5, t1.agg6
         """
 
-
-    explain {
-        sql("${sql_2}")
-        contains "${mv_2}(${mv_2})"
-    }
+    explain_check(sql_2, mv_2)
     compare_res(sql_2 + " order by 1,2,3,4,5,6,7,8,9,10,11,12,13")
 
-    explain {
-        sql("${sql_3}")
-        contains "${mv_3}(${mv_3})"
-    }
+    explain_check(sql_3, mv_3)
     compare_res(sql_3 + " order by 1,2,3,4,5,6,7,8,9,10,11,12,13")
 
 
@@ -344,8 +352,7 @@ suite("nested_mtmv_level_20") {
             """
 
         create_mv("mv${i}", join_mv_list[i-1])
-        job_name_1 = getJobName(db, "mv${i}")
-        waitingMTMVTaskFinished(job_name_1)
+        waitingMTMVTaskFinishedSR("mv${i}")
 
         query_list[i-2] = """
             select t2.l_orderkey, t2.l_partkey, t2.l_suppkey, t1.o_orderkey, t1.o_custkey, t1.ps_partkey, t1.ps_suppkey, t1.agg1, t1.agg2, t1.agg3, t1.agg4, t1.agg5, t1.agg6
@@ -354,10 +361,7 @@ suite("nested_mtmv_level_20") {
             on t1.l_orderkey = t2.l_orderkey
             group by t2.l_orderkey, t2.l_partkey, t2.l_suppkey, t1.o_orderkey, t1.o_custkey, t1.ps_partkey, t1.ps_suppkey, t1.agg1, t1.agg2, t1.agg3, t1.agg4, t1.agg5, t1.agg6
             """
-        explain {
-            sql("${query_list[i-2]}")
-            contains "mv${i}(mv${i})"
-        }
+        explain_check(query_list[i-2], "mv${i}")
         compare_res(query_list[i-2] + " order by 1,2,3,4,5,6,7,8,9,10,11,12,13")
 
         long start_time = System.currentTimeMillis()
