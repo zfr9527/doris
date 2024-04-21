@@ -212,7 +212,6 @@ suite("nested_mtmv_level_20_sr") {
         from lineitem_1
         inner join orders_1
         on lineitem_1.l_orderkey = orders_1.o_orderkey
-        where lineitem_1.l_shipdate >= "2023-10-17"
         group by l_orderkey, l_partkey, l_suppkey, o_orderkey, o_custkey
         """
     def join_mv_2 = """
@@ -226,7 +225,6 @@ suite("nested_mtmv_level_20_sr") {
         from ${mv_1} as t
         inner join partsupp_1
         on t.l_partkey = partsupp_1.ps_partkey and t.l_suppkey = partsupp_1.ps_suppkey
-        where partsupp_1.ps_suppkey > 1
         group by l_orderkey, l_partkey, l_suppkey, o_orderkey, o_custkey, ps_partkey, ps_suppkey, agg1, agg3, agg4, agg5, agg6
         """
     def join_mv_3 = """
@@ -265,12 +263,10 @@ suite("nested_mtmv_level_20_sr") {
             from lineitem_1
             inner join orders_1
             on lineitem_1.l_orderkey = orders_1.o_orderkey
-            where lineitem_1.l_shipdate >= "2023-10-17"
             group by l_orderkey, l_partkey, l_suppkey, o_orderkey, o_custkey
         ) as t
         inner join partsupp_1
         on t.l_partkey = partsupp_1.ps_partkey and t.l_suppkey = partsupp_1.ps_suppkey
-        where partsupp_1.ps_suppkey > 1
         group by l_orderkey, l_partkey, l_suppkey, o_orderkey, o_custkey, ps_partkey, ps_suppkey, agg1, agg3, agg4, agg5, agg6
         """
     def sql_3 = """
@@ -294,12 +290,10 @@ suite("nested_mtmv_level_20_sr") {
                 from lineitem_1
                 inner join orders_1
                 on lineitem_1.l_orderkey = orders_1.o_orderkey
-                where lineitem_1.l_shipdate >= "2023-10-17"
                 group by l_orderkey, l_partkey, l_suppkey, o_orderkey, o_custkey
             ) as t
             inner join partsupp_1
             on t.l_partkey = partsupp_1.ps_partkey and t.l_suppkey = partsupp_1.ps_suppkey
-            where partsupp_1.ps_suppkey > 1
             group by l_orderkey, l_partkey, l_suppkey, o_orderkey, o_custkey, ps_partkey, ps_suppkey, agg1, agg3, agg4, agg5, agg6
         ) as t1
         left join lineitem_1 as t2
