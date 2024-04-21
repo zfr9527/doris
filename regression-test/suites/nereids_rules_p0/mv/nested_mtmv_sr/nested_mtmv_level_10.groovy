@@ -163,7 +163,7 @@ suite("nested_mtmv_level_10_sr") {
         sql "SET enable_materialized_view_rewrite=true"
         def explain_stmt = sql """explain ${cur_sql}"""
         logger.info("explain_stmt: " + explain_stmt)
-        assertTrue(explain_stmt.indexOf(cur_mv_name) != -1)
+        assertTrue(explain_stmt.toString().indexOf(cur_mv_name.toString()) != -1)
     }
 
     def waitingMTMVTaskFinishedSR = { def cur_mv_name ->
