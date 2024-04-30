@@ -6,7 +6,7 @@ suite ("many_union_mtmv_rewrite") {
     sql "SET enable_fallback_to_original_planner=false"
     sql "SET enable_materialized_view_rewrite=true"
     sql "SET enable_nereids_timeout = false"
-//    sql "SET enable_materialized_view_nest_rewrite = true"
+    sql "SET enable_materialized_view_nest_rewrite = true"
 
     sql """
     drop table if exists orders_1
