@@ -570,29 +570,44 @@ suite("partition_mv_rewrite_dimension_1") {
     sql """DROP MATERIALIZED VIEW IF EXISTS ${predicate_mv_name_1};"""
 
     // Todo: project rewriting
-//    def rewriting_mv_name_1 = "rewriting_mv_name_1"
-//    def rewriting_mv_stmt_1 = """
-//        select o_orderdate, o_shippriority, o_comment, o_orderkey, o_shippriority + o_custkey,
-//        case when o_shippriority > 1 and o_orderkey IN (1, 3) then o_custkey else null end cnt_1,
-//        case when o_shippriority > 2 and o_orderkey IN (2) then o_custkey else null end as cnt_2
-//        from orders_1
-//        where  o_orderkey > 1 + 1;
-//        """
-//    create_async_mv(db, rewriting_mv_name_1, rewriting_mv_stmt_1)
-//    def rewriting_job_name_1 = getJobName(db, rewriting_mv_name_1)
-//    waitingMTMVTaskFinished(rewriting_job_name_1)
-//
-//    def rewriting_sql_1 = """select o_shippriority, o_comment, o_shippriority + o_custkey  + o_orderkey,
-//            case when o_shippriority > 1 and o_orderkey IN (1, 3) then o_custkey else null end cnt_1,
-//        case when o_shippriority > 2 and o_orderkey IN (2) then o_custkey else null end as cnt_2
-//            from orders_1
-//           where  o_orderkey > (-3) + 5;
-//        """
-//    explain {
-//        sql("${rewriting_sql_1}")
-//        contains "${rewriting_mv_name_1}(${rewriting_mv_name_1})"
-//    }
-//    sql """DROP MATERIALIZED VIEW IF EXISTS ${rewriting_mv_name_1};"""
+    def rewriting_mv_name_1 = "rewriting_mv_name_1"
+    def rewriting_mv_stmt_1 = """
+        select o_orderdate, o_shippriority, o_comment, o_orderkey, o_shippriority + o_custkey,
+        case when o_shippriority > 1 and o_orderkey IN (1, 3) then o_custkey else null end cnt_1,
+        case when o_shippriority > 2 and o_orderkey IN (2) then o_custkey else null end as cnt_2
+        from orders_1
+        where  o_orderkey > 1 + 1
+        """
+    create_mv_orders(rewriting_mv_name_1, rewriting_mv_stmt_1)
+    def rewriting_job_name_1 = getJobName(db, rewriting_mv_name_1)
+    waitingMTMVTaskFinished(rewriting_job_name_1)
+
+    def rewriting_sql_1 = """select o_shippriority, o_comment, o_shippriority + o_custkey  + o_orderkey,
+            case when o_shippriority > 1 and o_orderkey IN (1, 3) then o_custkey else null end cnt_1,
+        case when o_shippriority > 2 and o_orderkey IN (2) then o_custkey else null end as cnt_2
+            from orders_1
+           where  o_orderkey > (-3) + 5
+        """
+    explain {
+        sql("${rewriting_sql_1}")
+        contains "${rewriting_mv_name_1}(${rewriting_mv_name_1})"
+    }
+    compare_res(rewriting_sql_1 + " order by 1,2,3,4,5")
+    sql """DROP MATERIALIZED VIEW IF EXISTS ${rewriting_mv_name_1};"""
+
+
+    def create_mv_lineitem_without_partition = { mv_name, mv_sql ->
+        sql """DROP MATERIALIZED VIEW IF EXISTS ${mv_name};"""
+        sql """DROP TABLE IF EXISTS ${mv_name}"""
+        sql"""
+        CREATE MATERIALIZED VIEW ${mv_name} 
+        BUILD IMMEDIATE REFRESH AUTO ON MANUAL 
+        DISTRIBUTED BY RANDOM BUCKETS 2 
+        PROPERTIES ('replication_num' = '1')  
+        AS  
+        ${mv_sql}
+        """
+    }
 
     // single table
     mv_name_1 = "single_tb_mv_1"
@@ -622,7 +637,6 @@ suite("partition_mv_rewrite_dimension_1") {
 
     mv_rewrite_success(single_table_query_stmt_2, mv_name_1)
     compare_res(single_table_query_stmt_2 + " order by 1,2,3")
-
 
     single_table_mv_stmt_1 = """
         select sum(o_totalprice) as sum_total, 
@@ -687,7 +701,7 @@ suite("partition_mv_rewrite_dimension_1") {
     mv_rewrite_success(single_table_query_stmt_1, mv_name_1)
     compare_res(single_table_query_stmt_1 + " order by 1,2,3")
 
-// not supported currently
+    // not supported currently
 //    single_table_mv_stmt_1 = """
 //        select l_Shipdate, l_partkey, l_suppkey
 //        from lineitem_1
