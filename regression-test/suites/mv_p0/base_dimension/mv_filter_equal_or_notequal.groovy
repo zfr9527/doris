@@ -15,33 +15,10 @@
 // specific language governing permissions and limitations
 // under the License.
 
-suite("filter_equal_or_notequal_case") {
+suite("mv_filter_equal_or_notequal_case") {
 
     String db = context.config.getDbNameByFile(context.file)
     sql "use ${db}"
-
-    sql """
-    drop table if exists orders_1
-    """
-
-    sql """CREATE TABLE `orders_1` (
-      `o_orderkey` BIGINT NULL,
-      `o_custkey` INT NULL,
-      `o_orderstatus` VARCHAR(1) NULL,
-      `o_totalprice` DECIMAL(15, 2)  NULL,
-      `o_orderpriority` VARCHAR(15) NULL,
-      `o_clerk` VARCHAR(15) NULL,
-      `o_shippriority` INT NULL,
-      `o_comment` VARCHAR(79) NULL,
-      `o_orderdate` DATE not NULL
-    ) ENGINE=OLAP
-    DUPLICATE KEY(`o_orderkey`, `o_custkey`)
-    COMMENT 'OLAP'
-    auto partition by range (date_trunc(`o_orderdate`, 'day')) ()
-    DISTRIBUTED BY HASH(`o_orderkey`) BUCKETS 96
-    PROPERTIES (
-    "replication_allocation" = "tag.location.default: 1"
-    );"""
 
     sql """
     drop table if exists lineitem_1
@@ -74,20 +51,6 @@ suite("filter_equal_or_notequal_case") {
     );"""
 
     sql """
-    insert into orders_1 values 
-    (null, 1, 'k', 99.5, 'a', 'b', 1, 'yy', '2023-10-17'),
-    (1, null, 'o', 109.2, 'c','d',2, 'mm', '2023-10-17'),
-    (3, 3, null, 99.5, 'a', 'b', 1, 'yy', '2023-10-19'),
-    (1, 2, 'o', null, 'a', 'b', 1, 'yy', '2023-10-20'),
-    (2, 3, 'k', 109.2, null,'d',2, 'mm', '2023-10-21'),
-    (3, 1, 'k', 99.5, 'a', null, 1, 'yy', '2023-10-22'),
-    (1, 3, 'o', 99.5, 'a', 'b', null, 'yy', '2023-10-19'),
-    (2, 1, 'o', 109.2, 'c','d',2, null, '2023-10-18'),
-    (3, 2, 'k', 99.5, 'a', 'b', 1, 'yy', '2023-10-17'),
-    (4, 5, 'k', 99.5, 'a', 'b', 1, 'yy', '2023-10-19'); 
-    """
-
-    sql """
     insert into lineitem_1 values 
     (null, 1, 2, 3, 5.5, 6.5, 7.5, 8.5, 'o', 'k', '2023-10-17', '2023-10-17', 'a', 'b', 'yyyyyyyyy', '2023-10-17'),
     (1, null, 3, 1, 5.5, 6.5, 7.5, 8.5, 'o', 'k', '2023-10-18', '2023-10-18', 'a', 'b', 'yyyyyyyyy', '2023-10-17'),
@@ -102,29 +65,9 @@ suite("filter_equal_or_notequal_case") {
     sql """analyze table lineitem_1 with sync;"""
 
     def create_mv_lineitem = { mv_name, mv_sql ->
-        sql """DROP MATERIALIZED VIEW IF EXISTS ${mv_name};"""
-        sql """DROP TABLE IF EXISTS ${mv_name}"""
+        sql """DROP MATERIALIZED VIEW IF EXISTS ${mv_name} ON lineitem_1;"""
         sql"""
-        CREATE MATERIALIZED VIEW ${mv_name} 
-        BUILD IMMEDIATE REFRESH AUTO ON MANUAL 
-        partition by(l_shipdate) 
-        DISTRIBUTED BY RANDOM BUCKETS 2 
-        PROPERTIES ('replication_num' = '1')  
-        AS  
-        ${mv_sql}
-        """
-    }
-
-    def create_mv_orders = { mv_name, mv_sql ->
-        sql """DROP MATERIALIZED VIEW IF EXISTS ${mv_name};"""
-        sql """DROP TABLE IF EXISTS ${mv_name}"""
-        sql"""
-        CREATE MATERIALIZED VIEW ${mv_name} 
-        BUILD IMMEDIATE REFRESH AUTO ON MANUAL 
-        partition by(o_orderdate) 
-        DISTRIBUTED BY RANDOM BUCKETS 2 
-        PROPERTIES ('replication_num' = '1') 
-        AS  
+        CREATE MATERIALIZED VIEW ${mv_name} AS  
         ${mv_sql}
         """
     }
@@ -145,29 +88,24 @@ suite("filter_equal_or_notequal_case") {
         }
     }
 
-    def mv_name = "mv_1"
-    def mtmv_sql = """
-        select l_shipdate, o_orderdate, l_partkey, l_suppkey, o_orderkey
+    def tb_lineitem = "lineitem_1"
+
+    def mv_name = "mv1"
+    def mv_sql = """
+        select l_shipdate, l_partkey, l_suppkey
         from lineitem_1 
-        left join orders_1 
-        on lineitem_1.l_orderkey = orders_1.o_orderkey
         where l_shipdate = '2023-10-17'
         """
 
-    create_mv_lineitem(mv_name, mtmv_sql)
-    def job_name = getJobName(db, mv_name)
-    waitingMTMVTaskFinished(job_name)
+    create_mv_lineitem(mv_name, mv_sql)
+    waitingMVTaskFinished(tb_lineitem, mv_name)
 
     // mv equal and sql equal
     def query_sql = """
-        select l_shipdate, o_orderdate, l_partkey, l_suppkey  
+        select l_shipdate, l_partkey, l_suppkey  
         from lineitem_1 
-        left join orders_1 
-        on lineitem_1.l_orderkey = orders_1.o_orderkey
         where l_shipdate = '2023-10-17'
         """
-    def res_tmp = sql """explain ${query_sql}"""
-    logger.info("res_temp:" + res_tmp)
     explain {
         sql("${query_sql}")
         contains "${mv_name}(${mv_name})"
@@ -176,10 +114,8 @@ suite("filter_equal_or_notequal_case") {
 
     // mv equal and sql not equal
     query_sql = """
-        select l_shipdate, o_orderdate, l_partkey, l_suppkey 
+        select l_shipdate, l_partkey, l_suppkey 
         from lineitem_1 
-        left join orders_1 
-        on lineitem_1.l_orderkey = orders_1.o_orderkey
         where l_shipdate != '2023-10-17'
         """
     explain {
@@ -200,24 +136,20 @@ suite("filter_equal_or_notequal_case") {
         notContains "${mv_name}(${mv_name})"
     }
 
-    mtmv_sql = """
-        select l_shipdate, o_orderdate, l_partkey, l_suppkey, o_orderkey 
+    mv_name = "mv2"
+    mv_sql = """
+        select l_shipdate, l_partkey, l_suppkey  
         from lineitem_1 
-        left join orders_1 
-        on lineitem_1.l_orderkey = orders_1.o_orderkey
         where l_shipdate != '2023-10-17'
         """
 
-    create_mv_lineitem(mv_name, mtmv_sql)
-    job_name = getJobName(db, mv_name)
-    waitingMTMVTaskFinished(job_name)
+    create_mv_lineitem(mv_name, mv_sql)
+    waitingMVTaskFinished(tb_lineitem, mv_name)
 
     // mv not equal and sql equal
     query_sql = """
-        select l_shipdate, o_orderdate, l_partkey, l_suppkey 
+        select l_shipdate, l_partkey, l_suppkey 
         from lineitem_1 
-        left join orders_1 
-        on lineitem_1.l_orderkey = orders_1.o_orderkey
         where l_shipdate = '2023-10-17'
         """
     explain {
@@ -227,10 +159,8 @@ suite("filter_equal_or_notequal_case") {
 
     // mv not equal and sql not equal
     query_sql = """
-        select l_shipdate, o_orderdate, l_partkey, l_suppkey 
+        select l_shipdate, l_partkey, l_suppkey 
         from lineitem_1 
-        left join orders_1 
-        on lineitem_1.l_orderkey = orders_1.o_orderkey
         where l_shipdate != '2023-10-17'
         """
     explain {
@@ -239,25 +169,20 @@ suite("filter_equal_or_notequal_case") {
     }
     compare_res(query_sql + " order by 1,2,3,4")
 
-
-    mtmv_sql = """
-        select l_shipdate, o_orderdate, l_partkey, l_suppkey, o_orderkey  
+    mv_name = "mv3"
+    mv_sql = """
+        select l_shipdate, l_partkey, l_suppkey   
         from lineitem_1 
-        left join orders_1 
-        on lineitem_1.l_orderkey = orders_1.o_orderkey
         where l_shipdate > '2023-10-17'
         """
 
-    create_mv_lineitem(mv_name, mtmv_sql)
-    job_name = getJobName(db, mv_name)
-    waitingMTMVTaskFinished(job_name)
+    create_mv_lineitem(mv_name, mv_sql)
+    waitingMVTaskFinished(tb_lineitem, mv_name)
 
     // mv is range and sql equal and filter not in mv range
     query_sql = """
-        select l_shipdate, o_orderdate, l_partkey, l_suppkey 
+        select l_shipdate, l_partkey, l_suppkey 
         from lineitem_1 
-        left join orders_1 
-        on lineitem_1.l_orderkey = orders_1.o_orderkey
         where l_shipdate = '2023-10-16'
         """
     explain {
@@ -267,10 +192,8 @@ suite("filter_equal_or_notequal_case") {
 
     // mv is range and sql equal and filter in mv range
     query_sql = """
-        select l_shipdate, o_orderdate, l_partkey, l_suppkey 
+        select l_shipdate, l_partkey, l_suppkey 
         from lineitem_1 
-        left join orders_1 
-        on lineitem_1.l_orderkey = orders_1.o_orderkey
         where l_shipdate = '2023-10-17'
         """
     explain {
@@ -280,10 +203,8 @@ suite("filter_equal_or_notequal_case") {
 
     // mv is range and sql equal and filter in mv range
     query_sql = """
-        select l_shipdate, o_orderdate, l_partkey, l_suppkey
+        select l_shipdate, l_partkey, l_suppkey
         from lineitem_1
-        left join orders_1
-        on lineitem_1.l_orderkey = orders_1.o_orderkey
         where l_shipdate = '2023-10-19'
         """
     explain {
@@ -294,10 +215,8 @@ suite("filter_equal_or_notequal_case") {
 
     // mv is range and sql is range and sql range is bigger than mv
     query_sql = """
-        select l_shipdate, o_orderdate, l_partkey, l_suppkey 
+        select l_shipdate, l_partkey, l_suppkey 
         from lineitem_1 
-        left join orders_1 
-        on lineitem_1.l_orderkey = orders_1.o_orderkey
         where l_shipdate > '2023-10-16'
         """
     explain {
@@ -307,10 +226,8 @@ suite("filter_equal_or_notequal_case") {
 
     // mv is range and sql is range and sql range is not in mv range
     query_sql = """
-        select l_shipdate, o_orderdate, l_partkey, l_suppkey 
+        select l_shipdate, l_partkey, l_suppkey 
         from lineitem_1 
-        left join orders_1 
-        on lineitem_1.l_orderkey = orders_1.o_orderkey
         where l_shipdate < '2023-10-16'
         """
     explain {
@@ -320,10 +237,8 @@ suite("filter_equal_or_notequal_case") {
 
     // mv is range and sql is range and sql range is bigger than mv
     query_sql = """
-        select l_shipdate, o_orderdate, l_partkey, l_suppkey 
+        select l_shipdate, l_partkey, l_suppkey 
         from lineitem_1 
-        left join orders_1 
-        on lineitem_1.l_orderkey = orders_1.o_orderkey
         where l_shipdate > '2023-10-17'
         """
     explain {
@@ -334,10 +249,8 @@ suite("filter_equal_or_notequal_case") {
 
     // mv is range and sql is range and sql range is not in mv range
     query_sql = """
-        select l_shipdate, o_orderdate, l_partkey, l_suppkey 
+        select l_shipdate, l_partkey, l_suppkey 
         from lineitem_1 
-        left join orders_1 
-        on lineitem_1.l_orderkey = orders_1.o_orderkey
         where l_shipdate < '2023-10-17'
         """
     explain {
@@ -347,10 +260,8 @@ suite("filter_equal_or_notequal_case") {
 
     // mv is range and sql is range and sql range is bigger than mv
     query_sql = """
-        select l_shipdate, o_orderdate, l_partkey, l_suppkey
+        select l_shipdate, l_partkey, l_suppkey
         from lineitem_1
-        left join orders_1
-        on lineitem_1.l_orderkey = orders_1.o_orderkey
         where l_shipdate > '2023-10-18'
         """
     explain {
@@ -361,10 +272,8 @@ suite("filter_equal_or_notequal_case") {
 
     // mv is range and sql is range and sql range is not in mv range
     query_sql = """
-        select l_shipdate, o_orderdate, l_partkey, l_suppkey 
+        select l_shipdate, l_partkey, l_suppkey 
         from lineitem_1 
-        left join orders_1 
-        on lineitem_1.l_orderkey = orders_1.o_orderkey
         where l_shipdate < '2023-10-19'
         """
     explain {
@@ -374,10 +283,8 @@ suite("filter_equal_or_notequal_case") {
 
     // mv is range and sql is range and sql range is bigger than mv
     query_sql = """
-        select l_shipdate, o_orderdate, l_partkey, l_suppkey  
+        select l_shipdate, l_partkey, l_suppkey  
         from lineitem_1 
-        left join orders_1 
-        on lineitem_1.l_orderkey = orders_1.o_orderkey
         where l_shipdate > '2023-10-16' and l_shipdate < '2023-10-17'
         """
     explain {
@@ -387,10 +294,8 @@ suite("filter_equal_or_notequal_case") {
 
     // mv is range and sql is range and sql range is not in mv range
     query_sql = """
-        select l_shipdate, o_orderdate, l_partkey, l_suppkey 
+        select l_shipdate, l_partkey, l_suppkey 
         from lineitem_1 
-        left join orders_1 
-        on lineitem_1.l_orderkey = orders_1.o_orderkey
         where l_shipdate > '2023-10-17' and l_shipdate < '2023-10-19'
         """
     explain {
@@ -401,10 +306,8 @@ suite("filter_equal_or_notequal_case") {
 
     // sql range is not in mv range
     query_sql = """
-        select l_shipdate, o_orderdate, l_partkey, l_suppkey 
+        select l_shipdate, l_partkey, l_suppkey 
         from lineitem_1 
-        left join orders_1 
-        on lineitem_1.l_orderkey = orders_1.o_orderkey
         where l_shipdate in ('2023-10-17')
         """
     explain {
@@ -415,10 +318,8 @@ suite("filter_equal_or_notequal_case") {
     // sql range is in mv range
     // single value
     query_sql = """
-        select l_shipdate, o_orderdate, l_partkey, l_suppkey
+        select l_shipdate, l_partkey, l_suppkey
         from lineitem_1
-        left join orders_1
-        on lineitem_1.l_orderkey = orders_1.o_orderkey
         where l_shipdate in ('2023-10-18')
         """
     explain {
@@ -429,10 +330,8 @@ suite("filter_equal_or_notequal_case") {
 
     // multi value
     query_sql = """
-        select l_shipdate, o_orderdate, l_partkey, l_suppkey
+        select l_shipdate, l_partkey, l_suppkey
         from lineitem_1
-        left join orders_1
-        on lineitem_1.l_orderkey = orders_1.o_orderkey
         where l_shipdate in ('2023-10-18', '2023-11-18')
         """
     explain {
@@ -443,10 +342,8 @@ suite("filter_equal_or_notequal_case") {
 
     // sql range like mv range
     query_sql = """
-        select l_shipdate, o_orderdate, l_partkey, l_suppkey 
+        select l_shipdate, l_partkey, l_suppkey 
         from lineitem_1 
-        left join orders_1 
-        on lineitem_1.l_orderkey = orders_1.o_orderkey
         where l_shipdate like "%2023-10-18%"
         """
     explain {
@@ -456,10 +353,8 @@ suite("filter_equal_or_notequal_case") {
 
     // sql range is null
     query_sql = """
-        select l_shipdate, o_orderdate, l_partkey, l_suppkey 
+        select l_shipdate, l_partkey, l_suppkey 
         from lineitem_1 
-        left join orders_1 
-        on lineitem_1.l_orderkey = orders_1.o_orderkey
         where l_shipdate is null
         """
     explain {
@@ -469,10 +364,8 @@ suite("filter_equal_or_notequal_case") {
 
     // sql range is not null
     query_sql = """
-        select l_shipdate, o_orderdate, l_partkey, l_suppkey  
+        select l_shipdate, l_partkey, l_suppkey  
         from lineitem_1 
-        left join orders_1 
-        on lineitem_1.l_orderkey = orders_1.o_orderkey
         where l_shipdate is not null
         """
     explain {
@@ -480,24 +373,20 @@ suite("filter_equal_or_notequal_case") {
         notContains "${mv_name}(${mv_name})"
     }
 
-    mtmv_sql = """
-        select l_shipdate, o_orderdate, l_partkey, l_suppkey, o_orderkey  
+    mv_name = "mv4"
+    mv_sql = """
+        select l_shipdate, l_partkey, l_suppkey  
         from lineitem_1 
-        left join orders_1 
-        on lineitem_1.l_orderkey = orders_1.o_orderkey
         where l_shipdate > '2023-10-16' and l_shipdate < '2023-10-19'
         """
 
-    create_mv_lineitem(mv_name, mtmv_sql)
-    job_name = getJobName(db, mv_name)
-    waitingMTMVTaskFinished(job_name)
+    create_mv_lineitem(mv_name, mv_sql)
+    waitingMVTaskFinished(tb_lineitem, mv_name)
 
     // mv is range and sql is range and filter not in mv range
     query_sql = """
-        select l_shipdate, o_orderdate, l_partkey, l_suppkey
+        select l_shipdate, l_partkey, l_suppkey
         from lineitem_1
-        left join orders_1
-        on lineitem_1.l_orderkey = orders_1.o_orderkey
         where l_shipdate > '2023-10-16' and l_shipdate < '2023-10-19'
         """
     explain {
@@ -508,10 +397,8 @@ suite("filter_equal_or_notequal_case") {
 
 
     query_sql = """
-        select l_shipdate, o_orderdate, l_partkey, l_suppkey
+        select l_shipdate, l_partkey, l_suppkey
         from lineitem_1
-        left join orders_1
-        on lineitem_1.l_orderkey = orders_1.o_orderkey
         where l_shipdate > '2023-10-17' and l_shipdate < '2023-10-19'
         """
     explain {
@@ -521,24 +408,20 @@ suite("filter_equal_or_notequal_case") {
     compare_res(query_sql + " order by 1,2,3,4")
 
     //
-    mtmv_sql = """
-        select l_shipdate, o_orderdate, l_partkey, l_suppkey, o_orderkey  
+    mv_name = "mv5"
+    mv_sql = """
+        select l_shipdate, l_partkey, l_suppkey   
         from lineitem_1 
-        left join orders_1 
-        on lineitem_1.l_orderkey = orders_1.o_orderkey
         where l_shipdate in ('2023-10-17', '2023-10-18', '2023-10-19')
         """
 
-    create_mv_lineitem(mv_name, mtmv_sql)
-    job_name = getJobName(db, mv_name)
-    waitingMTMVTaskFinished(job_name)
+    create_mv_lineitem(mv_name, mv_sql)
+    waitingMVTaskFinished(tb_lineitem, mv_name)
 
     // mv is in range and sql is in range and filter is in mv range
     query_sql = """
-        select l_shipdate, o_orderdate, l_partkey, l_suppkey 
+        select l_shipdate, l_partkey, l_suppkey 
         from lineitem_1 
-        left join orders_1 
-        on lineitem_1.l_orderkey = orders_1.o_orderkey
         where l_shipdate in ('2023-10-17', '2023-10-18', '2023-10-19')
         """
     explain {
@@ -549,10 +432,8 @@ suite("filter_equal_or_notequal_case") {
 
     // mv is in range and sql is in range and filter is not in mv range
     query_sql = """
-        select l_shipdate, o_orderdate, l_partkey, l_suppkey 
+        select l_shipdate, l_partkey, l_suppkey 
         from lineitem_1 
-        left join orders_1 
-        on lineitem_1.l_orderkey = orders_1.o_orderkey
         where l_shipdate not in ('2023-10-17', '2023-10-18', '2023-10-19')
         """
     explain {
@@ -560,24 +441,20 @@ suite("filter_equal_or_notequal_case") {
         notContains "${mv_name}(${mv_name})"
     }
 
-    mtmv_sql = """
-        select l_shipdate, o_orderdate, l_partkey, l_suppkey, o_orderkey  
+    mv_name = "mv6"
+    mv_sql = """
+        select l_shipdate, l_partkey, l_suppkey   
         from lineitem_1 
-        left join orders_1 
-        on lineitem_1.l_orderkey = orders_1.o_orderkey
         where l_shipdate like "%2023-10-17%"
         """
 
-    create_mv_lineitem(mv_name, mtmv_sql)
-    job_name = getJobName(db, mv_name)
-    waitingMTMVTaskFinished(job_name)
+    create_mv_lineitem(mv_name, mv_sql)
+    waitingMVTaskFinished(tb_lineitem, mv_name)
 
     // mv is like filter and sql is like filter and filter number is equal
     query_sql = """
-        select l_shipdate, o_orderdate, l_partkey, l_suppkey 
+        select l_shipdate, l_partkey, l_suppkey 
         from lineitem_1 
-        left join orders_1 
-        on lineitem_1.l_orderkey = orders_1.o_orderkey
         where l_shipdate like "%2023-10-17%"
         """
     explain {
@@ -588,10 +465,8 @@ suite("filter_equal_or_notequal_case") {
 
     // mv is like filter and sql is not like filter
     query_sql = """
-        select l_shipdate, o_orderdate, l_partkey, l_suppkey 
+        select l_shipdate, l_partkey, l_suppkey 
         from lineitem_1 
-        left join orders_1 
-        on lineitem_1.l_orderkey = orders_1.o_orderkey
         where l_shipdate like "%2023-10-17%"
         """
     explain {
@@ -602,23 +477,19 @@ suite("filter_equal_or_notequal_case") {
 
     // Todo: It is not currently supported and is expected to be
     // between .. and ..
-    mtmv_sql = """
-        select l_shipdate, o_orderdate, l_partkey, l_suppkey, o_orderkey
+    mv_name = "mv7"
+    mv_sql = """
+        select l_shipdate, l_partkey, l_suppkey
         from lineitem_1
-        left join orders_1
-        on lineitem_1.l_orderkey = orders_1.o_orderkey
         where l_shipdate between '2023-10-16' and '2023-10-19'
         """
 
-    create_mv_lineitem(mv_name, mtmv_sql)
-    job_name = getJobName(db, mv_name)
-    waitingMTMVTaskFinished(job_name)
+    create_mv_lineitem(mv_name, mv_sql)
+    waitingMVTaskFinished(tb_lineitem, mv_name)
 
     query_sql = """
-        select l_shipdate, o_orderdate, l_partkey, l_suppkey
+        select l_shipdate, l_partkey, l_suppkey
         from lineitem_1
-        left join orders_1
-        on lineitem_1.l_orderkey = orders_1.o_orderkey
         where l_shipdate between '2023-10-17' and '2023-10-19'
         """
     explain {
