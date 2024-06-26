@@ -27,10 +27,10 @@ suite("mtmv_range_date_part_up_rewrite", "zfr_mtmv_test") {
     sql "SET enable_nereids_timeout = false"
 
     sql """
-    drop table if exists lineitem_range_date
+    drop table if exists lineitem_range_date_union
     """
 
-    sql """CREATE TABLE `lineitem_range_date` (
+    sql """CREATE TABLE `lineitem_range_date_union` (
       `l_orderkey` BIGINT NULL,
       `l_linenumber` INT NULL,
       `l_partkey` INT NULL,
@@ -60,10 +60,10 @@ suite("mtmv_range_date_part_up_rewrite", "zfr_mtmv_test") {
     );"""
 
     sql """
-    drop table if exists orders_range_date
+    drop table if exists orders_range_date_union
     """
 
-    sql """CREATE TABLE `orders_range_date` (
+    sql """CREATE TABLE `orders_range_date_union` (
       `o_orderkey` BIGINT NULL,
       `o_custkey` INT NULL,
       `o_orderstatus` VARCHAR(1) NULL,
@@ -88,7 +88,7 @@ suite("mtmv_range_date_part_up_rewrite", "zfr_mtmv_test") {
     );"""
 
     sql """
-    insert into lineitem_range_date values 
+    insert into lineitem_range_date_union values 
     (null, 1, 2, 3, 5.5, 6.5, 7.5, 8.5, 'o', 'k', '2023-10-17', '2023-10-17', 'a', 'b', 'yyyyyyyyy', '2023-10-29'),
     (1, null, 3, 1, 5.5, 6.5, 7.5, 8.5, 'o', 'k', '2023-10-18', '2023-10-18', 'a', 'b', 'yyyyyyyyy', '2023-10-29'),
     (3, 3, null, 2, 7.5, 8.5, 9.5, 10.5, 'k', 'o', '2023-10-19', '2023-10-19', 'c', 'd', 'xxxxxxxxx', '2023-10-31'),
@@ -99,7 +99,7 @@ suite("mtmv_range_date_part_up_rewrite", "zfr_mtmv_test") {
     """
 
     sql """
-    insert into orders_range_date values 
+    insert into orders_range_date_union values 
     (null, 1, 'k', 99.5, 'a', 'b', 1, 'yy', '2023-10-29'),
     (1, null, 'o', 109.2, 'c','d',2, 'mm', '2023-10-29'),
     (3, 3, null, 99.5, 'a', 'b', 1, 'yy', '2023-10-30'),
@@ -112,16 +112,16 @@ suite("mtmv_range_date_part_up_rewrite", "zfr_mtmv_test") {
     (4, 5, 'k', 99.5, 'a', 'b', 1, 'yy', '2023-10-31'); 
     """
 
-    sql """DROP MATERIALIZED VIEW if exists mv1;"""
-    sql """CREATE MATERIALIZED VIEW mv1 BUILD IMMEDIATE REFRESH AUTO ON MANUAL partition by(date_trunc(`col1`, 'month')) DISTRIBUTED BY RANDOM BUCKETS 2 PROPERTIES ('replication_num' = '1') AS  
-        select date_trunc(`l_shipdate`, 'day') as col1, l_shipdate, l_orderkey from lineitem_range_date as t1 left join orders_range_date as t2 on t1.l_orderkey = t2.o_orderkey group by col1, l_shipdate, l_orderkey;"""
+    sql """DROP MATERIALIZED VIEW if exists ${mv_prefix}_mv1;"""
+    sql """CREATE MATERIALIZED VIEW ${mv_prefix}_mv1 BUILD IMMEDIATE REFRESH AUTO ON MANUAL partition by(date_trunc(`col1`, 'month')) DISTRIBUTED BY RANDOM BUCKETS 2 PROPERTIES ('replication_num' = '1') AS  
+        select date_trunc(`l_shipdate`, 'day') as col1, l_shipdate, l_orderkey from lineitem_range_date_union as t1 left join orders_range_date_union as t2 on t1.l_orderkey = t2.o_orderkey group by col1, l_shipdate, l_orderkey;"""
 
-    sql """DROP MATERIALIZED VIEW if exists mv2;"""
-    sql """CREATE MATERIALIZED VIEW mv2 BUILD IMMEDIATE REFRESH AUTO ON MANUAL partition by(date_trunc(`col1`, 'month')) DISTRIBUTED BY RANDOM BUCKETS 2 PROPERTIES ('replication_num' = '1') AS  
-        select date_trunc(`l_shipdate`, 'hour') as col1, l_shipdate, l_orderkey from lineitem_range_date as t1 left join orders_range_date as t2 on t1.l_orderkey = t2.o_orderkey group by col1, l_shipdate, l_orderkey;"""
+    sql """DROP MATERIALIZED VIEW if exists ${mv_prefix}_mv2;"""
+    sql """CREATE MATERIALIZED VIEW ${mv_prefix}_mv2 BUILD IMMEDIATE REFRESH AUTO ON MANUAL partition by(date_trunc(`col1`, 'month')) DISTRIBUTED BY RANDOM BUCKETS 2 PROPERTIES ('replication_num' = '1') AS  
+        select date_trunc(`l_shipdate`, 'hour') as col1, l_shipdate, l_orderkey from lineitem_range_date_union as t1 left join orders_range_date_union as t2 on t1.l_orderkey = t2.o_orderkey group by col1, l_shipdate, l_orderkey;"""
 
-    def sql1 = """select date_trunc(`l_shipdate`, 'day') as col1, l_shipdate, l_orderkey from lineitem_range_date as t1 left join orders_range_date as t2 on t1.l_orderkey = t2.o_orderkey group by col1, l_shipdate, l_orderkey"""
-    def sql2 = """select date_trunc(`l_shipdate`, 'hour') as col1, l_shipdate, l_orderkey from lineitem_range_date as t1 left join orders_range_date as t2 on t1.l_orderkey = t2.o_orderkey group by col1, l_shipdate, l_orderkey"""
+    def sql1 = """select date_trunc(`l_shipdate`, 'day') as col1, l_shipdate, l_orderkey from lineitem_range_date_union as t1 left join orders_range_date_union as t2 on t1.l_orderkey = t2.o_orderkey group by col1, l_shipdate, l_orderkey"""
+    def sql2 = """select date_trunc(`l_shipdate`, 'hour') as col1, l_shipdate, l_orderkey from lineitem_range_date_union as t1 left join orders_range_date_union as t2 on t1.l_orderkey = t2.o_orderkey group by col1, l_shipdate, l_orderkey"""
 
     def localWaitingMTMVTaskFinished = { def jobName ->
         Thread.sleep(2000);
@@ -161,7 +161,7 @@ suite("mtmv_range_date_part_up_rewrite", "zfr_mtmv_test") {
     }
 
     def query_stmt_list = [sql1, sql2]
-    def mv_name_list = ["mv1", "mv2"]
+    def mv_name_list = ["${mv_prefix}_mv1", "${mv_prefix}_mv2"]
     for (int i = 0; i < mv_name_list.size(); i++) {
         def job_name = getJobName(db, mv_name_list[i])
         waitingMTMVTaskFinished(job_name)
@@ -173,8 +173,8 @@ suite("mtmv_range_date_part_up_rewrite", "zfr_mtmv_test") {
     }
 
 
-    sql """alter table lineitem_range_date add partition p4 values [("2023-11-01"), ("2023-11-02"));"""
-    sql """insert into lineitem_range_date values 
+    sql """alter table lineitem_range_date_union add partition p4 values [("2023-11-01"), ("2023-11-02"));"""
+    sql """insert into lineitem_range_date_union values 
         (1, null, 3, 1, 5.5, 6.5, 7.5, 8.5, 'o', 'k', '2023-10-18', '2023-10-18', 'a', 'b', 'yyyyyyyyy', '2023-11-01')"""
     for (int i = 0; i < mv_name_list.size(); i++) {
         explain {
@@ -193,7 +193,7 @@ suite("mtmv_range_date_part_up_rewrite", "zfr_mtmv_test") {
         compare_res(query_stmt_list[i] + " order by 1,2,3")
     }
 
-    sql """insert into lineitem_range_date values 
+    sql """insert into lineitem_range_date_union values 
         (2, null, 3, 1, 5.5, 6.5, 7.5, 8.5, 'o', 'k', '2023-10-18', '2023-10-18', 'a', 'b', 'yyyyyyyyy', '2023-11-01');"""
     for (int i = 0; i < mv_name_list.size(); i++) {
         explain {
@@ -212,7 +212,7 @@ suite("mtmv_range_date_part_up_rewrite", "zfr_mtmv_test") {
         compare_res(query_stmt_list[i] + " order by 1,2,3")
     }
 
-    sql """ALTER TABLE lineitem_range_date DROP PARTITION IF EXISTS p4 FORCE"""
+    sql """ALTER TABLE lineitem_range_date_union DROP PARTITION IF EXISTS p4 FORCE"""
     for (int i = 0; i < mv_name_list.size(); i++) {
         explain {
             sql("${query_stmt_list[i]}")

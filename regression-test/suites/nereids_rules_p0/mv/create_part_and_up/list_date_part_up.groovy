@@ -23,6 +23,8 @@ suite("mtmv_list_date_part_up", "zfr_mtmv_test") {
     sql "SET enable_fallback_to_original_planner=false"
     sql "SET enable_materialized_view_rewrite=true"
     sql "SET enable_nereids_timeout = false"
+    String mv_prefix = "list_date_up"
+
 
     sql """
     drop table if exists lineitem_list_varchar
@@ -57,50 +59,50 @@ suite("mtmv_list_date_part_up", "zfr_mtmv_test") {
     "replication_allocation" = "tag.location.default: 1"
     );"""
 
-    sql """DROP MATERIALIZED VIEW if exists mv1;"""
-    sql """CREATE MATERIALIZED VIEW mv1 BUILD IMMEDIATE REFRESH AUTO ON MANUAL partition by(col1) DISTRIBUTED BY RANDOM BUCKETS 2 PROPERTIES ('replication_num' = '1') AS  
+    sql """DROP MATERIALIZED VIEW if exists ${mv_prefix}_mv1;"""
+    sql """CREATE MATERIALIZED VIEW ${mv_prefix}_mv1 BUILD IMMEDIATE REFRESH AUTO ON MANUAL partition by(col1) DISTRIBUTED BY RANDOM BUCKETS 2 PROPERTIES ('replication_num' = '1') AS  
         select l_shipdate as col1 from lineitem_list_varchar;"""
 
-    sql """DROP MATERIALIZED VIEW if exists mv2_1;"""
-    sql """CREATE MATERIALIZED VIEW mv2_1 BUILD IMMEDIATE REFRESH AUTO ON MANUAL partition by(col1) DISTRIBUTED BY RANDOM BUCKETS 2 PROPERTIES ('replication_num' = '1') AS
+    sql """DROP MATERIALIZED VIEW if exists ${mv_prefix}_mv2_1;"""
+    sql """CREATE MATERIALIZED VIEW ${mv_prefix}_mv2_1 BUILD IMMEDIATE REFRESH AUTO ON MANUAL partition by(col1) DISTRIBUTED BY RANDOM BUCKETS 2 PROPERTIES ('replication_num' = '1') AS
         select date_trunc(`l_shipdate`, 'day') as col1 from lineitem_list_varchar;"""
 
-    sql """DROP MATERIALIZED VIEW if exists mv2_2;"""
-    sql """CREATE MATERIALIZED VIEW mv2_2 BUILD IMMEDIATE REFRESH AUTO ON MANUAL partition by(l_shipdate) DISTRIBUTED BY RANDOM BUCKETS 2 PROPERTIES ('replication_num' = '1') AS  
+    sql """DROP MATERIALIZED VIEW if exists ${mv_prefix}_mv2_2;"""
+    sql """CREATE MATERIALIZED VIEW ${mv_prefix}_mv2_2 BUILD IMMEDIATE REFRESH AUTO ON MANUAL partition by(l_shipdate) DISTRIBUTED BY RANDOM BUCKETS 2 PROPERTIES ('replication_num' = '1') AS  
         select date_trunc(`l_shipdate`, 'day') as col1, l_shipdate from lineitem_list_varchar;"""
 
-    sql """DROP MATERIALIZED VIEW if exists mv3;"""
-    sql """CREATE MATERIALIZED VIEW mv3 BUILD IMMEDIATE REFRESH AUTO ON MANUAL partition by(date_trunc(`l_shipdate`, 'day')) DISTRIBUTED BY RANDOM BUCKETS 2 PROPERTIES ('replication_num' = '1') AS  
+    sql """DROP MATERIALIZED VIEW if exists ${mv_prefix}_mv3;"""
+    sql """CREATE MATERIALIZED VIEW ${mv_prefix}_mv3 BUILD IMMEDIATE REFRESH AUTO ON MANUAL partition by(date_trunc(`l_shipdate`, 'day')) DISTRIBUTED BY RANDOM BUCKETS 2 PROPERTIES ('replication_num' = '1') AS  
         select l_shipdate from lineitem_list_varchar;"""
 
-    sql """DROP MATERIALIZED VIEW if exists mv4_1;"""
-    sql """CREATE MATERIALIZED VIEW mv4_1 BUILD IMMEDIATE REFRESH AUTO ON MANUAL partition by(date_trunc(`l_shipdate`, 'day')) DISTRIBUTED BY RANDOM BUCKETS 2 PROPERTIES ('replication_num' = '1') AS  
+    sql """DROP MATERIALIZED VIEW if exists ${mv_prefix}_mv4_1;"""
+    sql """CREATE MATERIALIZED VIEW ${mv_prefix}_mv4_1 BUILD IMMEDIATE REFRESH AUTO ON MANUAL partition by(date_trunc(`l_shipdate`, 'day')) DISTRIBUTED BY RANDOM BUCKETS 2 PROPERTIES ('replication_num' = '1') AS  
         select date_trunc(`l_shipdate`, 'day') as col1, l_shipdate  from lineitem_list_varchar;"""
 
-    sql """DROP MATERIALIZED VIEW if exists mv4_2;"""
-    sql """CREATE MATERIALIZED VIEW mv4_2 BUILD IMMEDIATE REFRESH AUTO ON MANUAL partition by(date_trunc(`col1`, 'day')) DISTRIBUTED BY RANDOM BUCKETS 2 PROPERTIES ('replication_num' = '1') AS
+    sql """DROP MATERIALIZED VIEW if exists ${mv_prefix}_mv4_2;"""
+    sql """CREATE MATERIALIZED VIEW ${mv_prefix}_mv4_2 BUILD IMMEDIATE REFRESH AUTO ON MANUAL partition by(date_trunc(`col1`, 'day')) DISTRIBUTED BY RANDOM BUCKETS 2 PROPERTIES ('replication_num' = '1') AS
         select date_trunc(`l_shipdate`, 'day') as col1  from lineitem_list_varchar;"""
 
-    sql """DROP MATERIALIZED VIEW if exists mv5;"""
-    sql """CREATE MATERIALIZED VIEW mv5 BUILD IMMEDIATE REFRESH AUTO ON MANUAL partition by(col1) DISTRIBUTED BY RANDOM BUCKETS 2 PROPERTIES ('replication_num' = '1') AS
+    sql """DROP MATERIALIZED VIEW if exists ${mv_prefix}_mv5;"""
+    sql """CREATE MATERIALIZED VIEW ${mv_prefix}_mv5 BUILD IMMEDIATE REFRESH AUTO ON MANUAL partition by(col1) DISTRIBUTED BY RANDOM BUCKETS 2 PROPERTIES ('replication_num' = '1') AS
         select date_trunc(`l_shipdate`, 'month') as col1 from lineitem_list_varchar;"""
 
-    sql """DROP MATERIALIZED VIEW if exists mv6;"""
-    sql """CREATE MATERIALIZED VIEW mv6 BUILD IMMEDIATE REFRESH AUTO ON MANUAL partition by(date_trunc(`l_shipdate`, 'month')) DISTRIBUTED BY RANDOM BUCKETS 2 PROPERTIES ('replication_num' = '1') AS  
+    sql """DROP MATERIALIZED VIEW if exists ${mv_prefix}_mv6;"""
+    sql """CREATE MATERIALIZED VIEW ${mv_prefix}_mv6 BUILD IMMEDIATE REFRESH AUTO ON MANUAL partition by(date_trunc(`l_shipdate`, 'month')) DISTRIBUTED BY RANDOM BUCKETS 2 PROPERTIES ('replication_num' = '1') AS  
         select l_shipdate from lineitem_list_varchar;"""
 
-    sql """DROP MATERIALIZED VIEW if exists mv7_1;"""
-    sql """CREATE MATERIALIZED VIEW mv7_1 BUILD IMMEDIATE REFRESH AUTO ON MANUAL partition by(date_trunc(`col1`, 'year')) DISTRIBUTED BY RANDOM BUCKETS 2 PROPERTIES ('replication_num' = '1') AS  
+    sql """DROP MATERIALIZED VIEW if exists ${mv_prefix}_mv7_1;"""
+    sql """CREATE MATERIALIZED VIEW ${mv_prefix}_mv7_1 BUILD IMMEDIATE REFRESH AUTO ON MANUAL partition by(date_trunc(`col1`, 'year')) DISTRIBUTED BY RANDOM BUCKETS 2 PROPERTIES ('replication_num' = '1') AS  
         select date_trunc(`l_shipdate`, 'month') as col1 from lineitem_list_varchar;"""
 
-    sql """DROP MATERIALIZED VIEW if exists mv7_2;"""
-    sql """CREATE MATERIALIZED VIEW mv7_2 BUILD IMMEDIATE REFRESH AUTO ON MANUAL partition by(date_trunc(`l_shipdate`, 'year')) DISTRIBUTED BY RANDOM BUCKETS 2 PROPERTIES ('replication_num' = '1') AS  
+    sql """DROP MATERIALIZED VIEW if exists ${mv_prefix}_mv7_2;"""
+    sql """CREATE MATERIALIZED VIEW ${mv_prefix}_mv7_2 BUILD IMMEDIATE REFRESH AUTO ON MANUAL partition by(date_trunc(`l_shipdate`, 'year')) DISTRIBUTED BY RANDOM BUCKETS 2 PROPERTIES ('replication_num' = '1') AS  
         select date_trunc(`l_shipdate`, 'month') as col1, l_shipdate from lineitem_list_varchar;"""
 
     // don't create
-    sql """DROP MATERIALIZED VIEW if exists mv8;"""
+    sql """DROP MATERIALIZED VIEW if exists ${mv_prefix}_mv8;"""
     try {
-        sql """CREATE MATERIALIZED VIEW mv8 BUILD IMMEDIATE REFRESH AUTO ON MANUAL partition by(date_trunc(`col1`, 'month')) DISTRIBUTED BY RANDOM BUCKETS 2 PROPERTIES ('replication_num' = '1') AS  
+        sql """CREATE MATERIALIZED VIEW ${mv_prefix}_mv8 BUILD IMMEDIATE REFRESH AUTO ON MANUAL partition by(date_trunc(`col1`, 'month')) DISTRIBUTED BY RANDOM BUCKETS 2 PROPERTIES ('replication_num' = '1') AS  
         select date_trunc(`l_shipdate`, 'year') as col1, l_shipdate from lineitem_list_varchar;"""
     } catch (Exception e) {
         log.info(e.getMessage())
@@ -144,7 +146,7 @@ suite("mtmv_list_date_part_up", "zfr_mtmv_test") {
         }
     }
 
-    def mv_name_list = ["mv1", "mv2_1", "mv2_2", "mv3", "mv4_1", "mv4_2", "mv5", "mv6", "mv7_1", "mv7_2"]
+    def mv_name_list = ["${mv_prefix}_mv1", "${mv_prefix}_mv2_1", "${mv_prefix}_mv2_2", "${mv_prefix}_mv3", "${mv_prefix}_mv4_1", "${mv_prefix}_mv4_2", "${mv_prefix}_mv5", "${mv_prefix}_mv6", "${mv_prefix}_mv7_1", "${mv_prefix}_mv7_2"]
     def mv_part = [3, 3, 3, 3, 3, 3, 1, 1, 1, 1]
     for (int i = 0; i < mv_name_list.size(); i++) {
         sql """refresh MATERIALIZED VIEW ${mv_name_list[i]} auto;"""
