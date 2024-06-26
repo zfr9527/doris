@@ -15,7 +15,7 @@
 // specific language governing permissions and limitations
 // under the License.
 
-suite("mtmv_list_date_part_up_rewrite") {
+suite("mtmv_list_date_part_up_rewrite", "zfr_mtmv_test") {
 
     String db = context.config.getDbNameByFile(context.file)
     sql "use ${db}"
