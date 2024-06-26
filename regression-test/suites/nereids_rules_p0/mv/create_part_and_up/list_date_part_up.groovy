@@ -26,10 +26,10 @@ suite("mtmv_list_date_part_up", "zfr_mtmv_test") {
     String mv_prefix = "list_date_up"
 
     sql """
-    drop table if exists lineitem_list_varchar
+    drop table if exists lineitem_list_date
     """
 
-    sql """CREATE TABLE `lineitem_list_varchar` (
+    sql """CREATE TABLE `lineitem_list_date` (
       `l_orderkey` BIGINT NULL,
       `l_linenumber` INT NULL,
       `l_partkey` INT NULL,
@@ -60,56 +60,56 @@ suite("mtmv_list_date_part_up", "zfr_mtmv_test") {
 
     sql """DROP MATERIALIZED VIEW if exists ${mv_prefix}_mv1;"""
     sql """CREATE MATERIALIZED VIEW ${mv_prefix}_mv1 BUILD IMMEDIATE REFRESH AUTO ON MANUAL partition by(col1) DISTRIBUTED BY RANDOM BUCKETS 2 PROPERTIES ('replication_num' = '1') AS  
-        select l_shipdate as col1 from lineitem_list_varchar;"""
+        select l_shipdate as col1 from lineitem_list_date;"""
 
     sql """DROP MATERIALIZED VIEW if exists ${mv_prefix}_mv2_1;"""
     sql """CREATE MATERIALIZED VIEW ${mv_prefix}_mv2_1 BUILD IMMEDIATE REFRESH AUTO ON MANUAL partition by(col1) DISTRIBUTED BY RANDOM BUCKETS 2 PROPERTIES ('replication_num' = '1') AS
-        select date_trunc(`l_shipdate`, 'day') as col1 from lineitem_list_varchar;"""
+        select date_trunc(`l_shipdate`, 'day') as col1 from lineitem_list_date;"""
 
     sql """DROP MATERIALIZED VIEW if exists ${mv_prefix}_mv2_2;"""
     sql """CREATE MATERIALIZED VIEW ${mv_prefix}_mv2_2 BUILD IMMEDIATE REFRESH AUTO ON MANUAL partition by(l_shipdate) DISTRIBUTED BY RANDOM BUCKETS 2 PROPERTIES ('replication_num' = '1') AS  
-        select date_trunc(`l_shipdate`, 'day') as col1, l_shipdate from lineitem_list_varchar;"""
+        select date_trunc(`l_shipdate`, 'day') as col1, l_shipdate from lineitem_list_date;"""
 
     sql """DROP MATERIALIZED VIEW if exists ${mv_prefix}_mv3;"""
     sql """CREATE MATERIALIZED VIEW ${mv_prefix}_mv3 BUILD IMMEDIATE REFRESH AUTO ON MANUAL partition by(date_trunc(`l_shipdate`, 'day')) DISTRIBUTED BY RANDOM BUCKETS 2 PROPERTIES ('replication_num' = '1') AS  
-        select l_shipdate from lineitem_list_varchar;"""
+        select l_shipdate from lineitem_list_date;"""
 
     sql """DROP MATERIALIZED VIEW if exists ${mv_prefix}_mv4_1;"""
     sql """CREATE MATERIALIZED VIEW ${mv_prefix}_mv4_1 BUILD IMMEDIATE REFRESH AUTO ON MANUAL partition by(date_trunc(`l_shipdate`, 'day')) DISTRIBUTED BY RANDOM BUCKETS 2 PROPERTIES ('replication_num' = '1') AS  
-        select date_trunc(`l_shipdate`, 'day') as col1, l_shipdate  from lineitem_list_varchar;"""
+        select date_trunc(`l_shipdate`, 'day') as col1, l_shipdate  from lineitem_list_date;"""
 
     sql """DROP MATERIALIZED VIEW if exists ${mv_prefix}_mv4_2;"""
     sql """CREATE MATERIALIZED VIEW ${mv_prefix}_mv4_2 BUILD IMMEDIATE REFRESH AUTO ON MANUAL partition by(date_trunc(`col1`, 'day')) DISTRIBUTED BY RANDOM BUCKETS 2 PROPERTIES ('replication_num' = '1') AS
-        select date_trunc(`l_shipdate`, 'day') as col1  from lineitem_list_varchar;"""
+        select date_trunc(`l_shipdate`, 'day') as col1  from lineitem_list_date;"""
 
     sql """DROP MATERIALIZED VIEW if exists ${mv_prefix}_mv5;"""
     sql """CREATE MATERIALIZED VIEW ${mv_prefix}_mv5 BUILD IMMEDIATE REFRESH AUTO ON MANUAL partition by(col1) DISTRIBUTED BY RANDOM BUCKETS 2 PROPERTIES ('replication_num' = '1') AS
-        select date_trunc(`l_shipdate`, 'month') as col1 from lineitem_list_varchar;"""
+        select date_trunc(`l_shipdate`, 'month') as col1 from lineitem_list_date;"""
 
     sql """DROP MATERIALIZED VIEW if exists ${mv_prefix}_mv6;"""
     sql """CREATE MATERIALIZED VIEW ${mv_prefix}_mv6 BUILD IMMEDIATE REFRESH AUTO ON MANUAL partition by(date_trunc(`l_shipdate`, 'month')) DISTRIBUTED BY RANDOM BUCKETS 2 PROPERTIES ('replication_num' = '1') AS  
-        select l_shipdate from lineitem_list_varchar;"""
+        select l_shipdate from lineitem_list_date;"""
 
     sql """DROP MATERIALIZED VIEW if exists ${mv_prefix}_mv7_1;"""
     sql """CREATE MATERIALIZED VIEW ${mv_prefix}_mv7_1 BUILD IMMEDIATE REFRESH AUTO ON MANUAL partition by(date_trunc(`col1`, 'year')) DISTRIBUTED BY RANDOM BUCKETS 2 PROPERTIES ('replication_num' = '1') AS  
-        select date_trunc(`l_shipdate`, 'month') as col1 from lineitem_list_varchar;"""
+        select date_trunc(`l_shipdate`, 'month') as col1 from lineitem_list_date;"""
 
     sql """DROP MATERIALIZED VIEW if exists ${mv_prefix}_mv7_2;"""
     sql """CREATE MATERIALIZED VIEW ${mv_prefix}_mv7_2 BUILD IMMEDIATE REFRESH AUTO ON MANUAL partition by(date_trunc(`l_shipdate`, 'year')) DISTRIBUTED BY RANDOM BUCKETS 2 PROPERTIES ('replication_num' = '1') AS  
-        select date_trunc(`l_shipdate`, 'month') as col1, l_shipdate from lineitem_list_varchar;"""
+        select date_trunc(`l_shipdate`, 'month') as col1, l_shipdate from lineitem_list_date;"""
 
     // don't create
     sql """DROP MATERIALIZED VIEW if exists ${mv_prefix}_mv8;"""
     try {
         sql """CREATE MATERIALIZED VIEW ${mv_prefix}_mv8 BUILD IMMEDIATE REFRESH AUTO ON MANUAL partition by(date_trunc(`col1`, 'month')) DISTRIBUTED BY RANDOM BUCKETS 2 PROPERTIES ('replication_num' = '1') AS  
-        select date_trunc(`l_shipdate`, 'year') as col1, l_shipdate from lineitem_list_varchar;"""
+        select date_trunc(`l_shipdate`, 'year') as col1, l_shipdate from lineitem_list_date;"""
     } catch (Exception e) {
         log.info(e.getMessage())
         assertTrue(e.getMessage().contains("Unable to find a suitable base table for partitioning"))
     }
 
     sql """
-    insert into lineitem_list_varchar values 
+    insert into lineitem_list_date values 
     (null, 1, 2, 3, 5.5, 6.5, 7.5, 8.5, 'o', 'k', '2023-10-17', '2023-10-17', 'a', 'b', 'yyyyyyyyy', '2023-10-28'),
     (1, null, 3, 1, 5.5, 6.5, 7.5, 8.5, 'o', 'k', '2023-10-18', '2023-10-18', 'a', 'b', 'yyyyyyyyy', '2023-10-28'),
     (3, 3, null, 2, 7.5, 8.5, 9.5, 10.5, 'k', 'o', '2023-10-19', '2023-10-19', 'c', 'd', 'xxxxxxxxx', '2023-10-30'),
@@ -154,8 +154,8 @@ suite("mtmv_list_date_part_up", "zfr_mtmv_test") {
         assertEquals(get_part(mv_name_list[i]), mv_part[i])
     }
 
-    sql """alter table lineitem_list_varchar add partition p4 values in [("2023-11-01")];"""
-    sql """insert into lineitem_list_varchar values 
+    sql """alter table lineitem_list_date add partition p4 values in [("2023-11-01")];"""
+    sql """insert into lineitem_list_date values 
         (1, null, 3, 1, 5.5, 6.5, 7.5, 8.5, 'o', 'k', '2023-10-18', '2023-10-18', 'a', 'b', 'yyyyyyyyy', '2023-11-01')"""
 
     mv_part = [4, 4, 4, 4, 4, 4, 2, 2, 1, 1]
@@ -166,8 +166,8 @@ suite("mtmv_list_date_part_up", "zfr_mtmv_test") {
         assertEquals(get_part(mv_name_list[i]), mv_part[i])
     }
 
-    sql """alter table lineitem_list_varchar add partition p4 values [("2023-11-02"), ("2023-12-01")];"""
-    sql """insert into lineitem_list_varchar values 
+    sql """alter table lineitem_list_date add partition p4 values [("2023-11-02"), ("2023-12-01")];"""
+    sql """insert into lineitem_list_date values 
         (1, null, 3, 1, 5.5, 6.5, 7.5, 8.5, 'o', 'k', '2023-10-18', '2023-10-18', 'a', 'b', 'yyyyyyyyy', '2023-12-01')"""
 
     mv_part = [5, -1, 5, -1, -1, -1, -1, -1, 1, 1]
@@ -185,8 +185,8 @@ suite("mtmv_list_date_part_up", "zfr_mtmv_test") {
         }
     }
 
-    sql """alter table lineitem_list_varchar add partition p4 values [("2023-12-01"), ("2024-11-21")];"""
-    sql """insert into lineitem_list_varchar values 
+    sql """alter table lineitem_list_date add partition p4 values [("2023-12-01"), ("2024-11-21")];"""
+    sql """insert into lineitem_list_date values 
         (1, null, 3, 1, 5.5, 6.5, 7.5, 8.5, 'o', 'k', '2023-10-18', '2023-10-18', 'a', 'b', 'yyyyyyyyy', '2024-11-21')"""
 
     mv_part = [6, -1, 6, -1, -1, -1, -1, -1, -1, -1]
