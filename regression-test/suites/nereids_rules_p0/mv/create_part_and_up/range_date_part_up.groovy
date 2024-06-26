@@ -23,6 +23,7 @@ suite("mtmv_range_date_part_up", "zfr_mtmv_test") {
     sql "SET enable_fallback_to_original_planner=false"
     sql "SET enable_materialized_view_rewrite=true"
     sql "SET enable_nereids_timeout = false"
+    String mv_prefix = "range_date_up"
 
     sql """
     drop table if exists lineitem_range_date

@@ -25,6 +25,7 @@ suite("mtmv_range_datetime_part_up_rewrite", "zfr_mtmv_test") {
     sql "SET enable_materialized_view_nest_rewrite=true"
     sql "SET enable_materialized_view_union_rewrite=true"
     sql "SET enable_nereids_timeout = false"
+    String mv_prefix = "range_datetime_up_union"
 
     sql """
     drop table if exists lineitem_range_datetime_union

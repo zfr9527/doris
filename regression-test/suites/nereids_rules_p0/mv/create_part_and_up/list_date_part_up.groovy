@@ -25,7 +25,6 @@ suite("mtmv_list_date_part_up", "zfr_mtmv_test") {
     sql "SET enable_nereids_timeout = false"
     String mv_prefix = "list_date_up"
 
-
     sql """
     drop table if exists lineitem_list_varchar
     """
