@@ -1,0 +1,198 @@
+// Licensed to the Apache Software Foundation (ASF) under one
+// or more contributor license agreements.  See the NOTICE file
+// distributed with this work for additional information
+// regarding copyright ownership.  The ASF licenses this file
+// to you under the Apache License, Version 2.0 (the
+// "License"); you may not use this file except in compliance
+// with the License.  You may obtain a copy of the License at
+//
+//   http://www.apache.org/licenses/LICENSE-2.0
+//
+// Unless required by applicable law or agreed to in writing,
+// software distributed under the License is distributed on an
+// "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY
+// KIND, either express or implied.  See the License for the
+// specific language governing permissions and limitations
+// under the License.
+
+import org.junit.Assert;
+
+suite("test_ddl_table_auth","p0,auth") {
+    String user = 'test_ddl_table_auth_user'
+    String pwd = 'C123_567p'
+    String dbName = 'test_ddl_table_auth_db'
+    String tableName = 'test_ddl_table_auth_tb'
+    String tableNameNew = 'test_ddl_table_auth_tb_new'
+    String cteLikeDstDb = 'test_ddl_table_cte_like_dst_db'
+    String cteLikeDstTb = 'test_ddl_table_cte_like_dst_tb'
+    String cteSelectDstDb = 'test_ddl_table_cte_select_dst_db'
+    String cteSelectDstTb = 'test_ddl_table_cte_select_dst_tb'
+
+    try_sql("DROP USER ${user}")
+    try_sql """drop database if exists ${dbName}"""
+    try_sql """drop database if exists ${cteLikeDstDb}"""
+    try_sql """drop database if exists ${cteSelectDstDb}"""
+    sql """CREATE USER '${user}' IDENTIFIED BY '${pwd}'"""
+    sql """grant select_priv on regression_test to ${user}"""
+    sql """create database ${dbName}"""
+
+    // ddl create
+    connect(user=user, password="${pwd}", url=context.config.jdbcUrl) {
+        try {
+            sql """create table ${dbName}.${tableName} (
+                    id BIGINT,
+                    username VARCHAR(20)
+                )
+                DISTRIBUTED BY HASH(id) BUCKETS 2
+                PROPERTIES (
+                    "replication_num" = "1"
+                );"""
+        } catch (Exception e) {
+            log.info(e.getMessage())
+            assertTrue(e.getMessage().contains("Access denied"))
+        }
+    }
+    sql """grant Create_priv on ${dbName}.${tableName} to ${user}"""
+    connect(user=user, password="${pwd}", url=context.config.jdbcUrl) {
+        sql """create table ${dbName}.${tableName} (
+                    id BIGINT,
+                    username VARCHAR(20)
+                )
+                DISTRIBUTED BY HASH(id) BUCKETS 2
+                PROPERTIES (
+                    "replication_num" = "1"
+                );"""
+        sql """use ${dbName}"""
+        sql """show create table ${tableName}"""
+        def db_res = sql """show tables;"""
+        assertTrue(db_res.size() == 1)
+    }
+
+    // ddl alter
+    // user alter
+    connect(user=user, password="${pwd}", url=context.config.jdbcUrl) {
+        try {
+            sql """ALTER table ${tableName} RENAME ${tableNameNew};"""
+        } catch (Exception e) {
+            log.info(e.getMessage())
+            assertTrue(e.getMessage().contains("denied"))
+        }
+    }
+    sql """grant ALTER_PRIV on ${dbName}.${tableName} to ${user}"""
+    connect(user=user, password="${pwd}", url=context.config.jdbcUrl) {
+        sql """use ${dbName}"""
+        sql """ALTER table ${tableName} RENAME ${tableNameNew};"""
+        try {
+            sql """show create table ${tableNameNew}"""
+        } catch (Exception e) {
+            log.info(e.getMessage())
+            assertTrue(e.getMessage().contains("denied"))
+        }
+        def tb_res = sql """show tables;"""
+        assertTrue(tb_res.size() == 0)
+    }
+    // root alter
+    sql """use ${dbName}"""
+    sql """ALTER table ${tableNameNew} RENAME ${tableName};"""
+    connect(user=user, password="${pwd}", url=context.config.jdbcUrl) {
+        sql """use ${dbName}"""
+        sql """show create table ${tableName}"""
+        def db_res = sql """show tables;"""
+        assertTrue(db_res.size() == 1)
+    }
+
+    // ddl create table like
+//    connect(user=user, password="${pwd}", url=context.config.jdbcUrl) {
+//        try {
+//            sql """create table ${cteLikeDstDb}.${cteLikeDstTb} like ${dbName}.${tableName};"""
+//        } catch (Exception e) {
+//            log.info(e.getMessage())
+//            assertTrue(e.getMessage().contains("Access denied"))
+//        }
+//    }
+//    sql """create database ${cteLikeDstDb}"""
+//    sql """grant Create_priv on ${cteLikeDstDb}.${cteLikeDstTb} to ${user}"""
+//    connect(user=user, password="${pwd}", url=context.config.jdbcUrl) {
+//        try {
+//            sql """create table ${cteLikeDstDb}.${cteLikeDstTb} like ${dbName}.${tableName};"""
+//        } catch (Exception e) {
+//            log.info(e.getMessage())
+//            assertTrue(e.getMessage().contains("Access denied"))
+//        }
+//    }
+//    sql """grant SELECT_PRIV on ${dbName}.${tableName} to ${user}"""
+//    connect(user=user, password="${pwd}", url=context.config.jdbcUrl) {
+//        sql """create table ${cteLikeDstDb}.${cteLikeDstTb} like ${dbName}.${tableName};"""
+//    }
+
+    // ddl create table select
+    sql """create database ${cteSelectDstDb}"""
+    connect(user=user, password="${pwd}", url=context.config.jdbcUrl) {
+        try {
+            sql """create table ${cteSelectDstDb}.${cteSelectDstTb}(username) PROPERTIES("replication_num" = "1") as select username from ${dbName}.${tableName};"""
+        } catch (Exception e) {
+            log.info(e.getMessage())
+            assertTrue(e.getMessage().contains("denied"))
+        }
+    }
+    sql """grant Create_priv on ${cteSelectDstDb}.${cteSelectDstTb} to ${user}"""
+    connect(user=user, password="${pwd}", url=context.config.jdbcUrl) {
+        try {
+            sql """create table ${cteSelectDstDb}.${cteSelectDstTb}(username) PROPERTIES("replication_num" = "1") as select username from ${dbName}.${tableName};"""
+        } catch (Exception e) {
+            log.info(e.getMessage())
+            assertTrue(e.getMessage().contains("denied"))
+        }
+    }
+    sql """grant LOAD_PRIV on ${cteSelectDstDb}.${cteSelectDstTb} to ${user}"""
+    connect(user=user, password="${pwd}", url=context.config.jdbcUrl) {
+        try {
+            sql """create table ${cteSelectDstDb}.${cteSelectDstTb}(username) PROPERTIES("replication_num" = "1") as select username from ${dbName}.${tableName};"""
+        } catch (Exception e) {
+            log.info(e.getMessage())
+            assertTrue(e.getMessage().contains("denied"))
+        }
+    }
+    sql """grant select_priv(username) on ${dbName}.${tableName} to ${user}"""
+    connect(user=user, password="${pwd}", url=context.config.jdbcUrl) {
+        sql """create table ${cteSelectDstDb}.${cteSelectDstTb}(username) PROPERTIES("replication_num" = "1") as select username from ${dbName}.${tableName};"""
+    }
+
+    // ddl truncate
+    connect(user=user, password="${pwd}", url=context.config.jdbcUrl) {
+        test {
+            sql """use ${dbName}"""
+            sql """truncate table ${tableName};"""
+            exception "denied"
+        }
+    }
+    sql """grant LOAD_PRIV on ${dbName}.${tableName} to ${user}"""
+    connect(user=user, password="${pwd}", url=context.config.jdbcUrl) {
+        sql """use ${dbName}"""
+        sql """truncate table ${tableName};"""
+    }
+
+    // ddl drop
+    connect(user=user, password="${pwd}", url=context.config.jdbcUrl) {
+        try {
+            sql """use ${dbName}"""
+            sql """drop table ${tableName};"""
+        } catch (Exception e) {
+            log.info(e.getMessage())
+            assertTrue(e.getMessage().contains("Access denied"))
+        }
+    }
+    sql """grant DROP_PRIV on ${dbName}.${tableName} to ${user}"""
+    connect(user=user, password="${pwd}", url=context.config.jdbcUrl) {
+        sql """use ${dbName}"""
+        sql """drop table ${tableName};"""
+        def ctl_res = sql """show tables;"""
+        assertTrue(ctl_res.size() == 0)
+    }
+
+
+    sql """drop database if exists ${dbName}"""
+    sql """drop database if exists ${cteLikeDstDb}"""
+    sql """drop database if exists ${cteSelectDstDb}"""
+    try_sql("DROP USER ${user}")
+}

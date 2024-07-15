@@ -1,0 +1,124 @@
+// Licensed to the Apache Software Foundation (ASF) under one
+// or more contributor license agreements.  See the NOTICE file
+// distributed with this work for additional information
+// regarding copyright ownership.  The ASF licenses this file
+// to you under the Apache License, Version 2.0 (the
+// "License"); you may not use this file except in compliance
+// with the License.  You may obtain a copy of the License at
+//
+//   http://www.apache.org/licenses/LICENSE-2.0
+//
+// Unless required by applicable law or agreed to in writing,
+// software distributed under the License is distributed on an
+// "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY
+// KIND, either express or implied.  See the License for the
+// specific language governing permissions and limitations
+// under the License.
+
+import org.junit.Assert;
+
+suite("test_ddl_view_auth","p0,auth") {
+    String user = 'test_ddl_view_auth_user'
+    String pwd = 'C123_567p'
+    String dbName = 'test_ddl_view_auth_db'
+    String tableName = 'test_ddl_view_auth_tb'
+    String viewName = 'test_ddl_view_auth_view'
+
+    try_sql("DROP USER ${user}")
+    try_sql """drop database if exists ${dbName}"""
+    sql """CREATE USER '${user}' IDENTIFIED BY '${pwd}'"""
+    sql """grant select_priv on regression_test to ${user}"""
+    sql """create database ${dbName}"""
+    sql """create table ${dbName}.${tableName} (
+                id BIGINT,
+                username VARCHAR(20)
+            )
+            DISTRIBUTED BY HASH(id) BUCKETS 2
+            PROPERTIES (
+                "replication_num" = "1"
+            );"""
+
+    // ddl create
+    connect(user=user, password="${pwd}", url=context.config.jdbcUrl) {
+        try {
+            sql """CREATE VIEW ${dbName}.${viewName} (k1, v1)
+                AS
+                SELECT id as k1, SUM(id) FROM ${dbName}.${tableName}
+                WHERE id = 1 GROUP BY k1;"""
+        } catch (Exception e) {
+            log.info(e.getMessage())
+            assertTrue(e.getMessage().contains("denied"))
+        }
+    }
+    sql """grant select_priv(id) on ${dbName}.${tableName} to ${user}"""
+    connect(user=user, password="${pwd}", url=context.config.jdbcUrl) {
+        try {
+            sql """CREATE VIEW ${dbName}.${viewName} (k1, v1)
+                AS
+                SELECT id as k1, SUM(id) FROM ${dbName}.${tableName}
+                WHERE id = 1 GROUP BY k1;"""
+        } catch (Exception e) {
+            log.info(e.getMessage())
+            assertTrue(e.getMessage().contains("denied"))
+        }
+    }
+    sql """grant Create_priv on ${dbName}.${viewName} to ${user}"""
+    connect(user=user, password="${pwd}", url=context.config.jdbcUrl) {
+        sql """CREATE VIEW ${dbName}.${viewName} (k1, v1)
+            AS
+            SELECT id as k1, SUM(id) FROM ${dbName}.${tableName}
+            WHERE id = 1 GROUP BY k1;"""
+    }
+    connect(user=user, password="${pwd}", url=context.config.jdbcUrl) {
+        try {
+            sql """CREATE VIEW ${dbName}.${viewName} (k1, v1)
+                AS
+                SELECT username as k1, SUM(id) FROM ${dbName}.${tableName}
+                WHERE id = 1 GROUP BY k1;"""
+        } catch (Exception e) {
+            log.info(e.getMessage())
+            assertTrue(e.getMessage().contains("denied"))
+        }
+    }
+
+    // ddl alter
+    // user alter
+    connect(user=user, password="${pwd}", url=context.config.jdbcUrl) {
+        try {
+            sql """alter VIEW ${dbName}.${viewName} (k1, v1)
+                AS
+                SELECT id as k1, SUM(id) FROM ${dbName}.${tableName}
+                WHERE id = 1 GROUP BY k1;"""
+        } catch (Exception e) {
+            log.info(e.getMessage())
+            assertTrue(e.getMessage().contains("denied"))
+        }
+    }
+    sql """grant ALTER_PRIV on ${dbName}.${viewName} to ${user}"""
+    connect(user=user, password="${pwd}", url=context.config.jdbcUrl) {
+        sql """alter VIEW ${dbName}.${viewName} (k1, v1)
+                AS
+                SELECT id as k1, SUM(id) FROM ${dbName}.${tableName}
+                WHERE id = 1 GROUP BY k1;"""
+    }
+
+    // ddl drop
+    connect(user=user, password="${pwd}", url=context.config.jdbcUrl) {
+        try {
+            sql """drop table ${dbName}.${viewName};"""
+        } catch (Exception e) {
+            log.info(e.getMessage())
+            assertTrue(e.getMessage().contains("Access denied"))
+        }
+    }
+    sql """grant DROP_PRIV on ${dbName}.${viewName} to ${user}"""
+    connect(user=user, password="${pwd}", url=context.config.jdbcUrl) {
+        sql """use ${dbName}"""
+        sql """drop view ${viewName};"""
+        def ctl_res = sql """show tables;"""
+        assertTrue(ctl_res.size() == 1)
+    }
+
+    sql """drop database if exists ${dbName}"""
+    try_sql("DROP USER ${user}")
+}
