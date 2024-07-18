@@ -66,6 +66,70 @@ suite("test_dml_delete_table_auth","p0,auth") {
 
     def res = sql """select count(*) from ${dbName}.${tableName};"""
     assertTrue(res[0][0] == 2)
+
+    String tableName1 = 'test_dml_delete_table_auth_tb1'
+    String tableName2 = 'test_dml_delete_table_auth_tb2'
+    String tableName3 = 'test_dml_delete_table_auth_tb3'
+    sql """CREATE TABLE ${dbName}.${tableName1}
+        (id INT, c1 BIGINT, c2 STRING, c3 DOUBLE, c4 DATE)
+        UNIQUE KEY (id)
+        DISTRIBUTED BY HASH (id)
+        PROPERTIES('replication_num'='1', "function_column.sequence_col" = "c4");"""
+    sql """CREATE TABLE ${dbName}.${tableName2}
+        (id INT, c1 BIGINT, c2 STRING, c3 DOUBLE, c4 DATE)
+        DISTRIBUTED BY HASH (id)
+        PROPERTIES('replication_num'='1');"""
+    sql """CREATE TABLE ${dbName}.${tableName3}
+        (id INT)
+        DISTRIBUTED BY HASH (id)
+        PROPERTIES('replication_num'='1');"""
+    sql """INSERT INTO ${dbName}.${tableName1} VALUES
+        (1, 1, '1', 1.0, '2000-01-01'),
+        (2, 2, '2', 2.0, '2000-01-02'),
+        (3, 3, '3', 3.0, '2000-01-03');"""
+    sql """INSERT INTO ${dbName}.${tableName2} VALUES
+        (1, 10, '10', 10.0, '2000-01-10'),
+        (2, 20, '20', 20.0, '2000-01-20'),
+        (3, 30, '30', 30.0, '2000-01-30'),
+        (4, 4, '4', 4.0, '2000-01-04'),
+        (5, 5, '5', 5.0, '2000-01-05');"""
+    sql """INSERT INTO ${dbName}.${tableName3} VALUES
+        (1),
+        (4),
+        (5);"""
+
+    connect(user=user, password="${pwd}", url=context.config.jdbcUrl) {
+        test {
+            sql """DELETE FROM ${dbName}.${tableName1} 
+                USING ${dbName}.${tableName2} INNER JOIN ${dbName}.${tableName3} 
+                ON ${dbName}.${tableName2}.id = ${dbName}.${tableName3}.id
+                WHERE ${dbName}.${tableName1}.id = ${dbName}.${tableName2}.id;"""
+            exception "denied"
+        }
+    }
+    sql """grant load_priv on ${dbName}.${tableName1} to ${user}"""
+    connect(user=user, password="${pwd}", url=context.config.jdbcUrl) {
+        test {
+            sql """DELETE FROM ${dbName}.${tableName1} 
+                USING ${dbName}.${tableName2} INNER JOIN ${dbName}.${tableName3} 
+                ON ${dbName}.${tableName2}.id = ${dbName}.${tableName3}.id
+                WHERE ${dbName}.${tableName1}.id = ${dbName}.${tableName2}.id;"""
+            exception "denied"
+        }
+    }
+    sql """grant select_priv on ${dbName}.${tableName1} to ${user}"""
+    sql """grant select_priv on ${dbName}.${tableName2} to ${user}"""
+    sql """grant select_priv on ${dbName}.${tableName3} to ${user}"""
+    connect(user=user, password="${pwd}", url=context.config.jdbcUrl) {
+        sql """DELETE FROM ${dbName}.${tableName1} 
+            USING ${dbName}.${tableName2} INNER JOIN ${dbName}.${tableName3} 
+            ON ${dbName}.${tableName2}.id = ${dbName}.${tableName3}.id
+            WHERE ${dbName}.${tableName1}.id = ${dbName}.${tableName2}.id;"""
+    }
+    res = sql """select count(*) from ${dbName}.${tableName1};"""
+    assertTrue(res[0][0] == 2)
+
+
     sql """drop database if exists ${dbName}"""
     try_sql("DROP USER ${user}")
 }
