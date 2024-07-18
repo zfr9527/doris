@@ -24,7 +24,6 @@ suite("test_dml_delete_table_auth","p0,auth") {
     String pwd = 'C123_567p'
     String dbName = 'test_dml_delete_table_auth_db'
     String tableName = 'test_dml_delete_table_auth_tb'
-    String udfName = 'test_dml_delete_table_auth_udf'
 
     try_sql("DROP USER ${user}")
     try_sql """drop database if exists ${dbName}"""
