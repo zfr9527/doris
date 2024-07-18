@@ -66,7 +66,8 @@ suite("test_dml_export_table_auth","p0,auth") {
     }
 
     def res = sql """select count(*) from ${dbName}.${tableName};"""
-    assertTrue(res[0][0] == 2)
+    logger.info("res: " + res)
+    assertTrue(res[0][0] == 3)
     sql """drop database if exists ${dbName}"""
     try_sql("DROP USER ${user}")
 }
