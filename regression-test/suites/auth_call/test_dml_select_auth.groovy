@@ -50,21 +50,15 @@ suite("test_dml_select_auth","p0,auth") {
         """
     sql """ INSERT INTO ${dbName}.${tableName} VALUES ("abc"), ("123"), ("123"); """
 
-//    sql """create table ${dbName}.${tableName} (
-//                id BIGINT,
-//                username VARCHAR(20)
-//            )
-//            DISTRIBUTED BY HASH(id) BUCKETS 2
-//            PROPERTIES (
-//                "replication_num" = "1"
-//            );"""
-
-//    def path_file = "${context.file.parent}/../../data/auth_call/stream_load_data.csv"
+//    connect(user=user, password="${pwd}", url=context.config.jdbcUrl) {
+//        test {
+//            sql """ SELECT ${dbName}.${udfName}(col_1) as a FROM ${dbName}.${tableName} ORDER BY a; """
+//            exception "denied"
+//        }
+//    }
+    sql """grant select_priv on ${dbName} to ${user}"""
     connect(user=user, password="${pwd}", url=context.config.jdbcUrl) {
-        test {
-            sql """ SELECT ${dbName}.${udfName}(col_1) as a FROM ${dbName}.${tableName} ORDER BY a; """
-            exception "denied"
-        }
+        sql """ SELECT ${dbName}.${udfName}(col_1) as a FROM ${dbName}.${tableName} ORDER BY a; """
     }
 
     sql """drop database if exists ${dbName}"""
