@@ -54,7 +54,10 @@ suite("test_dml_broker_load_auth","p0,auth") {
             C_COMMENT     VARCHAR(117) NOT NULL
             )
             DUPLICATE KEY(C_CUSTKEY, C_NAME)
-            DISTRIBUTED BY HASH(C_CUSTKEY) BUCKETS 32"""
+            DISTRIBUTED BY HASH(C_CUSTKEY) BUCKETS 32
+            PROPERTIES (
+                "replication_num" = "1"
+            );"""
     sql """
             LOAD LABEL ${loadLabelName} (
                 DATA INFILE("s3://${bucket}/regression/tpch/sf0.01/customer.csv.gz")
