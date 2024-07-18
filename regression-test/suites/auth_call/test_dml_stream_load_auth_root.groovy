@@ -39,27 +39,41 @@ suite("test_dml_stream_load_auth_root","p0,auth") {
 
 
 
-//        sql """use ${dbName}"""
-        streamLoad {
-            table "${dbName}.${tableName}"
-
-            set 'column_separator', ','
-            file 'stream_load_data.csv'
-            time 10000 // limit inflight 10s
-
-            check { result, exception, startTime, endTime ->
-                if (exception != null) {
-                    throw exception
-                }
-                log.info("Stream load result: ${result}".toString())
-                def json = parseJson(result)
-                assertEquals("success", json.Status.toLowerCase())
-                assertEquals(json.NumberTotalRows, json.NumberLoadedRows)
-                assertTrue(json.NumberLoadedRows > 0 && json.LoadBytes > 0)
-            }
-        }
+    def jdbcUrl = context.config.jdbcUrl
+    def urlWithoutSchema = jdbcUrl.substring(jdbcUrl.indexOf("://") + 3)
+    def sql_ip = urlWithoutSchema.substring(0, urlWithoutSchema.indexOf(":"))
+    def sql_port
+    if (urlWithoutSchema.indexOf("/") >= 0) {
+        // e.g: jdbc:mysql://locahost:8080/?a=b
+        sql_port = urlWithoutSchema.substring(urlWithoutSchema.indexOf(":") + 1, urlWithoutSchema.indexOf("/"))
+    } else {
+        // e.g: jdbc:mysql://locahost:8080
+        sql_port = urlWithoutSchema.substring(urlWithoutSchema.indexOf(":") + 1)
+    }
+    String feHttpAddress = context.config.feHttpAddress
+    def http_port = feHttpAddress.substring(feHttpAddress.indexOf(":") + 1)
 
 
-    sql """drop database if exists ${dbName}"""
-    try_sql("DROP USER ${user}")
+    String password = context.config.jdbcPassword
+    def path_file = "${context.file.parent}/../../data/auth_call/stream_load_data.csv"
+
+    if (password) {
+        cm = """curl --location-trusted -u ${user}:${password} -H "column_separator:|" -T ${path_file} http://${sql_ip}:${http_port}/api/${dbName}/${tableName}/_stream_load"""
+    } else {
+        cm = """curl --location-trusted -u root: -H "column_separator:|" -T ${path_file} http://${sql_ip}:${http_port}/api/${dbName}/${tableName}/_stream_load"""
+    }
+
+    def process = cm.toString().execute()
+    def code = process.waitFor()
+    def err = IOGroovyMethods.getText(new BufferedReader(new InputStreamReader(process.getErrorStream())));
+    def out = process.getText()
+    logger.info("Request FE Config: code=" + code + ", out=" + out + ", err=" + err)
+    assertEquals(code, 0)
+    def response = parseJson(out.trim())
+    assertEquals(response.code, 0)
+    assertEquals(response.msg, "success")
+
+//
+//    sql """drop database if exists ${dbName}"""
+//    try_sql("DROP USER ${user}")
 }
