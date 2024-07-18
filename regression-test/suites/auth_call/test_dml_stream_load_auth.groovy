@@ -71,7 +71,8 @@ suite("test_dml_stream_load_auth","p0,auth") {
     proc.consumeProcessOutput(sout, serr)
     proc.waitForOrKill(7200000)
     logger.info("std out: " + sout + "std err: " + serr)
-    assertTrue(sout.toString().indexOf("denied") == -1)
+    assertTrue(sout.toString().indexOf("FAILED") != -1)
+    assertTrue(sout.toString().indexOf("denied") != -1)
 
 
     sql """grant load_priv on ${dbName}.${tableName} to ${user}"""
@@ -82,7 +83,7 @@ suite("test_dml_stream_load_auth","p0,auth") {
     proc.consumeProcessOutput(sout, serr)
     proc.waitForOrKill(7200000)
     logger.info("std out: " + sout + "std err: " + serr)
-    assertTrue(sout.toString().indexOf("Success") != -1)
+    assertTrue(sout.toString().indexOf("Success") == -1)
 
     sql """drop database if exists ${dbName}"""
     try_sql("DROP USER ${user}")
