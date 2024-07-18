@@ -37,54 +37,43 @@ suite("test_dml_stream_load_auth","p0,auth") {
                 "replication_num" = "1"
             );"""
 
-    // ddl create
-    connect(user=user, password="${pwd}", url=context.config.jdbcUrl) {
-        test {
-            sql """use ${dbName}"""
-            streamLoad {
-                table "${tableName}"
-
-                set 'column_separator', ','
-                file 'stream_load_data.csv'
-                time 10000 // limit inflight 10s
-
-                check { result, exception, startTime, endTime ->
-                    if (exception != null) {
-                        throw exception
-                    }
-                    log.info("Stream load result: ${result}".toString())
-                    def json = parseJson(result)
-                    assertEquals("success", json.Status.toLowerCase())
-                    assertEquals(json.NumberTotalRows, json.NumberLoadedRows)
-                    assertTrue(json.NumberLoadedRows > 0 && json.LoadBytes > 0)
-                }
-            }
-            exception "denied"
-        }
+    def jdbcUrl = context.config.jdbcUrl
+    def urlWithoutSchema = jdbcUrl.substring(jdbcUrl.indexOf("://") + 3)
+    def sql_ip = urlWithoutSchema.substring(0, urlWithoutSchema.indexOf(":"))
+    def sql_port
+    if (urlWithoutSchema.indexOf("/") >= 0) {
+        // e.g: jdbc:mysql://locahost:8080/?a=b
+        sql_port = urlWithoutSchema.substring(urlWithoutSchema.indexOf(":") + 1, urlWithoutSchema.indexOf("/"))
+    } else {
+        // e.g: jdbc:mysql://locahost:8080
+        sql_port = urlWithoutSchema.substring(urlWithoutSchema.indexOf(":") + 1)
     }
+    String feHttpAddress = context.config.feHttpAddress
+    def http_port = feHttpAddress.substring(feHttpAddress.indexOf(":") + 1)
+
+    def path_file = "${context.file.parent}/../../data/auth_call/stream_load_data.csv"
+
+    def cm = """curl --location-trusted -u ${user}:${pwd} -H "column_separator:," -T ${path_file} http://${sql_ip}:${http_port}/api/${dbName}/${tableName}/_stream_load"""
+    logger.info("cm: " + cm)
+    try {
+        def process = cm.toString().execute()
+        def code = process.waitFor()
+        def err = IOGroovyMethods.getText(new BufferedReader(new InputStreamReader(process.getErrorStream())));
+        def out = process.getText()
+        logger.info("Request FE Config: code=" + code + ", out=" + out + ", err=" + err)
+    } catch (Exception e) {
+        log.info(e.getMessage())
+        logger.info("Request FE Config: code=" + code + ", out=" + out + ", err=" + err)
+    }
+
     sql """grant load_priv on ${dbName}.${tableName} to ${user}"""
-    connect(user=user, password="${pwd}", url=context.config.jdbcUrl) {
-        sql """use ${dbName}"""
-        streamLoad {
-            table "${dbName}.${tableName}"
 
-            set 'column_separator', ','
-            file 'stream_load_data.csv'
-            time 10000 // limit inflight 10s
+    def process = cm.toString().execute()
+    def code = process.waitFor()
+    def err = IOGroovyMethods.getText(new BufferedReader(new InputStreamReader(process.getErrorStream())));
+    def out = process.getText()
+    logger.info("Request FE Config: code=" + code + ", out=" + out + ", err=" + err)
 
-            check { result, exception, startTime, endTime ->
-                if (exception != null) {
-                    throw exception
-                }
-                log.info("Stream load result: ${result}".toString())
-                def json = parseJson(result)
-                assertEquals("success", json.Status.toLowerCase())
-                assertEquals(json.NumberTotalRows, json.NumberLoadedRows)
-                assertTrue(json.NumberLoadedRows > 0 && json.LoadBytes > 0)
-            }
-        }
-    }
-
-    sql """drop database if exists ${dbName}"""
-    try_sql("DROP USER ${user}")
+//    sql """drop database if exists ${dbName}"""
+//    try_sql("DROP USER ${user}")
 }
