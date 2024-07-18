@@ -60,9 +60,9 @@ suite("test_dml_stream_load_auth_root","p0,auth") {
 
     def cm
     if (password) {
-        cm = """curl --location-trusted -u ${user}:${password} -H "column_separator:|" -T ${path_file} http://${sql_ip}:${http_port}/api/${dbName}/${tableName}/_stream_load"""
+        cm = """curl --location-trusted -u ${user}:${password} -H "column_separator:," -T ${path_file} http://${sql_ip}:${http_port}/api/${dbName}/${tableName}/_stream_load"""
     } else {
-        cm = """curl --location-trusted -u root: -H "column_separator:|" -T ${path_file} http://${sql_ip}:${http_port}/api/${dbName}/${tableName}/_stream_load"""
+        cm = """curl --location-trusted -u root: -H "column_separator:," -T ${path_file} http://${sql_ip}:${http_port}/api/${dbName}/${tableName}/_stream_load"""
     }
 
     logger.info("cm:" + cm)
