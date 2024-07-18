@@ -71,12 +71,23 @@ suite("test_dml_export_table_auth","p0,auth") {
                 "s3.secret_key"="${sk}",
                 "s3.access_key" = "${ak}"
                 );"""
+
+        }
+        test {
+            sql """use ${dbName}"""
+            sql """show export;"""
+            exception "denied"
+        }
+        test {
+            sql """CANCEL EXPORT
+                FROM ${dbName}
+                WHERE STATE = "EXPORTING";"""
             exception "denied"
         }
     }
     sql """grant select_priv on ${dbName}.${tableName} to ${user}"""
     connect(user=user, password="${pwd}", url=context.config.jdbcUrl) {
-        sql """EXPORT TABLE ${dbName}.${tableName} TO "s3://${bucket}/test_outfile/exp_"
+        sql """EXPORT TABLE ${dbName}.${tableName} TO "s3://${bucket}/test_outfile/exp_${exportLabel}"
                 PROPERTIES(
                     "format" = "csv",
                     "max_file_size" = "2048MB"
@@ -87,6 +98,23 @@ suite("test_dml_export_table_auth","p0,auth") {
                 "s3.secret_key"="${sk}",
                 "s3.access_key" = "${ak}"
                 );"""
+    }
+    sql """grant show_priv on ${dbName}.${tableName} to ${user}"""
+    connect(user=user, password="${pwd}", url=context.config.jdbcUrl) {
+        sql """show export;"""
+        test {
+            sql """CANCEL EXPORT
+                FROM ${dbName}
+                WHERE STATE = "EXPORTING";"""
+            exception "denied"
+        }
+    }
+    sql """grant select_priv on ${dbName} to ${user}"""
+    connect(user=user, password="${pwd}", url=context.config.jdbcUrl) {
+        def res = sql """show export;"""
+        sql """CANCEL EXPORT
+            FROM ${dbName}
+            WHERE STATE = "EXPORTING";"""
     }
 
     sql """drop database if exists ${dbName}"""
