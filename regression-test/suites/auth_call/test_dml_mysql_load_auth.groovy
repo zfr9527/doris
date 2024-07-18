@@ -54,6 +54,8 @@ suite("test_dml_mysql_load_auth","p0,auth") {
                 LOAD DATA LOCAL
                 INFILE '${path_file}'
                 INTO TABLE ${dbName}.${tableName} 
+                COLUMNS TERMINATED BY ','
+                (a,b) 
                 PROPERTIES ("timeout"="100")
                 """
             exception "denied"
@@ -65,7 +67,9 @@ suite("test_dml_mysql_load_auth","p0,auth") {
         sql """
                 LOAD DATA LOCAL
                 INFILE '${path_file}'
-                INTO TABLE ${dbName}.${tableName} 
+                INTO TABLE ${dbName}.${tableName}
+                COLUMNS TERMINATED BY ','
+                (a,b) 
                 PROPERTIES ("timeout"="100")
                 """
     }
