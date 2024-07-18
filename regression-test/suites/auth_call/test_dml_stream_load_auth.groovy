@@ -65,25 +65,25 @@ suite("test_dml_stream_load_auth","p0,auth") {
     cm = "bash " + load_path
     logger.info("cm:" + cm)
 
-    try {
-        def proc = cm.execute()
-        def sout = new StringBuilder(), serr = new StringBuilder()
-        proc.consumeProcessOutput(sout, serr)
-        proc.waitForOrKill(7200000)
-        logger.info("std out: " + sout + "std err: " + serr)
-    } catch (Exception e) {
-        log.info(e.getMessage())
-        logger.info("std out: " + sout + "std err: " + serr)
-    }
-
-    sql """grant load_priv on ${dbName}.${tableName} to ${user}"""
 
     def proc = cm.execute()
     def sout = new StringBuilder(), serr = new StringBuilder()
     proc.consumeProcessOutput(sout, serr)
     proc.waitForOrKill(7200000)
     logger.info("std out: " + sout + "std err: " + serr)
+    assertTrue(sout.toString().indexOf("denied") != -1)
 
-//    sql """drop database if exists ${dbName}"""
-//    try_sql("DROP USER ${user}")
+
+    sql """grant load_priv on ${dbName}.${tableName} to ${user}"""
+
+    proc = cm.execute()
+    sout = new StringBuilder()
+    serr = new StringBuilder()
+    proc.consumeProcessOutput(sout, serr)
+    proc.waitForOrKill(7200000)
+    logger.info("std out: " + sout + "std err: " + serr)
+    assertTrue(sout.toString().indexOf("Success") != -1)
+
+    sql """drop database if exists ${dbName}"""
+    try_sql("DROP USER ${user}")
 }
