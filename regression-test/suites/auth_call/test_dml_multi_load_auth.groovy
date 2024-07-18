@@ -18,11 +18,11 @@
 import org.junit.Assert;
 import org.codehaus.groovy.runtime.IOGroovyMethods
 
-suite("test_dml_stream_load_auth","p0,auth") {
-    String user = 'test_dml_stream_load_auth_user'
+suite("test_dml_multi_load_auth","p0,auth") {
+    String user = 'test_dml_multi_load_auth_user'
     String pwd = 'C123_567p'
-    String dbName = 'test_dml_stream_load_auth_db'
-    String tableName = 'test_dml_stream_load_auth_tb'
+    String dbName = 'test_dml_multi_load_auth_db'
+    String tableName = 'test_dml_multi_load_auth_tb'
 
     try_sql("DROP USER ${user}")
     try_sql """drop database if exists ${dbName}"""
@@ -57,14 +57,20 @@ suite("test_dml_stream_load_auth","p0,auth") {
     String feHttpAddress = context.config.feHttpAddress
     def http_port = feHttpAddress.substring(feHttpAddress.indexOf(":") + 1)
 
-    def path_file = "${context.file.parent}/../../data/auth_call/stream_load_data.csv"
-    def load_path = "${context.file.parent}/../../data/auth_call/stream_load_cm.sh"
-    def cm = """curl --location-trusted -u ${user}:${pwd} -H "column_separator:," -T ${path_file} http://${sql_ip}:${http_port}/api/${dbName}/${tableName}/_stream_load"""
+    def path_file_1 = "${context.file.parent}/../../data/auth_call/multi_load_data_1.csv"
+    def path_file_2 = "${context.file.parent}/../../data/auth_call/multi_load_data_2.csv"
+    def load_path = "${context.file.parent}/../../data/auth_call/multi_load_cm.sh"
+    def cm = """curl --location-trusted -u ${user}:${pwd} -H "column_separator:," -T ${path_file_1} -XPOST http://${sql_ip}:${http_port}/api/${dbName}/${tableName}/_stream_load"""
     logger.info("cm: " + cm)
     write_to_file(load_path, cm)
     cm = "bash " + load_path
     logger.info("cm:" + cm)
 
+
+    //curl --location-trusted -u root -XPOST http://host:port/api/testDb/_multi_start?label=123
+    //    curl --location-trusted -u root -T testData1 http://host:port/api/testDb/testTbl1/_load?label=123\&sub_label=1
+    //    curl --location-trusted -u root -T testData2 http://host:port/api/testDb/testTbl2/_load?label=123\&sub_label=2
+    //    curl --location-trusted -u root -XPOST http://host:port/api/testDb/_multi_commit?label=123
 
     def proc = cm.execute()
     def sout = new StringBuilder(), serr = new StringBuilder()
