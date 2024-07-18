@@ -74,11 +74,6 @@ suite("test_dml_export_table_auth","p0,auth") {
             exception "denied"
         }
         test {
-            sql """use ${dbName}"""
-            sql """show export;"""
-            exception "denied"
-        }
-        test {
             sql """CANCEL EXPORT
                 FROM ${dbName}
                 WHERE STATE = "EXPORTING";"""
@@ -101,6 +96,7 @@ suite("test_dml_export_table_auth","p0,auth") {
     }
     sql """grant show_priv on ${dbName}.${tableName} to ${user}"""
     connect(user=user, password="${pwd}", url=context.config.jdbcUrl) {
+        sql """use ${dbName}"""
         sql """show export;"""
         test {
             sql """CANCEL EXPORT
