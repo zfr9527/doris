@@ -71,7 +71,7 @@ suite("test_dml_export_table_auth","p0,auth") {
                 "s3.secret_key"="${sk}",
                 "s3.access_key" = "${ak}"
                 );"""
-
+            exception "denied"
         }
         test {
             sql """use ${dbName}"""
