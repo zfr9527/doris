@@ -70,8 +70,8 @@ suite("test_dml_stream_load_auth_root","p0,auth") {
     logger.info("cm:" + cm)
     def process = cm.toString().execute()
     def code = process.waitFor()
-    logger.info(code)
-    logger.info(process.text)
+//    logger.info("code: " + code)
+    logger.info("process: " + process.text)
 
 //    def err = IOGroovyMethods.getText(new BufferedReader(new InputStreamReader(process.getErrorStream())));
 //    def out = process.getText()
