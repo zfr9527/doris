@@ -39,7 +39,8 @@ suite("test_dml_stream_load_auth","p0,auth") {
 
     // ddl create
     connect(user=user, password="${pwd}", url=context.config.jdbcUrl) {
-        try {
+        test {
+            sql """use ${dbName}"""
             streamLoad {
                 table "${tableName}"
 
@@ -53,18 +54,17 @@ suite("test_dml_stream_load_auth","p0,auth") {
                     }
                     log.info("Stream load result: ${result}".toString())
                     def json = parseJson(result)
-                    assertEquals("fail", json.Status.toLowerCase())
-                    assertEquals(0, json.NumberTotalRows)
-                    assertEquals(0, json.NumberFilteredRows)
+                    assertEquals("success", json.Status.toLowerCase())
+                    assertEquals(json.NumberTotalRows, json.NumberLoadedRows)
+                    assertTrue(json.NumberLoadedRows > 0 && json.LoadBytes > 0)
                 }
             }
-        } catch (Exception e) {
-            log.info(e.getMessage())
-            assertTrue(e.getMessage().contains("denied"))
+            exception "denied"
         }
     }
     sql """grant load_priv on ${dbName}.${tableName} to ${user}"""
     connect(user=user, password="${pwd}", url=context.config.jdbcUrl) {
+        sql """use ${dbName}"""
         streamLoad {
             table "${tableName}"
 
@@ -78,15 +78,13 @@ suite("test_dml_stream_load_auth","p0,auth") {
                 }
                 log.info("Stream load result: ${result}".toString())
                 def json = parseJson(result)
-                assertEquals("fail", json.Status.toLowerCase())
-                assertEquals(0, json.NumberTotalRows)
-                assertEquals(0, json.NumberFilteredRows)
+                assertEquals("success", json.Status.toLowerCase())
+                assertEquals(json.NumberTotalRows, json.NumberLoadedRows)
+                assertTrue(json.NumberLoadedRows > 0 && json.LoadBytes > 0)
             }
         }
     }
 
     sql """drop database if exists ${dbName}"""
-    sql """drop database if exists ${cteLikeDstDb}"""
-    sql """drop database if exists ${cteSelectDstDb}"""
     try_sql("DROP USER ${user}")
 }
