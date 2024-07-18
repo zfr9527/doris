@@ -58,10 +58,11 @@ suite("test_dml_broker_load_auth","p0,auth") {
             PROPERTIES (
                 "replication_num" = "1"
             );"""
+    sql """use ${dbName}"""
     sql """
             LOAD LABEL ${loadLabelName} (
                 DATA INFILE("s3://${bucket}/regression/tpch/sf0.01/customer.csv.gz")
-                INTO TABLE ${dbName}.${tableName}
+                INTO TABLE ${tableName}
                 COLUMNS TERMINATED BY "|"
                 (c_custkey, c_name, c_address, c_nationkey, c_phone, c_acctbal, c_mktsegment, c_comment, temp)
             )
