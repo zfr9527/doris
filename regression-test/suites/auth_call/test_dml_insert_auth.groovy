@@ -24,6 +24,7 @@ suite("test_dml_insert_auth","p0,auth") {
     String pwd = 'C123_567p'
     String dbName = 'test_dml_insert_auth_db'
     String tableName = 'test_dml_insert_auth_tb'
+    String srcTableName = 'test_dml_insert_auth_tb_src'
 
     try_sql("DROP USER ${user}")
     try_sql """drop database if exists ${dbName}"""
@@ -39,8 +40,21 @@ suite("test_dml_insert_auth","p0,auth") {
             PROPERTIES (
                 "replication_num" = "1"
             );"""
+    sql """create table ${dbName}.${srcTableName} (
+                id BIGINT,
+                username VARCHAR(20)
+            )
+            DISTRIBUTED BY HASH(id) BUCKETS 2
+            PROPERTIES (
+                "replication_num" = "1"
+            );"""
+    sql """
+            INSERT INTO ${dbName}.${srcTableName} (id, username)
+            VALUES (1, "111"),
+                   (2, "222"),
+                   (3, "333")
+            """
 
-    def path_file = "${context.file.parent}/../../data/auth_call/stream_load_data.csv"
     connect(user=user, password="${pwd}", url=context.config.jdbcUrl) {
         test {
             sql """
@@ -70,18 +84,11 @@ suite("test_dml_insert_auth","p0,auth") {
             sql """select count() from ${dbName}.${tableName}"""
             exception "denied"
         }
-        test {
-            sql """
-                INSERT OVERWRITE table ${dbName}.${tableName} VALUES (4, "444");
-                """
-            exception "denied"
-        }
     }
-
     def rows = sql """select count() from ${dbName}.${tableName}"""
     assertTrue(rows[0][0] == 3)
 
-    sql """grant select_priv on ${dbName}.${tableName} to ${user}"""
+    // insert overwrite
     connect(user=user, password="${pwd}", url=context.config.jdbcUrl) {
         sql """
             INSERT OVERWRITE table ${dbName}.${tableName} VALUES (4, "444");
@@ -89,6 +96,13 @@ suite("test_dml_insert_auth","p0,auth") {
     }
     rows = sql """select count() from ${dbName}.${tableName}"""
     assertTrue(rows[0][0] == 1)
+
+    sql """grant select_priv on ${dbName}.${srcTableName} to ${user}"""
+    connect(user=user, password="${pwd}", url=context.config.jdbcUrl) {
+        sql """INSERT OVERWRITE table ${dbName}.${tableName} SELECT * FROM ${dbName}.${srcTableName};"""
+    }
+    rows = sql """select count() from ${dbName}.${tableName}"""
+    assertTrue(rows[0][0] == 3)
 
     sql """drop database if exists ${dbName}"""
     try_sql("DROP USER ${user}")
