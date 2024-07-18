@@ -107,8 +107,12 @@ suite("test_ddl_table_auth","p0,auth") {
             sql """select id from ${dbName}.${tableName}"""
             exception "denied"
         }
-
     }
+    sql """grant select_priv(id) on ${dbName}.${tableName} to ${user}"""
+    connect(user=user, password="${pwd}", url=context.config.jdbcUrl) {
+        sql """select id from ${dbName}.${tableName}"""
+    }
+    sql """revoke select_priv(id) on ${dbName}.${tableName} to ${user}"""
 
     // ddl create table like
 //    connect(user=user, password="${pwd}", url=context.config.jdbcUrl) {
