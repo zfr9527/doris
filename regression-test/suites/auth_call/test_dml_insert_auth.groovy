@@ -51,6 +51,12 @@ suite("test_dml_insert_auth","p0,auth") {
                 """
             exception "denied"
         }
+        test {
+            sql """
+                INSERT OVERWRITE table ${dbName}.${tableName} VALUES (4, "444");
+                """
+            exception "denied"
+        }
     }
     sql """grant load_priv on ${dbName}.${tableName} to ${user}"""
     connect(user=user, password="${pwd}", url=context.config.jdbcUrl) {
@@ -64,10 +70,25 @@ suite("test_dml_insert_auth","p0,auth") {
             sql """select count() from ${dbName}.${tableName}"""
             exception "denied"
         }
+        test {
+            sql """
+                INSERT OVERWRITE table ${dbName}.${tableName} VALUES (4, "444");
+                """
+            exception "denied"
+        }
     }
 
     def rows = sql """select count() from ${dbName}.${tableName}"""
     assertTrue(rows[0][0] == 3)
+
+    sql """grant select_priv on ${dbName}.${tableName} to ${user}"""
+    connect(user=user, password="${pwd}", url=context.config.jdbcUrl) {
+        sql """
+            INSERT OVERWRITE table ${dbName}.${tableName} VALUES (4, "444");
+            """
+    }
+    rows = sql """select count() from ${dbName}.${tableName}"""
+    assertTrue(rows[0][0] == 1)
 
     sql """drop database if exists ${dbName}"""
     try_sql("DROP USER ${user}")

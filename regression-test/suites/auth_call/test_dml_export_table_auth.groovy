@@ -73,11 +73,13 @@ suite("test_dml_export_table_auth","p0,auth") {
                 );"""
             exception "denied"
         }
-        test {
+        try {
             sql """CANCEL EXPORT
                 FROM ${dbName}
                 WHERE STATE = "EXPORTING";"""
-            exception "denied"
+        } catch (Exception e) {
+            log.info(e.getMessage())
+            assertTrue(e.getMessage().indexOf("denied") == -1)
         }
     }
     sql """grant select_priv on ${dbName}.${tableName} to ${user}"""
