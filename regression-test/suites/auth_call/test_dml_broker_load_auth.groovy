@@ -70,12 +70,11 @@ suite("test_dml_broker_load_auth","p0,auth") {
                 "AWS_SECRET_KEY" = "$sk",
                 "AWS_ENDPOINT" = "$endpoint",
                 "AWS_REGION" = "$region",
-                "provider" = "${getS3Provider()}",
                 "compress_type" = "GZ"
             )
             properties(
                 "timeout" = "28800",
-                "exec_mem_limit" = "8589934592",
+                "exec_mem_limit" = "8589934592"
             )
             """
 
