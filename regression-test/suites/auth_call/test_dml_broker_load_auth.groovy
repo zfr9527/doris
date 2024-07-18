@@ -83,6 +83,16 @@ suite("test_dml_broker_load_auth","p0,auth") {
             """
             exception "denied"
         }
+        test{
+            sql """SHOW LOAD FROM ${dbName} WHERE LABEL LIKE '${loadLabelName}'"""
+            exception "denied"
+        }
+        test {
+            sql """CANCEL LOAD
+                FROM ${dbName}
+                WHERE LABEL = "${loadLabelName}";"""
+            exception "denied"
+        }
     }
     sql """grant load_priv on ${dbName}.${tableName} to ${user}"""
     connect(user=user, password="${pwd}", url=context.config.jdbcUrl) {
@@ -106,6 +116,16 @@ suite("test_dml_broker_load_auth","p0,auth") {
             "exec_mem_limit" = "8589934592"
         )
         """
+
+        def res = sql """SHOW LOAD FROM ${dbName} WHERE LABEL LIKE '${loadLabelName}'"""
+        logger.info("res: " + res)
+        assertTrue(res.size() == 1)
+
+        sql """CANCEL LOAD
+                FROM ${dbName}
+                WHERE LABEL = "${loadLabelName}";"""
+        res = sql """SHOW LOAD FROM ${dbName} WHERE LABEL LIKE '${loadLabelName}'"""
+        logger.info("res: " + res)
     }
 
     sql """drop database if exists ${dbName}"""
