@@ -58,8 +58,11 @@ suite("test_dml_broker_load_auth","p0,auth") {
             PROPERTIES (
                 "replication_num" = "1"
             );"""
+
     sql """use ${dbName}"""
-    sql """
+    connect(user=user, password="${pwd}", url=context.config.jdbcUrl) {
+        test {
+            sql """
             LOAD LABEL ${loadLabelName} (
                 DATA INFILE("s3://${bucket}/regression/tpch/sf0.01/customer.csv.gz")
                 INTO TABLE ${tableName}
@@ -78,6 +81,32 @@ suite("test_dml_broker_load_auth","p0,auth") {
                 "exec_mem_limit" = "8589934592"
             )
             """
+            exception "denied"
+        }
+    }
+    sql """grant load_priv on ${dbName}.${tableName} to ${user}"""
+    connect(user=user, password="${pwd}", url=context.config.jdbcUrl) {
+        sql """use ${dbName};"""
+        sql """
+        LOAD LABEL ${loadLabelName} (
+            DATA INFILE("s3://${bucket}/regression/tpch/sf0.01/customer.csv.gz")
+            INTO TABLE ${tableName}
+            COLUMNS TERMINATED BY "|"
+            (c_custkey, c_name, c_address, c_nationkey, c_phone, c_acctbal, c_mktsegment, c_comment, temp)
+        )
+        WITH S3 (
+            "AWS_ACCESS_KEY" = "$ak",
+            "AWS_SECRET_KEY" = "$sk",
+            "AWS_ENDPOINT" = "$endpoint",
+            "AWS_REGION" = "$region",
+            "compress_type" = "GZ"
+        )
+        properties(
+            "timeout" = "28800",
+            "exec_mem_limit" = "8589934592"
+        )
+        """
+    }
 
     sql """drop database if exists ${dbName}"""
     try_sql("DROP USER ${user}")
