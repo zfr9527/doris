@@ -18,13 +18,13 @@
 import org.junit.Assert;
 import org.codehaus.groovy.runtime.IOGroovyMethods
 
-suite("test_dml_select_auth","p0,auth") {
+suite("test_dml_select_udf_auth","p0,auth") {
 
-    String user = 'test_dml_select_auth_user'
+    String user = 'test_dml_select_udf_auth_user'
     String pwd = 'C123_567p'
-    String dbName = 'test_dml_select_auth_db'
-    String tableName = 'test_dml_select_auth_tb'
-    String udfName = 'test_dml_select_auth_udf'
+    String dbName = 'test_dml_select_udf_auth_db'
+    String tableName = 'test_dml_select_udf_auth_tb'
+    String udfName = 'test_dml_select_udf_auth_udf'
 
     try_sql("DROP USER ${user}")
     try_sql """drop database if exists ${dbName}"""

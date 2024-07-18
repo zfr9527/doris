@@ -37,6 +37,12 @@ suite("test_ddl_view_auth","p0,auth") {
             PROPERTIES (
                 "replication_num" = "1"
             );"""
+    sql """
+                INSERT INTO ${dbName}.${tableName} (id, username)
+                VALUES (1, "111"),
+                       (2, "222"),
+                       (3, "333")
+                """
 
     // ddl create
     connect(user=user, password="${pwd}", url=context.config.jdbcUrl) {
@@ -100,6 +106,18 @@ suite("test_ddl_view_auth","p0,auth") {
                 AS
                 SELECT id as k1, SUM(id) FROM ${dbName}.${tableName}
                 WHERE id = 1 GROUP BY k1;"""
+    }
+
+    // dml show
+    connect(user=user, password="${pwd}", url=context.config.jdbcUrl) {
+        test {
+            sql """select * ${dbName}.${viewName};"""
+            exception "denied"
+        }
+    }
+    sql """grant select_PRIV on ${dbName}.${viewName} to ${user}"""
+    connect(user=user, password="${pwd}", url=context.config.jdbcUrl) {
+        sql """select * ${dbName}.${viewName};"""
     }
 
     // ddl drop
