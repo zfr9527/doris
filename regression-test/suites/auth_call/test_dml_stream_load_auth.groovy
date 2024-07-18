@@ -16,6 +16,7 @@
 // under the License.
 
 import org.junit.Assert;
+import org.codehaus.groovy.runtime.IOGroovyMethods
 
 suite("test_dml_stream_load_auth","p0,auth") {
     String user = 'test_dml_stream_load_auth_user'
