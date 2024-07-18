@@ -54,6 +54,13 @@ suite("test_dml_delete_table_auth","p0,auth") {
     }
     sql """grant load_priv on ${dbName}.${tableName} to ${user}"""
     connect(user=user, password="${pwd}", url=context.config.jdbcUrl) {
+        test {
+            sql """DELETE FROM ${dbName}.${tableName} WHERE id = 3;"""
+            exception "denied"
+        }
+    }
+    sql """grant select_priv(id) on ${dbName}.${tableName} to ${user}"""
+    connect(user=user, password="${pwd}", url=context.config.jdbcUrl) {
         sql """DELETE FROM ${dbName}.${tableName} WHERE id = 3;"""
     }
 
