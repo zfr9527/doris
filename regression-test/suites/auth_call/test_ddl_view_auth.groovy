@@ -111,7 +111,7 @@ suite("test_ddl_view_auth","p0,auth") {
     // dml show
     connect(user=user, password="${pwd}", url=context.config.jdbcUrl) {
         test {
-            sql """select * ${dbName}.${viewName};"""
+            sql """select * from ${dbName}.${viewName};"""
             exception "denied"
         }
     }
