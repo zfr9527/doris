@@ -102,6 +102,19 @@ suite("test_ddl_mtmv_auth","p0,auth") {
         assertTrue(db_res.size() == 2)
     }
 
+    // dml select
+    connect(user=user, password="${pwd}", url=context.config.jdbcUrl) {
+        test {
+            sql """select username from ${dbName}.${mtmvName}"""
+            exception "denied"
+        }
+    }
+    sql """grant select_priv(username) on ${dbName}.${mtmvName} to ${user}"""
+    connect(user=user, password="${pwd}", url=context.config.jdbcUrl) {
+        sql """select username from ${dbName}.${mtmvName}"""
+    }
+    sql """revoke select_priv(username) on ${dbName}.${mtmvName} to ${user}"""
+
     // ddl drop
     connect(user=user, password="${pwd}", url=context.config.jdbcUrl) {
         test {
