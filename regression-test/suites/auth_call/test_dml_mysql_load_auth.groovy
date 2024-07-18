@@ -25,12 +25,6 @@ suite("test_dml_mysql_load_auth","p0,auth") {
     String dbName = 'test_dml_mysql_load_auth_db'
     String tableName = 'test_dml_mysql_load_auth_tb'
 
-    String ak = getS3AK()
-    String sk = getS3SK()
-    String endpoint = getS3Endpoint()
-    String region = getS3Region()
-    String bucket = getS3BucketName()
-
     try_sql("DROP USER ${user}")
     try_sql """drop database if exists ${dbName}"""
     sql """CREATE USER '${user}' IDENTIFIED BY '${pwd}'"""
@@ -73,6 +67,9 @@ suite("test_dml_mysql_load_auth","p0,auth") {
                 PROPERTIES ("timeout"="100")
                 """
     }
+
+    def rows = sql """select count() from ${dbName}.${tableName}"""
+    assertTrue(rows[0][0] == 3)
 
     sql """drop database if exists ${dbName}"""
     try_sql("DROP USER ${user}")
