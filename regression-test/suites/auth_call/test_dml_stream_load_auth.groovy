@@ -38,6 +38,11 @@ suite("test_dml_stream_load_auth","p0,auth") {
                 "replication_num" = "1"
             );"""
 
+    def write_to_file = { cur_path, content ->
+        File file = new File(cur_path)
+        file.write(content)
+    }
+
     def jdbcUrl = context.config.jdbcUrl
     def urlWithoutSchema = jdbcUrl.substring(jdbcUrl.indexOf("://") + 3)
     def sql_ip = urlWithoutSchema.substring(0, urlWithoutSchema.indexOf(":"))
@@ -53,27 +58,31 @@ suite("test_dml_stream_load_auth","p0,auth") {
     def http_port = feHttpAddress.substring(feHttpAddress.indexOf(":") + 1)
 
     def path_file = "${context.file.parent}/../../data/auth_call/stream_load_data.csv"
-
+    def load_path = "${context.file.parent}/../../data/auth_call/stream_load_cm.sh"
     def cm = """curl --location-trusted -u ${user}:${pwd} -H "column_separator:," -T ${path_file} http://${sql_ip}:${http_port}/api/${dbName}/${tableName}/_stream_load"""
     logger.info("cm: " + cm)
+    write_to_file(load_path, cm)
+    cm = "bash " + load_path
+    logger.info("cm:" + cm)
+
     try {
-        def process = cm.toString().execute()
-        def code = process.waitFor()
-        def err = IOGroovyMethods.getText(new BufferedReader(new InputStreamReader(process.getErrorStream())));
-        def out = process.getText()
-        logger.info("Request FE Config: code=" + code + ", out=" + out + ", err=" + err)
+        def proc = cm.execute()
+        def sout = new StringBuilder(), serr = new StringBuilder()
+        proc.consumeProcessOutput(sout, serr)
+        proc.waitForOrKill(7200000)
+        logger.info("std out: " + sout + "std err: " + serr)
     } catch (Exception e) {
         log.info(e.getMessage())
-        logger.info("Request FE Config: code=" + code + ", out=" + out + ", err=" + err)
+        logger.info("std out: " + sout + "std err: " + serr)
     }
 
     sql """grant load_priv on ${dbName}.${tableName} to ${user}"""
 
-    def process = cm.toString().execute()
-    def code = process.waitFor()
-    def err = IOGroovyMethods.getText(new BufferedReader(new InputStreamReader(process.getErrorStream())));
-    def out = process.getText()
-    logger.info("Request FE Config: code=" + code + ", out=" + out + ", err=" + err)
+    def proc = cm.execute()
+    def sout = new StringBuilder(), serr = new StringBuilder()
+    proc.consumeProcessOutput(sout, serr)
+    proc.waitForOrKill(7200000)
+    logger.info("std out: " + sout + "std err: " + serr)
 
 //    sql """drop database if exists ${dbName}"""
 //    try_sql("DROP USER ${user}")

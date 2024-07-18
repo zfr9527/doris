@@ -71,12 +71,9 @@ suite("test_dml_stream_load_auth_root","p0,auth") {
     } else {
         cm = """curl --location-trusted -u root: -H "column_separator:," -T ${path_file} http://${sql_ip}:${http_port}/api/${dbName}/${tableName}/_stream_load"""
     }
-
     logger.info("cm:" + cm)
-
     write_to_file(load_path, cm)
     cm = "bash " + load_path
-
     def proc = cm.execute()
     def sout = new StringBuilder(), serr = new StringBuilder()
     proc.consumeProcessOutput(sout, serr)
