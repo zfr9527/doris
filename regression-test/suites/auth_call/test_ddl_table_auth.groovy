@@ -101,6 +101,15 @@ suite("test_ddl_table_auth","p0,auth") {
         assertTrue(db_res.size() == 1)
     }
 
+    // dml select
+    connect(user=user, password="${pwd}", url=context.config.jdbcUrl) {
+        test {
+            sql """select id from ${dbName}.${tableName}"""
+            exception "denied"
+        }
+
+    }
+
     // ddl create table like
 //    connect(user=user, password="${pwd}", url=context.config.jdbcUrl) {
 //        try {

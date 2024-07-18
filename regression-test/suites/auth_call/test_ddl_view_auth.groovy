@@ -117,7 +117,7 @@ suite("test_ddl_view_auth","p0,auth") {
     }
     sql """grant select_PRIV on ${dbName}.${viewName} to ${user}"""
     connect(user=user, password="${pwd}", url=context.config.jdbcUrl) {
-        sql """select * ${dbName}.${viewName};"""
+        sql """select * from ${dbName}.${viewName};"""
     }
 
     // ddl drop
