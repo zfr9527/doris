@@ -17,7 +17,7 @@
 
 import org.junit.Assert;
 
-suite("test_dml_stream_load_auth","p0,auth") {
+suite("test_dml_stream_load_auth_root","p0,auth") {
     String user = 'test_dml_stream_load_auth_user'
     String pwd = 'C123_567p'
     String dbName = 'test_dml_stream_load_auth_db'
@@ -37,34 +37,9 @@ suite("test_dml_stream_load_auth","p0,auth") {
                 "replication_num" = "1"
             );"""
 
-    // ddl create
-    connect(user=user, password="${pwd}", url=context.config.jdbcUrl) {
-        test {
-            sql """use ${dbName}"""
-            streamLoad {
-                table "${tableName}"
 
-                set 'column_separator', ','
-                file 'stream_load_data.csv'
-                time 10000 // limit inflight 10s
 
-                check { result, exception, startTime, endTime ->
-                    if (exception != null) {
-                        throw exception
-                    }
-                    log.info("Stream load result: ${result}".toString())
-                    def json = parseJson(result)
-                    assertEquals("success", json.Status.toLowerCase())
-                    assertEquals(json.NumberTotalRows, json.NumberLoadedRows)
-                    assertTrue(json.NumberLoadedRows > 0 && json.LoadBytes > 0)
-                }
-            }
-            exception "denied"
-        }
-    }
-    sql """grant load_priv on ${dbName}.${tableName} to ${user}"""
-    connect(user=user, password="${pwd}", url=context.config.jdbcUrl) {
-        sql """use ${dbName}"""
+//        sql """use ${dbName}"""
         streamLoad {
             table "${dbName}.${tableName}"
 
@@ -83,7 +58,7 @@ suite("test_dml_stream_load_auth","p0,auth") {
                 assertTrue(json.NumberLoadedRows > 0 && json.LoadBytes > 0)
             }
         }
-    }
+
 
     sql """drop database if exists ${dbName}"""
     try_sql("DROP USER ${user}")
