@@ -113,7 +113,7 @@ suite("test_ddl_mtmv_auth","p0,auth") {
     connect(user=user, password="${pwd}", url=context.config.jdbcUrl) {
         sql """select username from ${dbName}.${mtmvName}"""
     }
-    sql """revoke select_priv(username) on ${dbName}.${mtmvName} to ${user}"""
+    sql """revoke select_priv(username) on ${dbName}.${mtmvName} from ${user}"""
 
     // ddl drop
     connect(user=user, password="${pwd}", url=context.config.jdbcUrl) {

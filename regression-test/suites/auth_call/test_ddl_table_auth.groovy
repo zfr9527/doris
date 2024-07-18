@@ -112,7 +112,7 @@ suite("test_ddl_table_auth","p0,auth") {
     connect(user=user, password="${pwd}", url=context.config.jdbcUrl) {
         sql """select id from ${dbName}.${tableName}"""
     }
-    sql """revoke select_priv(id) on ${dbName}.${tableName} to ${user}"""
+    sql """revoke select_priv(id) on ${dbName}.${tableName} from ${user}"""
 
     // ddl create table like
 //    connect(user=user, password="${pwd}", url=context.config.jdbcUrl) {
