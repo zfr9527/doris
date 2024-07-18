@@ -35,6 +35,7 @@ suite("test_dml_export_table_auth","p0,auth") {
                 id BIGINT,
                 username VARCHAR(20)
             )
+            UNIQUE KEY (id)
             DISTRIBUTED BY HASH(id) BUCKETS 2
             PROPERTIES (
                 "replication_num" = "1"
@@ -48,20 +49,20 @@ suite("test_dml_export_table_auth","p0,auth") {
 
     connect(user=user, password="${pwd}", url=context.config.jdbcUrl) {
         test {
-            sql """DELETE FROM ${dbName}.${tableName} WHERE id = 3;"""
+            sql """UPDATE ${dbName}.${tableName} SET username = "444" WHERE id=1;"""
             exception "denied"
         }
     }
     sql """grant load_priv on ${dbName}.${tableName} to ${user}"""
     connect(user=user, password="${pwd}", url=context.config.jdbcUrl) {
         test {
-            sql """DELETE FROM ${dbName}.${tableName} WHERE id = 3;"""
+            sql """UPDATE ${dbName}.${tableName} SET username = "444" WHERE id=1;"""
             exception "denied"
         }
     }
     sql """grant select_priv(id) on ${dbName}.${tableName} to ${user}"""
     connect(user=user, password="${pwd}", url=context.config.jdbcUrl) {
-        sql """DELETE FROM ${dbName}.${tableName} WHERE id = 3;"""
+        sql """UPDATE ${dbName}.${tableName} SET username = "444" WHERE id=1;"""
     }
 
     def res = sql """select count(*) from ${dbName}.${tableName};"""
