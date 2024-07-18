@@ -41,6 +41,10 @@ suite("test_dml_stream_load_auth_root","p0,auth") {
             );"""
 
 
+    def write_to_file = { cur_path, content ->
+        File file = new File(cur_path)
+        file.write(content)
+    }
 
     def jdbcUrl = context.config.jdbcUrl
     def urlWithoutSchema = jdbcUrl.substring(jdbcUrl.indexOf("://") + 3)
@@ -59,6 +63,7 @@ suite("test_dml_stream_load_auth_root","p0,auth") {
 
     String password = context.config.jdbcPassword
     def path_file = "${context.file.parent}/../../data/auth_call/stream_load_data.csv"
+    def load_path = "${context.file.parent}/../../data/auth_call/stream_load_cm.sh"
 
     def cm
     if (password) {
@@ -68,14 +73,15 @@ suite("test_dml_stream_load_auth_root","p0,auth") {
     }
 
     logger.info("cm:" + cm)
-    def proc = cm.toString().execute()
 
+    write_to_file(load_path, cm)
+    cm = "bash " + load_path
+
+    def proc = cm.execute()
     def sout = new StringBuilder(), serr = new StringBuilder()
     proc.consumeProcessOutput(sout, serr)
-    proc.waitFor()
-
-    logger.info("sout: " + sout)
-    logger.info("serr: " + serr)
+    proc.waitForOrKill(7200000)
+    logger.info("std out: " + sout + "std err: " + serr)
 
 //    def err = IOGroovyMethods.getText(new BufferedReader(new InputStreamReader(process.getErrorStream())));
 //    def out = process.getText()
