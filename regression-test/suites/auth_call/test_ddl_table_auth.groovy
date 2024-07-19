@@ -36,6 +36,29 @@ suite("test_ddl_table_auth","p0,auth") {
     sql """grant select_priv on regression_test to ${user}"""
     sql """create database ${dbName}"""
 
+    void waitingChangeTaskFinished = { def curDb ->
+        Thread.sleep(2000)
+        sql """use ${curDb}"""
+        String showTasks = "SHOW ALTER TABLE COLUMN order by CreateTime;"
+        String status = "NULL"
+        List<List<Object>> result
+        long startTime = System.currentTimeMillis()
+        long timeoutTimestamp = startTime + 5 * 60 * 1000 // 5 min
+        do {
+            result = sql(showTasks)
+            logger.info("result: " + result.toString())
+            if (!result.isEmpty()) {
+                status = result.last().get(9)
+            }
+            logger.info("The state of ${showTasks} is ${status}")
+            Thread.sleep(1000);
+        } while (timeoutTimestamp > System.currentTimeMillis() && (status != 'FINISHED'))
+        if (status != "FINISHED") {
+            logger.info("status is not success")
+        }
+        Assert.assertEquals("FINISHED", status)
+    }
+
     // ddl create
     connect(user=user, password="${pwd}", url=context.config.jdbcUrl) {
         try {
@@ -186,6 +209,7 @@ suite("test_ddl_table_auth","p0,auth") {
         sql """create table ${cteSelectDstDb}.${cteSelectDstTb}(username) PROPERTIES("replication_num" = "1") as select username from ${dbName}.${tableName};"""
     }
 
+    waitingChangeTaskFinished(dbName)
     // ddl truncate
     connect(user=user, password="${pwd}", url=context.config.jdbcUrl) {
         test {
