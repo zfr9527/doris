@@ -37,18 +37,33 @@ suite("test_show_create_table_auth","p0,auth") {
                 "replication_num" = "1"
             );"""
 
-//    connect(user=user, password="${pwd}", url=context.config.jdbcUrl) {
-//        test {
-//            sql """use ${dbName}"""
-//            sql """show create table ${tableName}"""
-//            exception "denied"
-//        }
-//    }
     sql """grant select_priv on ${dbName}.${tableName} to ${user}"""
     connect(user=user, password="${pwd}", url=context.config.jdbcUrl) {
         sql """use ${dbName}"""
         sql """show create table ${tableName}"""
     }
+    sql """revoke select_priv on ${dbName}.${tableName} from ${user}"""
+
+    sql """grant create_priv on ${dbName}.${tableName} to ${user}"""
+    connect(user=user, password="${pwd}", url=context.config.jdbcUrl) {
+        sql """use ${dbName}"""
+        sql """show create table ${tableName}"""
+    }
+    sql """revoke create_priv on ${dbName}.${tableName} from ${user}"""
+
+    sql """grant drop_priv on ${dbName}.${tableName} to ${user}"""
+    connect(user=user, password="${pwd}", url=context.config.jdbcUrl) {
+        sql """use ${dbName}"""
+        sql """show create table ${tableName}"""
+    }
+    sql """revoke drop_priv on ${dbName}.${tableName} from ${user}"""
+
+    sql """grant alter_priv on ${dbName}.${tableName} to ${user}"""
+    connect(user=user, password="${pwd}", url=context.config.jdbcUrl) {
+        sql """use ${dbName}"""
+        sql """show create table ${tableName}"""
+    }
+    sql """revoke alter_priv on ${dbName}.${tableName} from ${user}"""
 
     try_sql("DROP USER ${user}")
 }
