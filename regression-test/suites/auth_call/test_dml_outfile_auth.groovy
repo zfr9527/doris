@@ -40,24 +40,40 @@ suite("test_dml_outfile_auth","p0,auth") {
                 "replication_num" = "1"
             );"""
 
+    String ak = getS3AK()
+    String sk = getS3SK()
+    String s3_endpoint = getS3Endpoint()
+    String region = getS3Region()
+    String bucket = context.config.otherConfigs.get("s3BucketName");
+
     connect(user=user, password="${pwd}", url=context.config.jdbcUrl) {
         test {
             sql """
-                analyze table ${dbName}.${tableName} with sync;
-                """
+                SELECT * FROM ${dbName}.${tableName} t ORDER BY user_id
+                INTO OUTFILE "s3://${bucket}/outfile/auth/exp_"
+                FORMAT AS parquet 
+                PROPERTIES (
+                    "s3.endpoint" = "${s3_endpoint}",
+                    "s3.region" = "${region}",
+                    "s3.secret_key"="${sk}",
+                    "s3.access_key" = "${ak}"
+                );"""
             exception "denied"
         }
     }
     sql """grant select_priv on ${dbName}.${tableName} to ${user}"""
     connect(user=user, password="${pwd}", url=context.config.jdbcUrl) {
         sql """
-            analyze table ${dbName}.${tableName} with sync;
-            """
+            SELECT * FROM ${dbName}.${tableName} t ORDER BY user_id
+            INTO OUTFILE "s3://${bucket}/outfile/auth/exp_"
+            FORMAT AS parquet 
+            PROPERTIES (
+                "s3.endpoint" = "${s3_endpoint}",
+                "s3.region" = "${region}",
+                "s3.secret_key"="${sk}",
+                "s3.access_key" = "${ak}"
+            );"""
     }
-
-    def res = sql """show column stats ${dbName}.${tableName};"""
-    logger.info("res: " + res)
-    assertTrue(res.size() == 2)
 
     sql """drop database if exists ${dbName}"""
     try_sql("DROP USER ${user}")
