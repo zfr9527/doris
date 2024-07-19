@@ -18,7 +18,7 @@
 import org.junit.Assert;
 
 suite("test_cluster_backend_auth","p0,auth") {
-    String user = 'test_ddl_row_policy_auth_user'
+    String user = 'test_cluster_backend_auth_user'
     String pwd = 'C123_567p'
 
     try_sql("DROP USER ${user}")
