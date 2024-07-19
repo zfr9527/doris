@@ -19,6 +19,10 @@ import org.junit.Assert;
 import org.codehaus.groovy.runtime.IOGroovyMethods
 
 suite("test_dml_outfile_auth","p0,auth") {
+    UUID uuid = UUID.randomUUID()
+    String randomValue = uuid.toString()
+    int hashCode = randomValue.hashCode()
+    hashCode = hashCode > 0 ? hashCode : hashCode * (-1)
 
     String user = 'test_dml_outfile_auth_user'
     String pwd = 'C123_567p'
@@ -44,13 +48,13 @@ suite("test_dml_outfile_auth","p0,auth") {
     String sk = getS3SK()
     String s3_endpoint = getS3Endpoint()
     String region = getS3Region()
-    String bucket = context.config.otherConfigs.get("s3BucketName");
+    String bucket = context.config.otherConfigs.get("s3BucketName")
 
     connect(user=user, password="${pwd}", url=context.config.jdbcUrl) {
         test {
             sql """
                 SELECT * FROM ${dbName}.${tableName} t ORDER BY user_id
-                INTO OUTFILE "s3://${bucket}/outfile/auth/exp_"
+                INTO OUTFILE "s3://${bucket}/outfile/auth/exp_${hashCode}"
                 FORMAT AS parquet 
                 PROPERTIES (
                     "s3.endpoint" = "${s3_endpoint}",
