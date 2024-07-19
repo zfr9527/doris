@@ -51,11 +51,11 @@ suite("test_dml_analyze_auth","p0,auth") {
     sql """grant select_priv on ${dbName}.${tableName} to ${user}"""
     connect(user=user, password="${pwd}", url=context.config.jdbcUrl) {
         sql """
-                analyze table ${dbName}.${tableName}
-                """
+            analyze table ${dbName}.${tableName} with sync;
+            """
     }
 
-    res = sql """show column stats ${dbName}.${tableName} with sync;"""
+    def res = sql """show column stats ${dbName}.${tableName};"""
     logger.info("res: " + res)
     assertTrue(res.size() == 2)
 

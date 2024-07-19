@@ -51,8 +51,8 @@ suite("test_dml_outfile_auth","p0,auth") {
     sql """grant select_priv on ${dbName}.${tableName} to ${user}"""
     connect(user=user, password="${pwd}", url=context.config.jdbcUrl) {
         sql """
-                analyze table ${dbName}.${tableName} with sync;
-                """
+            analyze table ${dbName}.${tableName} with sync;
+            """
     }
 
     def res = sql """show column stats ${dbName}.${tableName};"""
