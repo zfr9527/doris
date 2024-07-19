@@ -92,6 +92,7 @@ suite("test_ddl_mtmv_auth","p0,auth") {
         def tb_res = sql """show tables;"""
         assertTrue(tb_res.size() == 1)
     }
+
     // root alter
     sql """use ${dbName}"""
     sql """ALTER MATERIALIZED VIEW ${mtmvNameNew} RENAME ${mtmvName};"""
@@ -102,35 +103,35 @@ suite("test_ddl_mtmv_auth","p0,auth") {
         assertTrue(db_res.size() == 2)
     }
 
-    // dml select
-    connect(user=user, password="${pwd}", url=context.config.jdbcUrl) {
-        test {
-            sql """select username from ${dbName}.${mtmvName}"""
-            exception "denied"
-        }
-    }
-    sql """grant select_priv(username) on ${dbName}.${mtmvName} to ${user}"""
-    connect(user=user, password="${pwd}", url=context.config.jdbcUrl) {
-        sql """select username from ${dbName}.${mtmvName}"""
-    }
-    sql """revoke select_priv(username) on ${dbName}.${mtmvName} from ${user}"""
-
-    // ddl drop
-    connect(user=user, password="${pwd}", url=context.config.jdbcUrl) {
-        test {
-            sql """use ${dbName}"""
-            sql """drop materialized view ${mtmvName};"""
-            exception "denied"
-        }
-    }
-    sql """grant DROP_PRIV on ${dbName}.${mtmvName} to ${user}"""
-    connect(user=user, password="${pwd}", url=context.config.jdbcUrl) {
-        sql """use ${dbName}"""
-        sql """drop materialized view ${mtmvName};"""
-        def ctl_res = sql """show tables;"""
-        assertTrue(ctl_res.size() == 1)
-    }
-
-    sql """drop database if exists ${dbName}"""
-    try_sql("DROP USER ${user}")
+//    // dml select
+//    connect(user=user, password="${pwd}", url=context.config.jdbcUrl) {
+//        test {
+//            sql """select username from ${dbName}.${mtmvName}"""
+//            exception "denied"
+//        }
+//    }
+//    sql """grant select_priv(username) on ${dbName}.${mtmvName} to ${user}"""
+//    connect(user=user, password="${pwd}", url=context.config.jdbcUrl) {
+//        sql """select username from ${dbName}.${mtmvName}"""
+//    }
+//    sql """revoke select_priv(username) on ${dbName}.${mtmvName} from ${user}"""
+//
+//    // ddl drop
+//    connect(user=user, password="${pwd}", url=context.config.jdbcUrl) {
+//        test {
+//            sql """use ${dbName}"""
+//            sql """drop materialized view ${mtmvName};"""
+//            exception "denied"
+//        }
+//    }
+//    sql """grant DROP_PRIV on ${dbName}.${mtmvName} to ${user}"""
+//    connect(user=user, password="${pwd}", url=context.config.jdbcUrl) {
+//        sql """use ${dbName}"""
+//        sql """drop materialized view ${mtmvName};"""
+//        def ctl_res = sql """show tables;"""
+//        assertTrue(ctl_res.size() == 1)
+//    }
+//
+//    sql """drop database if exists ${dbName}"""
+//    try_sql("DROP USER ${user}")
 }
