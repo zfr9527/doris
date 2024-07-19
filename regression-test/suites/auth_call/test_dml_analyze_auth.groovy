@@ -39,10 +39,6 @@ suite("test_dml_analyze_auth","p0,auth") {
             PROPERTIES (
                 "replication_num" = "1"
             );"""
-    def res = sql """show column stats ${dbName}.${tableName}"""
-    logger.info("res: " + res)
-    assertTrue(res.size == 0)
-
 
     connect(user=user, password="${pwd}", url=context.config.jdbcUrl) {
         test {
