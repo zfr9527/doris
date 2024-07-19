@@ -36,7 +36,7 @@ suite("test_ddl_table_auth","p0,auth") {
     sql """grant select_priv on regression_test to ${user}"""
     sql """create database ${dbName}"""
 
-    void waitingChangeTaskFinished = { def curDb ->
+    def waitingChangeTaskFinished = { def curDb ->
         Thread.sleep(2000)
         sql """use ${curDb}"""
         String showTasks = "SHOW ALTER TABLE COLUMN order by CreateTime;"
