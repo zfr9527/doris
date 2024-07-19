@@ -22,6 +22,11 @@ suite("test_ddl_catalog_auth","p0,auth_call") {
     String pwd = 'C123_567p'
     String catalogName = 'test_ddl_catalog_auth_catalog'
     String catalogNameNew = 'test_ddl_catalog_auth_catalog_new'
+    String catalogNameOther = 'test_ddl_catalog_auth_catalog_other'
+
+    sql """create catalog if not exists ${catalogNameOther} properties (
+            'type'='hms'
+        );"""
 
     try_sql("DROP USER ${user}")
     try_sql """drop catalog if exists ${catalogName}"""
@@ -99,5 +104,6 @@ suite("test_ddl_catalog_auth","p0,auth_call") {
     }
 
     sql """drop catalog if exists ${catalogName}"""
+    sql """drop catalog if exists ${catalogNameOther}"""
     try_sql("DROP USER ${user}")
 }
