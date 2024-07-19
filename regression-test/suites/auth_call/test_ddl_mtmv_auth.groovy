@@ -82,8 +82,8 @@ suite("test_ddl_mtmv_auth","p0,auth") {
         }
         sql """show create materialized view ${mtmvName}"""
     }
-    sql """revoke Create_priv on ${dbName}.${tableName} from ${user};"""
-    sql """revoke select_priv on ${dbName}.${tableName} from ${user};"""
+    sql """revoke Create_priv on ${dbName}.${mtmvName} from ${user};"""
+    sql """revoke select_priv on ${dbName}.${mtmvName} from ${user};"""
     sql """grant ALTER_PRIV on ${dbName}.${mtmvName} to ${user}"""
     connect(user=user, password="${pwd}", url=context.config.jdbcUrl) {
         sql """use ${dbName}"""
