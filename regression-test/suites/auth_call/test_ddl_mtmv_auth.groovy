@@ -82,7 +82,7 @@ suite("test_ddl_mtmv_auth","p0,auth") {
             exception "denied"
         }
         test {
-            sql """show create materialized view ${mtmvName}"""
+            sql """show create materialized view ${dbName}.${mtmvName}"""
             exception "denied"
         }
     }
