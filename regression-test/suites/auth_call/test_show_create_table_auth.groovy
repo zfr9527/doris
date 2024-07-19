@@ -65,5 +65,6 @@ suite("test_show_create_table_auth","p0,auth") {
     }
     sql """revoke alter_priv on ${dbName}.${tableName} from ${user}"""
 
+    sql """drop database if exists ${dbName}"""
     try_sql("DROP USER ${user}")
 }
