@@ -88,9 +88,7 @@ suite("test_ddl_table_auth","p0,auth") {
     connect(user=user, password="${pwd}", url=context.config.jdbcUrl) {
         sql """use ${dbName}"""
         sql """ALTER table ${tableName} RENAME ${tableNameNew};"""
-        sql """ALTER TABLE ${tableName} ADD COLUMN new_col INT KEY DEFAULT "0";"""
-        def res = sql """SHOW ALTER TABLE COLUMN;"""
-        assertTrue(res.size() == 1)
+
         try {
             sql """show create table ${tableNameNew}"""
         } catch (Exception e) {
@@ -108,6 +106,14 @@ suite("test_ddl_table_auth","p0,auth") {
         sql """show create table ${tableName}"""
         def db_res = sql """show tables;"""
         assertTrue(db_res.size() == 1)
+    }
+
+    // show
+    connect(user=user, password="${pwd}", url=context.config.jdbcUrl) {
+        sql """use ${dbName}"""
+        sql """ALTER TABLE ${tableName} ADD COLUMN new_col INT KEY DEFAULT "0";"""
+        def res = sql """SHOW ALTER TABLE COLUMN;"""
+        assertTrue(res.size() == 1)
     }
 
     // dml select
