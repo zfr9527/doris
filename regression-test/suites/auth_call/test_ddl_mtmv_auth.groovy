@@ -76,7 +76,6 @@ suite("test_ddl_mtmv_auth","p0,auth") {
     // ddl alter
     // user alter
     sql """revoke Create_priv on ${dbName}.${mtmvName} from ${user};"""
-    sql """revoke select_priv on ${dbName}.${mtmvName} from ${user};"""
     connect(user=user, password="${pwd}", url=context.config.jdbcUrl) {
         test {
             sql """ALTER MATERIALIZED VIEW ${mtmvName} rename ${mtmvNameNew};"""
