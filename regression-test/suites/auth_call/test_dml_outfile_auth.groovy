@@ -53,7 +53,7 @@ suite("test_dml_outfile_auth","p0,auth") {
     connect(user=user, password="${pwd}", url=context.config.jdbcUrl) {
         test {
             sql """
-                SELECT * FROM ${dbName}.${tableName} t ORDER BY user_id
+                SELECT * FROM ${dbName}.${tableName} t ORDER BY id
                 INTO OUTFILE "s3://${bucket}/outfile/auth/exp_${hashCode}"
                 FORMAT AS parquet 
                 PROPERTIES (
