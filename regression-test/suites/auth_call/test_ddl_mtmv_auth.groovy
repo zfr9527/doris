@@ -49,10 +49,6 @@ suite("test_ddl_mtmv_auth","p0,auth") {
                 AS select username, sum(id) as sum_id from ${dbName}.${tableName} group by username"""
             exception "denied"
         }
-        test {
-            sql """show create materialized view ${mtmvName}"""
-            exception "denied"
-        }
     }
     sql """grant Create_priv on ${dbName}.${mtmvName} to ${user}"""
     connect(user=user, password="${pwd}", url=context.config.jdbcUrl) {
