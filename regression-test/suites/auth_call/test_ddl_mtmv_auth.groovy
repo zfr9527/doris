@@ -68,6 +68,7 @@ suite("test_ddl_mtmv_auth","p0,auth") {
             DISTRIBUTED BY RANDOM BUCKETS 1 
             PROPERTIES ('replication_num' = '1') 
             AS select username, sum(id) as sum_id from ${dbName}.${tableName} group by username"""
+        sql """show create materialized view ${dbName}.${mtmvName}"""
         sql """use ${dbName}"""
         def tb_res = sql """show tables;"""
         assertTrue(tb_res.size() == 2)
