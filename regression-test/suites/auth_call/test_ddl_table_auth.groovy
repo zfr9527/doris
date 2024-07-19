@@ -225,26 +225,26 @@ suite("test_ddl_table_auth","p0,auth") {
     }
 
     // ddl drop
-//    connect(user=user, password="${pwd}", url=context.config.jdbcUrl) {
-//        try {
-//            sql """use ${dbName}"""
-//            sql """drop table ${tableName};"""
-//        } catch (Exception e) {
-//            log.info(e.getMessage())
-//            assertTrue(e.getMessage().contains("Access denied"))
-//        }
-//    }
-//    sql """grant DROP_PRIV on ${dbName}.${tableName} to ${user}"""
-//    connect(user=user, password="${pwd}", url=context.config.jdbcUrl) {
-//        sql """use ${dbName}"""
-//        sql """drop table ${tableName};"""
-//        def ctl_res = sql """show tables;"""
-//        assertTrue(ctl_res.size() == 0)
-//    }
-//
-//
-//    sql """drop database if exists ${dbName}"""
-//    sql """drop database if exists ${cteLikeDstDb}"""
-//    sql """drop database if exists ${cteSelectDstDb}"""
-//    try_sql("DROP USER ${user}")
+    connect(user=user, password="${pwd}", url=context.config.jdbcUrl) {
+        try {
+            sql """use ${dbName}"""
+            sql """drop table ${tableName};"""
+        } catch (Exception e) {
+            log.info(e.getMessage())
+            assertTrue(e.getMessage().contains("Access denied"))
+        }
+    }
+    sql """grant DROP_PRIV on ${dbName}.${tableName} to ${user}"""
+    connect(user=user, password="${pwd}", url=context.config.jdbcUrl) {
+        sql """use ${dbName}"""
+        sql """drop table ${tableName};"""
+        def ctl_res = sql """show tables;"""
+        assertTrue(ctl_res.size() == 0)
+    }
+
+
+    sql """drop database if exists ${dbName}"""
+    sql """drop database if exists ${cteLikeDstDb}"""
+    sql """drop database if exists ${cteSelectDstDb}"""
+    try_sql("DROP USER ${user}")
 }
