@@ -75,15 +75,18 @@ suite("test_ddl_mtmv_auth","p0,auth") {
 
     // ddl alter
     // user alter
+    sql """revoke Create_priv on ${dbName}.${mtmvName} from ${user};"""
+    sql """revoke select_priv on ${dbName}.${mtmvName} from ${user};"""
     connect(user=user, password="${pwd}", url=context.config.jdbcUrl) {
         test {
             sql """ALTER MATERIALIZED VIEW ${mtmvName} rename ${mtmvNameNew};"""
             exception "denied"
         }
-        sql """show create materialized view ${mtmvName}"""
+        test {
+            sql """show create materialized view ${mtmvName}"""
+            exception "denied"
+        }
     }
-    sql """revoke Create_priv on ${dbName}.${mtmvName} from ${user};"""
-    sql """revoke select_priv on ${dbName}.${mtmvName} from ${user};"""
     sql """grant ALTER_PRIV on ${dbName}.${mtmvName} to ${user}"""
     connect(user=user, password="${pwd}", url=context.config.jdbcUrl) {
         sql """use ${dbName}"""
