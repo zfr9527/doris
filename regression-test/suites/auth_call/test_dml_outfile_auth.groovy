@@ -18,12 +18,12 @@
 import org.junit.Assert;
 import org.codehaus.groovy.runtime.IOGroovyMethods
 
-suite("test_dml_analyze_auth","p0,auth") {
+suite("test_dml_outfile_auth","p0,auth") {
 
-    String user = 'test_dml_analyze_auth_user'
+    String user = 'test_dml_outfile_auth_user'
     String pwd = 'C123_567p'
-    String dbName = 'test_dml_analyze_auth_db'
-    String tableName = 'test_dml_analyze_auth_tb'
+    String dbName = 'test_dml_outfile_auth_db'
+    String tableName = 'test_dml_outfile_auth_tb'
 
     try_sql("DROP USER ${user}")
     try_sql """drop database if exists ${dbName}"""
@@ -51,11 +51,11 @@ suite("test_dml_analyze_auth","p0,auth") {
     sql """grant select_priv on ${dbName}.${tableName} to ${user}"""
     connect(user=user, password="${pwd}", url=context.config.jdbcUrl) {
         sql """
-                analyze table ${dbName}.${tableName}
+                analyze table ${dbName}.${tableName} with sync;
                 """
     }
 
-    res = sql """show column stats ${dbName}.${tableName} with sync;"""
+    res = sql """show column stats ${dbName}.${tableName};"""
     logger.info("res: " + res)
     assertTrue(res.size() == 2)
 
