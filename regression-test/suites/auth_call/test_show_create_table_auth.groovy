@@ -44,7 +44,7 @@ suite("test_show_create_table_auth","p0,auth") {
 //            exception "denied"
 //        }
 //    }
-    sql """grant show_priv on ${dbName}.${tableName} to ${user}"""
+    sql """grant select_priv on ${dbName}.${tableName} to ${user}"""
     connect(user=user, password="${pwd}", url=context.config.jdbcUrl) {
         sql """use ${dbName}"""
         sql """show create table ${tableName}"""
