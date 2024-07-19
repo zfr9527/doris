@@ -55,7 +55,7 @@ suite("test_dml_outfile_auth","p0,auth") {
                 """
     }
 
-    res = sql """show column stats ${dbName}.${tableName};"""
+    def res = sql """show column stats ${dbName}.${tableName};"""
     logger.info("res: " + res)
     assertTrue(res.size() == 2)
 
