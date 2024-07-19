@@ -77,11 +77,20 @@ suite("test_ddl_table_auth","p0,auth") {
             log.info(e.getMessage())
             assertTrue(e.getMessage().contains("denied"))
         }
+        test {
+            sql """ALTER TABLE ${dbName}.${tableName} ADD COLUMN new_col INT KEY DEFAULT "0";"""
+            exception "denied"
+        }
+        def res = sql """SHOW ALTER TABLE COLUMN;"""
+        assertTrue(res.size() == 0)
     }
     sql """grant ALTER_PRIV on ${dbName}.${tableName} to ${user}"""
     connect(user=user, password="${pwd}", url=context.config.jdbcUrl) {
         sql """use ${dbName}"""
         sql """ALTER table ${tableName} RENAME ${tableNameNew};"""
+        sql """ALTER TABLE ${tableName} ADD COLUMN new_col INT KEY DEFAULT "0";"""
+        def res = sql """SHOW ALTER TABLE COLUMN;"""
+        assertTrue(res.size() == 1)
         try {
             sql """show create table ${tableNameNew}"""
         } catch (Exception e) {
