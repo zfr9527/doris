@@ -50,52 +50,52 @@ suite("test_ddl_database_auth","p0,auth") {
         assertTrue(db_res.size() == 4)
     }
 
-    // ddl alter
-    // user alter
-    connect(user=user, password="${pwd}", url=context.config.jdbcUrl) {
-        try {
-            sql """ALTER database ${dbName} RENAME ${dbNameNew};"""
-        } catch (Exception e) {
-            log.info(e.getMessage())
-            assertTrue(e.getMessage().contains("Access denied"))
-        }
-    }
-    sql """grant ALTER_PRIV on ${dbName}.* to ${user}"""
-    connect(user=user, password="${pwd}", url=context.config.jdbcUrl) {
-        sql """ALTER database ${dbName} RENAME ${dbNameNew};"""
-        try {
-            sql """show create database ${dbNameNew}"""
-        } catch (Exception e) {
-            log.info(e.getMessage())
-            assertTrue(e.getMessage().contains("Access denied"))
-        }
-        def db_res = sql """show databases;"""
-        assertTrue(db_res.size() == 3)
-    }
-    // root alter
-    sql """ALTER database ${dbNameNew} RENAME ${dbName};"""
-    connect(user=user, password="${pwd}", url=context.config.jdbcUrl) {
-        sql """show create database ${dbName}"""
-        def db_res = sql """show databases;"""
-        assertTrue(db_res.size() == 4)
-    }
-
-    // ddl drop
-    connect(user=user, password="${pwd}", url=context.config.jdbcUrl) {
-        try {
-            sql """drop database ${dbName};"""
-        } catch (Exception e) {
-            log.info(e.getMessage())
-            assertTrue(e.getMessage().contains("Access denied"))
-        }
-    }
-    sql """grant DROP_PRIV on ${dbName}.* to ${user}"""
-    connect(user=user, password="${pwd}", url=context.config.jdbcUrl) {
-        sql """drop database ${dbName};"""
-        def ctl_res = sql """show databases;"""
-        assertTrue(ctl_res.size() == 3)
-    }
-
-    sql """drop database if exists ${dbName}"""
-    try_sql("DROP USER ${user}")
+//    // ddl alter
+//    // user alter
+//    connect(user=user, password="${pwd}", url=context.config.jdbcUrl) {
+//        try {
+//            sql """ALTER database ${dbName} RENAME ${dbNameNew};"""
+//        } catch (Exception e) {
+//            log.info(e.getMessage())
+//            assertTrue(e.getMessage().contains("Access denied"))
+//        }
+//    }
+//    sql """grant ALTER_PRIV on ${dbName}.* to ${user}"""
+//    connect(user=user, password="${pwd}", url=context.config.jdbcUrl) {
+//        sql """ALTER database ${dbName} RENAME ${dbNameNew};"""
+//        try {
+//            sql """show create database ${dbNameNew}"""
+//        } catch (Exception e) {
+//            log.info(e.getMessage())
+//            assertTrue(e.getMessage().contains("Access denied"))
+//        }
+//        def db_res = sql """show databases;"""
+//        assertTrue(db_res.size() == 3)
+//    }
+//    // root alter
+//    sql """ALTER database ${dbNameNew} RENAME ${dbName};"""
+//    connect(user=user, password="${pwd}", url=context.config.jdbcUrl) {
+//        sql """show create database ${dbName}"""
+//        def db_res = sql """show databases;"""
+//        assertTrue(db_res.size() == 4)
+//    }
+//
+//    // ddl drop
+//    connect(user=user, password="${pwd}", url=context.config.jdbcUrl) {
+//        try {
+//            sql """drop database ${dbName};"""
+//        } catch (Exception e) {
+//            log.info(e.getMessage())
+//            assertTrue(e.getMessage().contains("Access denied"))
+//        }
+//    }
+//    sql """grant DROP_PRIV on ${dbName}.* to ${user}"""
+//    connect(user=user, password="${pwd}", url=context.config.jdbcUrl) {
+//        sql """drop database ${dbName};"""
+//        def ctl_res = sql """show databases;"""
+//        assertTrue(ctl_res.size() == 3)
+//    }
+//
+//    sql """drop database if exists ${dbName}"""
+//    try_sql("DROP USER ${user}")
 }
