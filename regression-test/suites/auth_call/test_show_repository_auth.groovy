@@ -48,6 +48,13 @@ suite("test_show_repository_auth","p0,auth") {
             )"""
 
     connect(user=user, password="${pwd}", url=context.config.jdbcUrl) {
+        test {
+            sql """SHOW CREATE REPOSITORY for ${repositoryName};"""
+            exception "denied"
+        }
+    }
+    sql """grant admin_priv on *.*.* to ${user}"""
+    connect(user=user, password="${pwd}", url=context.config.jdbcUrl) {
         sql """SHOW CREATE REPOSITORY for ${repositoryName};"""
     }
 
