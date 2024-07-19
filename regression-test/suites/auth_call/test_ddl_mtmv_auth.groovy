@@ -49,6 +49,10 @@ suite("test_ddl_mtmv_auth","p0,auth") {
                 AS select username, sum(id) as sum_id from ${dbName}.${tableName} group by username"""
             exception "denied"
         }
+        test {
+            sql """show create materialized view ${mtmvName}"""
+            exception "denied"
+        }
     }
     sql """grant Create_priv on ${dbName}.${mtmvName} to ${user}"""
     connect(user=user, password="${pwd}", url=context.config.jdbcUrl) {
@@ -58,6 +62,10 @@ suite("test_ddl_mtmv_auth","p0,auth") {
                 DISTRIBUTED BY RANDOM BUCKETS 1 
                 PROPERTIES ('replication_num' = '1') 
                 AS select username, sum(id) as sum_id from ${dbName}.${tableName} group by username"""
+            exception "denied"
+        }
+        test {
+            sql """show create materialized view ${mtmvName}"""
             exception "denied"
         }
     }
@@ -84,6 +92,7 @@ suite("test_ddl_mtmv_auth","p0,auth") {
     sql """grant ALTER_PRIV on ${dbName}.${mtmvName} to ${user}"""
     connect(user=user, password="${pwd}", url=context.config.jdbcUrl) {
         sql """use ${dbName}"""
+        sql """show create materialized view ${mtmvName}"""
         sql """ALTER MATERIALIZED VIEW ${mtmvName} rename ${mtmvNameNew};"""
         test {
             sql """show create materialized view ${mtmvNameNew}"""
