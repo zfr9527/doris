@@ -41,12 +41,13 @@ suite("test_dml_analyze_auth","p0,auth") {
             );"""
     def res = sql """show column stats ${dbName}.${tableName}"""
     logger.info("res: " + res)
+    assertTrue(res.size == 0)
 
 
     connect(user=user, password="${pwd}", url=context.config.jdbcUrl) {
         test {
             sql """
-                analyze table ${dbName}.${tableName}
+                analyze table ${dbName}.${tableName} with sync;
                 """
             exception "denied"
         }
@@ -58,8 +59,9 @@ suite("test_dml_analyze_auth","p0,auth") {
                 """
     }
 
-    res = sql """show column stats ${dbName}.${tableName}"""
+    res = sql """show column stats ${dbName}.${tableName} with sync;"""
     logger.info("res: " + res)
+    assertTrue(res.size() == 2)
 
     sql """drop database if exists ${dbName}"""
     try_sql("DROP USER ${user}")
