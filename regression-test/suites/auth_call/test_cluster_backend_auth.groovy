@@ -22,6 +22,7 @@ suite("test_cluster_backend_auth","p0,auth") {
     String pwd = 'C123_567p'
 
     try_sql("DROP USER ${user}")
+    sql """CREATE USER '${user}' IDENTIFIED BY '${pwd}'"""
 
     connect(user=user, password="${pwd}", url=context.config.jdbcUrl) {
         test {
