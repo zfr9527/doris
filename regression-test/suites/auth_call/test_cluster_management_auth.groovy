@@ -53,7 +53,10 @@ suite ("test_cluster_management_auth","nonConcurrent,p0,auth") {
 
     if (is_exists_follower()) {
         connect(user=user, password="${pwd}", url=context.config.jdbcUrl) {
-            sql """show frontends"""
+            test {
+                sql """show frontends"""
+                exception "denied"
+            }
             test {
                 sql """ALTER SYSTEM add FOLLOWER '${follower_host}:${follower_ip}'"""
                 exception "denied"
@@ -74,7 +77,10 @@ suite ("test_cluster_management_auth","nonConcurrent,p0,auth") {
 
     if (is_exists_backends()) {
         connect(user=user, password="${pwd}", url=context.config.jdbcUrl) {
-            sql """show backends"""
+            test {
+                sql """show backends"""
+                exception "denied"
+            }
             test {
                 sql """ALTER SYSTEM add backend '${backend_ip}:${backend_host}'"""
                 exception "denied"
