@@ -85,7 +85,7 @@ suite ("test_cluster_management_auth","nonConcurrent,p0,auth") {
             sql """ALTER SYSTEM DROP FOLLOWER '${follower_ip}:${follower_host}'"""
             sql """ALTER SYSTEM add FOLLOWER '${follower_ip}:${follower_host}'"""
         }
-        sql """revoke NODE_PRIV on *.*.* to ${user}"""
+        sql """revoke NODE_PRIV on *.*.* from ${user}"""
     }
 
     if (is_exists_observer()) {
@@ -109,7 +109,7 @@ suite ("test_cluster_management_auth","nonConcurrent,p0,auth") {
             sql """ALTER SYSTEM DROP OBSERVER '${observer_ip}:${observer_host}'"""
             sql """ALTER SYSTEM add OBSERVER '${observer_ip}:${observer_host}'"""
         }
-        sql """revoke NODE_PRIV on *.*.* to ${user}"""
+        sql """revoke NODE_PRIV on *.*.* from ${user}"""
     }
 
     if (is_exists_backends()) {
@@ -133,7 +133,7 @@ suite ("test_cluster_management_auth","nonConcurrent,p0,auth") {
             sql """ALTER SYSTEM DROP backend '${backend_ip}:${backend_host}'"""
             sql """ALTER SYSTEM add backend '${backend_ip}:${backend_host}'"""
         }
-        sql """revoke NODE_PRIV on *.*.* to ${user}"""
+        sql """revoke NODE_PRIV on *.*.* from ${user}"""
     }
 
     try_sql("DROP USER ${user}")
