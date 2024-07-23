@@ -21,6 +21,8 @@ suite ("test_cluster_management_auth","nonConcurrent,p0,auth") {
 
     def follower_ip = ""
     def follower_host = ""
+    def observer_ip = ""
+    def observer_host = ""
     def backend_ip = ""
     def backend_host = ""
 
@@ -30,6 +32,17 @@ suite ("test_cluster_management_auth","nonConcurrent,p0,auth") {
             if (res[i][7] == "FOLLOWER" && res[i][8] == "false" && res[i][11] == "true") {
                 follower_ip = res[i][1]
                 follower_host = res[i][2]
+                return true;
+            }
+        }
+        return false;
+    }
+    def is_exists_observer = {
+        def res = sql """show frontends;"""
+        for (int i = 0; i < res.size(); i++) {
+            if (res[i][7] == "OBSERVER" && res[i][8] == "false" && res[i][11] == "true") {
+                observer_ip = res[i][1]
+                observer_host = res[i][2]
                 return true;
             }
         }
@@ -62,7 +75,7 @@ suite ("test_cluster_management_auth","nonConcurrent,p0,auth") {
                 exception "denied"
             }
             test {
-                sql """ALTER SYSTEM DROPP FOLLOWER '${follower_ip}:${follower_host}'"""
+                sql """ALTER SYSTEM DROP FOLLOWER '${follower_ip}:${follower_host}'"""
                 exception "denied"
             }
         }
@@ -71,6 +84,30 @@ suite ("test_cluster_management_auth","nonConcurrent,p0,auth") {
             sql """show frontends"""
             sql """ALTER SYSTEM DROPP FOLLOWER '${follower_ip}:${follower_host}'"""
             sql """ALTER SYSTEM add FOLLOWER '${follower_ip}:${follower_host}'"""
+        }
+        sql """revoke NODE_PRIV on *.*.* to ${user}"""
+    }
+
+    if (is_exists_observer()) {
+        connect(user=user, password="${pwd}", url=context.config.jdbcUrl) {
+            test {
+                sql """show frontends"""
+                exception "denied"
+            }
+            test {
+                sql """ALTER SYSTEM add OBSERVER '${observer_ip}:${observer_host}'"""
+                exception "denied"
+            }
+            test {
+                sql """ALTER SYSTEM DROP OBSERVER '${observer_ip}:${observer_host}'"""
+                exception "denied"
+            }
+        }
+        sql """grant NODE_PRIV on *.*.* to ${user}"""
+        connect(user=user, password="${pwd}", url=context.config.jdbcUrl) {
+            sql """show frontends"""
+            sql """ALTER SYSTEM DROP OBSERVER '${observer_ip}:${observer_host}'"""
+            sql """ALTER SYSTEM add OBSERVER '${observer_ip}:${observer_host}'"""
         }
         sql """revoke NODE_PRIV on *.*.* to ${user}"""
     }
@@ -86,14 +123,14 @@ suite ("test_cluster_management_auth","nonConcurrent,p0,auth") {
                 exception "denied"
             }
             test {
-                sql """ALTER SYSTEM DROPP backend '${backend_ip}:${backend_host}'"""
+                sql """ALTER SYSTEM DROP backend '${backend_ip}:${backend_host}'"""
                 exception "denied"
             }
         }
         sql """grant NODE_PRIV on *.*.* to ${user}"""
         connect(user=user, password="${pwd}", url=context.config.jdbcUrl) {
             sql """show backends"""
-            sql """ALTER SYSTEM DROPP backend '${backend_ip}:${backend_host}'"""
+            sql """ALTER SYSTEM DROP backend '${backend_ip}:${backend_host}'"""
             sql """ALTER SYSTEM add backend '${backend_ip}:${backend_host}'"""
         }
         sql """revoke NODE_PRIV on *.*.* to ${user}"""
