@@ -58,19 +58,19 @@ suite ("test_cluster_management_auth","nonConcurrent,p0,auth") {
                 exception "denied"
             }
             test {
-                sql """ALTER SYSTEM add FOLLOWER '${follower_host}:${follower_ip}'"""
+                sql """ALTER SYSTEM add FOLLOWER '${follower_ip}:${follower_host}'"""
                 exception "denied"
             }
             test {
-                sql """ALTER SYSTEM DROPP FOLLOWER '${follower_host}:${follower_ip}'"""
+                sql """ALTER SYSTEM DROPP FOLLOWER '${follower_ip}:${follower_host}'"""
                 exception "denied"
             }
         }
         sql """grant NODE_PRIV on *.*.* to ${user}"""
         connect(user=user, password="${pwd}", url=context.config.jdbcUrl) {
             sql """show frontends"""
-            sql """ALTER SYSTEM DROPP FOLLOWER '${follower_host}:${follower_ip}'"""
-            sql """ALTER SYSTEM add FOLLOWER '${follower_host}:${follower_ip}'"""
+            sql """ALTER SYSTEM DROPP FOLLOWER '${follower_ip}:${follower_host}'"""
+            sql """ALTER SYSTEM add FOLLOWER '${follower_ip}:${follower_host}'"""
         }
         sql """revoke NODE_PRIV on *.*.* to ${user}"""
     }
