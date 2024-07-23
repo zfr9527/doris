@@ -32,7 +32,7 @@ suite ("test_cluster_management_auth","nonConcurrent,p0,auth") {
             if (res[i][7] == "FOLLOWER" && res[i][8] == "false" && res[i][11] == "true") {
                 follower_ip = res[i][1]
                 follower_host = res[i][2]
-                return true;
+                return true
             }
         }
         return false;
