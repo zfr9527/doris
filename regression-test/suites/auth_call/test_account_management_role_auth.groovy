@@ -50,7 +50,7 @@ suite("test_account_management_role_auth","p0,auth") {
             exception "denied"
         }
     }
-    sql """grant grant_priv on *.*.* to ${role}"""
+    sql """grant grant_priv on *.*.* to ROLE ${role}"""
     connect(user=user, password="${pwd}", url=context.config.jdbcUrl) {
         sql """CREATE ROLE ${role_derive}"""
         sql """ALTER ROLE ${role_derive} COMMENT "this is my first role";"""
