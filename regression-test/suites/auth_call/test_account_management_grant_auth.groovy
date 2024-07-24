@@ -18,12 +18,13 @@
 import org.junit.Assert;
 import org.codehaus.groovy.runtime.IOGroovyMethods
 
-suite("test_account_management_user_auth","p0,auth") {
+suite("test_account_management_grant_auth","p0,auth") {
 
-    String user = 'test_account_management_user_auth_user'
+    String user = 'test_account_management_grant_auth_user'
     String pwd = 'C123_567p'
-    String dbName = 'test_account_management_user_auth_db'
-    String user_derive = 'test_account_management_user_derive_role'
+    String dbName = 'test_account_management_grant_auth_db'
+    String user_derive = 'test_account_management_grant_user_derive_role'
+    String role_derive = 'test_account_management_grant_role_derive_role'
 
     try_sql("DROP USER ${user}")
     try_sql("DROP USER ${user_derive}")

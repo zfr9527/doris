@@ -25,6 +25,7 @@ suite ("test_cluster_management_auth","nonConcurrent,p0,auth") {
     def observer_host = ""
     def backend_ip = ""
     def backend_host = ""
+    def backend_id = ""
 
     def is_exists_follower = {
         def res = sql """show frontends;"""
@@ -53,6 +54,7 @@ suite ("test_cluster_management_auth","nonConcurrent,p0,auth") {
         assertTrue(res.size() > 0)
         backend_ip = res[0][1]
         backend_host = res[0][2]
+        backend_id = res[0][0]
         return true
     }
 
@@ -123,6 +125,14 @@ suite ("test_cluster_management_auth","nonConcurrent,p0,auth") {
                 exception "denied"
             }
             test {
+                sql """ALTER SYSTEM MODIFY BACKEND "${backend_id}" SET ("tag.location" = "default");"""
+                exception "denied"
+            }
+            test {
+                sql """ALTER SYSTEM DECOMMISSION BACKEND '${backend_id}'"""
+                exception "denied"
+            }
+            test {
                 sql """ALTER SYSTEM DROP backend '${backend_ip}:${backend_host}'"""
                 exception "denied"
             }
@@ -131,6 +141,10 @@ suite ("test_cluster_management_auth","nonConcurrent,p0,auth") {
         connect(user=user, password="${pwd}", url=context.config.jdbcUrl) {
             sql """show backends"""
             sql """ALTER SYSTEM DROP backend '${backend_ip}:${backend_host}'"""
+            sql """ALTER SYSTEM MODIFY BACKEND "${backend_id}" SET ("tag.location" = "default");"""
+            sql """ALTER SYSTEM add backend '${backend_ip}:${backend_host}'"""
+
+            sql """ALTER SYSTEM DECOMMISSION BACKEND '${backend_id}'"""
             sql """ALTER SYSTEM add backend '${backend_ip}:${backend_host}'"""
         }
         sql """revoke NODE_PRIV on *.*.* from ${user}"""
