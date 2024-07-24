@@ -51,7 +51,7 @@ suite("test_account_management_user_auth","p0,auth") {
             exception "denied"
         }
     }
-    sql """grant grant_priv on *.*.* to ROLE '${role}'"""
+    sql """grant grant_priv on *.*.* to '${user}'"""
     connect(user=user, password="${pwd}", url=context.config.jdbcUrl) {
         sql """CREATE USER ${user_derive} IDENTIFIED BY '${pwd}';"""
         sql """ALTER USER ${user_derive} IDENTIFIED BY "${pwd}";"""
@@ -61,6 +61,5 @@ suite("test_account_management_user_auth","p0,auth") {
 
     sql """drop database if exists ${dbName}"""
     try_sql("DROP USER ${user}")
-    try_sql("DROP role ${role}")
-    try_sql("DROP role ${role_derive}")
+    try_sql("DROP role ${user_derive}")
 }
