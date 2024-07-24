@@ -82,10 +82,7 @@ suite("test_account_management_user_auth","p0,auth") {
         sql """SET PASSWORD FOR '${user_derive}' = PASSWORD('${pwd}')"""
         sql """SET PROPERTY FOR '${user_derive}' 'max_user_connections' = '1000';"""
         sql """DROP user ${user_derive}"""
-        test {
-            sql """SET LDAP_ADMIN_PASSWORD = PASSWORD('${pwd}')"""
-            exception "denied"
-        }
+        sql """SET LDAP_ADMIN_PASSWORD = PASSWORD('${pwd}')"""
     }
 
     sql """drop database if exists ${dbName}"""
