@@ -43,7 +43,7 @@ suite("test_account_management_user_auth","p0,auth") {
             exception "denied"
         }
         test {
-            sql """SET PASSWORD = PASSWORD('${pwd}')"""
+            sql """SET PASSWORD FOR '${user}' = PASSWORD('${pwd}')"""
             exception "denied"
         }
         test {
@@ -55,7 +55,7 @@ suite("test_account_management_user_auth","p0,auth") {
     connect(user=user, password="${pwd}", url=context.config.jdbcUrl) {
         sql """CREATE USER ${user_derive} IDENTIFIED BY '${pwd}';"""
         sql """ALTER USER ${user_derive} IDENTIFIED BY "${pwd}";"""
-        sql """SET PASSWORD = PASSWORD('${pwd}')"""
+        sql """SET PASSWORD FOR '${user}' = PASSWORD('${pwd}')"""
         sql """DROP user ${user_derive}"""
     }
 
