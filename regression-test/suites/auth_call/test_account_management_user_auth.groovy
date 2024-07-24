@@ -54,6 +54,10 @@ suite("test_account_management_user_auth","p0,auth") {
             sql """DROP user ${user_derive}"""
             exception "denied"
         }
+        test {
+            sql """SET LDAP_ADMIN_PASSWORD = PASSWORD('${pwd}')"""
+            exception "denied"
+        }
     }
     sql """grant grant_priv on *.*.* to '${user}'"""
     connect(user=user, password="${pwd}", url=context.config.jdbcUrl) {
@@ -65,6 +69,10 @@ suite("test_account_management_user_auth","p0,auth") {
             exception "denied"
         }
         sql """DROP user ${user_derive}"""
+        test {
+            sql """SET LDAP_ADMIN_PASSWORD = PASSWORD('${pwd}')"""
+            exception "denied"
+        }
     }
     sql """revoke grant_priv on *.*.* from '${user}'"""
     sql """grant admin_priv on *.*.* to '${user}'"""
@@ -74,6 +82,10 @@ suite("test_account_management_user_auth","p0,auth") {
         sql """SET PASSWORD FOR '${user_derive}' = PASSWORD('${pwd}')"""
         sql """SET PROPERTY FOR '${user_derive}' 'max_user_connections' = '1000';"""
         sql """DROP user ${user_derive}"""
+        test {
+            sql """SET LDAP_ADMIN_PASSWORD = PASSWORD('${pwd}')"""
+            exception "denied"
+        }
     }
 
     sql """drop database if exists ${dbName}"""
