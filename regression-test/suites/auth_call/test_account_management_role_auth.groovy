@@ -35,6 +35,7 @@ suite("test_account_management_role_auth","p0,auth") {
     sql """CREATE USER '${user}' IDENTIFIED BY '${pwd}'"""
     sql """grant select_priv on regression_test to ${user}"""
     sql """create database ${dbName}"""
+    sql """GRANT '${role}' TO ${user};"""
 
     connect(user=user, password="${pwd}", url=context.config.jdbcUrl) {
         test {
