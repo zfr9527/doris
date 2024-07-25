@@ -76,6 +76,51 @@ suite("test_dml_routine_load_auth","p0,auth") {
                 """
                 exception "denied"
             }
+//            test {
+//                sql """
+//                ALTER ROUTINE LOAD FOR ${dbName}.${labelName}
+//                    PROPERTIES
+//                    (
+//                        "desired_concurrent_number" = "1"
+//                    );
+//                """
+//                exception "denied"
+//            }
+//            test {
+//                sql """PAUSE ROUTINE LOAD FOR ${dbName}.${labelName};"""
+//                exception "denied"
+//            }
+//            test {
+//                sql """RESUME ROUTINE LOAD FOR ${dbName}.${labelName};"""
+//                exception "denied"
+//            }
+//            test {
+//                sql """STOP ROUTINE LOAD FOR ${dbName}.${labelName};"""
+//                exception "denied"
+//            }
+//            test {
+//                sql """show routine load for ${dbName}.${labelName}"""
+//                exception "denied"
+//            }
+        }
+
+        sql """grant load_priv on ${dbName}.${tableName} to ${user}"""
+        connect(user = user, password = "${pwd}", url = context.config.jdbcUrl) {
+            sql """
+                CREATE ROUTINE LOAD ${dbName}.${labelName} ON ${tableName}
+                COLUMNS(a,b),
+                COLUMNS TERMINATED BY ","
+                FROM KAFKA
+                (
+                    "kafka_broker_list" = "${externalEnvIp}:${kafka_port}",
+                    "kafka_topic" = "${topic}",
+                    "property.kafka_default_offsets" = "OFFSET_BEGINNING"
+                );
+                """
+        }
+        sql """revoke load_priv on ${dbName}.${tableName} from ${user}"""
+
+        connect(user = user, password = "${pwd}", url = context.config.jdbcUrl) {
             test {
                 sql """
                 ALTER ROUTINE LOAD FOR ${dbName}.${labelName} 
@@ -102,12 +147,6 @@ suite("test_dml_routine_load_auth","p0,auth") {
                 sql """show routine load for ${dbName}.${labelName}"""
                 exception "denied"
             }
-        }
-
-        sql """grant load_priv on ${dbName}.${tableName} to ${user}"""
-
-        connect(user = user, password = "${pwd}", url = context.config.jdbcUrl) {
-
         }
     }
 //        while (true) {
