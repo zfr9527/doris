@@ -124,6 +124,7 @@ suite("test_dml_routine_load_auth","p0,auth") {
         }
         sql """grant load_priv on ${dbName}.${tableName} to ${user}"""
         connect(user = user, password = "${pwd}", url = context.config.jdbcUrl) {
+            sql """PAUSE ROUTINE LOAD FOR ${dbName}.${labelName};"""
             sql """
             ALTER ROUTINE LOAD FOR ${dbName}.${labelName} 
                 PROPERTIES
@@ -131,7 +132,6 @@ suite("test_dml_routine_load_auth","p0,auth") {
                     "desired_concurrent_number" = "1"
                 );
             """
-            sql """PAUSE ROUTINE LOAD FOR ${dbName}.${labelName};"""
             sql """RESUME ROUTINE LOAD FOR ${dbName}.${labelName};"""
             sql """STOP ROUTINE LOAD FOR ${dbName}.${labelName};"""
         }
