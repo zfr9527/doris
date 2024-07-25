@@ -115,11 +115,12 @@ suite("test_dml_broker_load_auth","p0,auth") {
         logger.info("res: " + res)
         assertTrue(res.size() == 0)
 
-        sql """CANCEL LOAD
+        test {
+            sql """CANCEL LOAD
                 FROM ${dbName}
                 WHERE LABEL = "${loadLabelName}";"""
-        res = sql """SHOW LOAD FROM ${dbName} WHERE LABEL LIKE '${loadLabelName}'"""
-        logger.info("res: " + res)
+            exception "denied"
+        }
     }
 
     sql """grant load_priv on ${dbName} to ${user}"""
@@ -127,6 +128,12 @@ suite("test_dml_broker_load_auth","p0,auth") {
         def res = sql """SHOW LOAD FROM ${dbName} WHERE LABEL LIKE '${loadLabelName}'"""
         logger.info("res: " + res)
         assertTrue(res.size() == 1)
+
+        sql """CANCEL LOAD
+                FROM ${dbName}
+                WHERE LABEL = "${loadLabelName}";"""
+        res = sql """SHOW LOAD FROM ${dbName} WHERE LABEL LIKE '${loadLabelName}'"""
+        logger.info("res: " + res)
     }
 
     sql """drop database if exists ${dbName}"""
