@@ -94,127 +94,59 @@ suite("test_dml_routine_load_auth","p0,auth") {
         }
         sql """revoke load_priv on ${dbName}.${tableName} from ${user}"""
 
-//        connect(user = user, password = "${pwd}", url = context.config.jdbcUrl) {
+        connect(user = user, password = "${pwd}", url = context.config.jdbcUrl) {
+            test {
+                sql """
+                ALTER ROUTINE LOAD FOR ${dbName}.${labelName} 
+                    PROPERTIES
+                    (
+                        "desired_concurrent_number" = "1"
+                    );
+                """
+                exception "denied"
+            }
+            test {
+                sql """PAUSE ROUTINE LOAD FOR ${dbName}.${labelName};"""
+                exception "denied"
+            }
+            test {
+                sql """RESUME ROUTINE LOAD FOR ${dbName}.${labelName};"""
+                exception "denied"
+            }
+            test {
+                sql """STOP ROUTINE LOAD FOR ${dbName}.${labelName};"""
+                exception "denied"
+            }
 //            test {
-//                sql """
-//                ALTER ROUTINE LOAD FOR ${dbName}.${labelName}
-//                    PROPERTIES
-//                    (
-//                        "desired_concurrent_number" = "1"
-//                    );
-//                """
+//                sql """show routine load for ${dbName}.${labelName}"""
 //                exception "denied"
 //            }
-//            test {
-//                sql """PAUSE ROUTINE LOAD FOR ${dbName}.${labelName};"""
-//                exception "denied"
-//            }
-//            test {
-//                sql """RESUME ROUTINE LOAD FOR ${dbName}.${labelName};"""
-//                exception "denied"
-//            }
-//            test {
-//                sql """STOP ROUTINE LOAD FOR ${dbName}.${labelName};"""
-//                exception "denied"
-//            }
-////            test {
-////                sql """show routine load for ${dbName}.${labelName}"""
-////                exception "denied"
-////            }
-//        }
-//        sql """grant load_priv on ${dbName}.${tableName} to ${user}"""
-//        connect(user = user, password = "${pwd}", url = context.config.jdbcUrl) {
-//            sql """PAUSE ROUTINE LOAD FOR ${dbName}.${labelName};"""
-//            sql """
-//            ALTER ROUTINE LOAD FOR ${dbName}.${labelName}
-//                PROPERTIES
-//                (
-//                    "desired_concurrent_number" = "1"
-//                );
-//            """
-//            sql """RESUME ROUTINE LOAD FOR ${dbName}.${labelName};"""
-//            sql """STOP ROUTINE LOAD FOR ${dbName}.${labelName};"""
-//        }
-//        sql """revoke load_priv on ${dbName}.${tableName} from ${user}"""
+        }
+        sql """grant load_priv on ${dbName}.${tableName} to ${user}"""
+        connect(user = user, password = "${pwd}", url = context.config.jdbcUrl) {
+            sql """PAUSE ROUTINE LOAD FOR ${dbName}.${labelName};"""
+            sql """
+            ALTER ROUTINE LOAD FOR ${dbName}.${labelName} 
+                PROPERTIES
+                (
+                    "desired_concurrent_number" = "1"
+                );
+            """
+            sql """RESUME ROUTINE LOAD FOR ${dbName}.${labelName};"""
+            sql """STOP ROUTINE LOAD FOR ${dbName}.${labelName};"""
+        }
+        sql """revoke load_priv on ${dbName}.${tableName} from ${user}"""
+
+        sql """grant load_priv on *.*.* to ${user}"""
+        connect(user = user, password = "${pwd}", url = context.config.jdbcUrl) {
+            test {
+                sql """show routine load for ${dbName}.${labelName}"""
+                exception "denied"
+            }
+        }
+        sql """revoke load_priv on *.*.* from ${user}"""
     }
-//        while (true) {
-//            sleep(1000)
-//            def res = sql "show routine load for ${labelName}"
-//            def state = res[0][8].toString()
-//            if (state == "NEED_SCHEDULE") {
-//                continue;
-//            }
-//            log.info("reason of state changed: ${res[0][17].toString()}".toString())
-//            assertEquals(res[0][8].toString(), "RUNNING")
-//            break;
-//        }
-//        def count = 0
-//        while (true) {
-//            def res = sql "select count(*) from  ${tableName}"
-//            def state = sql "show routine load for ${labelName}"
-//            log.info("routine load state: ${state[0][8].toString()}".toString())
-//            log.info("routine load statistic: ${state[0][14].toString()}".toString())
-//            log.info("reason of state changed: ${state[0][17].toString()}".toString())
-//            if (res[0][0] > 0) {
-//                break
-//            }
-//            if (count >= 120) {
-//                log.error("routine load can not visible for long time")
-//                assertEquals(20, res[0][0])
-//                break
-//            }
-//            sleep(5000)
-//            count++
-//        }
-//
-//        qt_common_default "select * from  ${tableName} order by 1,2,3"
-//
-//        sql "stop routine load for ${labelName};"
-//    }
 
-
-
-
-//    sql """create table ${dbName}.${tableName} (
-//                id BIGINT,
-//                username VARCHAR(20)
-//            )
-//            DISTRIBUTED BY HASH(id) BUCKETS 2
-//            PROPERTIES (
-//                "replication_num" = "1"
-//            );"""
-//
-//    sql """use ${dbName}"""
-//    def path_file = "${context.file.parent}/../../data/auth_call/stream_load_data.csv"
-//    connect(user=user, password="${pwd}", url=context.config.jdbcUrl) {
-//        test {
-//            sql """
-//                LOAD DATA LOCAL
-//                INFILE '${path_file}'
-//                INTO TABLE ${dbName}.${tableName}
-//                COLUMNS TERMINATED BY ','
-//                (a,b)
-//                PROPERTIES ("timeout"="100")
-//                """
-//            exception "denied"
-//        }
-//    }
-//    sql """grant load_priv on ${dbName}.${tableName} to ${user}"""
-//    connect(user=user, password="${pwd}", url=context.config.jdbcUrl) {
-//        sql """use ${dbName};"""
-//        sql """
-//                LOAD DATA LOCAL
-//                INFILE '${path_file}'
-//                INTO TABLE ${dbName}.${tableName}
-//                COLUMNS TERMINATED BY ','
-//                (a,b)
-//                PROPERTIES ("timeout"="100")
-//                """
-//    }
-//
-//    def rows = sql """select count() from ${dbName}.${tableName}"""
-//    assertTrue(rows[0][0] == 3)
-
-//    sql """drop database if exists ${dbName}"""
-//    try_sql("DROP USER ${user}")
+    sql """drop database if exists ${dbName}"""
+    try_sql("DROP USER ${user}")
 }
