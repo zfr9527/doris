@@ -47,7 +47,7 @@ suite("test_dml_routine_load_auth","p0,auth") {
         props.put(ProducerConfig.KEY_SERIALIZER_CLASS_CONFIG, "org.apache.kafka.common.serialization.StringSerializer")
         props.put(ProducerConfig.VALUE_SERIALIZER_CLASS_CONFIG, "org.apache.kafka.common.serialization.StringSerializer")
         def producer = new KafkaProducer<>(props)
-        filepath = getLoalFilePath "routine_load_data.csv"
+        def filepath = getLoalFilePath "routine_load_data.csv"
         def txt = new File("${filepath}").text
         def lines = txt.readLines()
         lines.each { line ->
