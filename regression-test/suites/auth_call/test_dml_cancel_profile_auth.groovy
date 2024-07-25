@@ -18,7 +18,7 @@
 import org.junit.Assert;
 import org.codehaus.groovy.runtime.IOGroovyMethods
 
-suite("test_dml_cancel_profile_auth","p0,auth") {
+suite("test_dml_cancel_profile_auth","p0,auth,nonConcurrent") {
 
     String user = 'test_dml_cancel_profile_auth_user'
     String pwd = 'C123_567p'
