@@ -96,6 +96,7 @@ suite("test_dml_export_table_auth","p0,auth") {
                 "s3.access_key" = "${ak}"
                 );"""
         def res = sql """show export;"""
+        logger.info("res: " + res)
         assertTrue(res.size() == 1)
         test {
             sql """CANCEL EXPORT
