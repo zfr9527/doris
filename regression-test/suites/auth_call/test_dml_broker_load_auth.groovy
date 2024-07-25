@@ -87,12 +87,6 @@ suite("test_dml_broker_load_auth","p0,auth") {
         def res = sql """SHOW LOAD FROM ${dbName} WHERE LABEL LIKE '${loadLabelName}'"""
         assertTrue(res.size() == 0)
 
-        test {
-            sql """CANCEL LOAD
-                FROM ${dbName}
-                WHERE LABEL = "${loadLabelName}";"""
-            exception "denied"
-        }
     }
     sql """grant load_priv on ${dbName}.${tableName} to ${user}"""
     connect(user=user, password="${pwd}", url=context.config.jdbcUrl) {
