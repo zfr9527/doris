@@ -83,10 +83,10 @@ suite("test_dml_broker_load_auth","p0,auth") {
             """
             exception "denied"
         }
-        test{
-            sql """SHOW LOAD FROM ${dbName} WHERE LABEL LIKE '${loadLabelName}'"""
-            exception "denied"
-        }
+
+        def res = sql """SHOW LOAD FROM ${dbName} WHERE LABEL LIKE '${loadLabelName}'"""
+        assertTrue(res.size() == 0)
+
         test {
             sql """CANCEL LOAD
                 FROM ${dbName}
