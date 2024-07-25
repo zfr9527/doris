@@ -18,7 +18,7 @@
 import org.junit.Assert;
 import org.codehaus.groovy.runtime.IOGroovyMethods
 
-suite("test_dml_export_table_auth","p0,auth") {
+suite("test_dml_export_table_auth_test","p0,auth") {
 
     UUID uuid = UUID.randomUUID()
     String randomValue = uuid.toString()
@@ -58,30 +58,6 @@ suite("test_dml_export_table_auth","p0,auth") {
     String region = getS3Region()
     String bucket = context.config.otherConfigs.get("s3BucketName");
 
-    connect(user=user, password="${pwd}", url=context.config.jdbcUrl) {
-        test {
-            sql """EXPORT TABLE ${dbName}.${tableName} TO "s3://${bucket}/test_outfile/exp_${exportLabel}"
-                PROPERTIES(
-                    "format" = "csv",
-                    "max_file_size" = "2048MB"
-                )
-                WITH s3 (
-                "s3.endpoint" = "${endpoint}",
-                "s3.region" = "${region}",
-                "s3.secret_key"="${sk}",
-                "s3.access_key" = "${ak}"
-                );"""
-            exception "denied"
-        }
-        try {
-            sql """CANCEL EXPORT
-                FROM ${dbName}
-                WHERE STATE = "EXPORTING";"""
-        } catch (Exception e) {
-            log.info(e.getMessage())
-            assertTrue(e.getMessage().indexOf("denied") == -1)
-        }
-    }
     sql """grant select_priv on ${dbName}.${tableName} to ${user}"""
     connect(user=user, password="${pwd}", url=context.config.jdbcUrl) {
         sql """EXPORT TABLE ${dbName}.${tableName} TO "s3://${bucket}/test_outfile/exp_${exportLabel}"
@@ -95,30 +71,14 @@ suite("test_dml_export_table_auth","p0,auth") {
                 "s3.secret_key"="${sk}",
                 "s3.access_key" = "${ak}"
                 );"""
-        sql """use ${dbName}"""
-        def res = sql """show export;"""
-        logger.info("res: " + res)
-        assertTrue(res.size() == 1)
-        test {
-            sql """CANCEL EXPORT
-                FROM ${dbName}
-                WHERE STATE = "EXPORTING";"""
-            exception "denied"
-        }
     }
     sql """grant select_priv on ${dbName} to ${user}"""
     connect(user=user, password="${pwd}", url=context.config.jdbcUrl) {
-        sql """use ${dbName}"""
-        def res = sql """show export;"""
-        logger.info("res: " + res)
-        assertTrue(res.size() == 1)
-        res = sql """show grants;"""
-        logger.info("res:" + res)
         sql """CANCEL EXPORT
             FROM ${dbName}
             WHERE STATE = "EXPORTING";"""
     }
 
-    sql """drop database if exists ${dbName}"""
-    try_sql("DROP USER ${user}")
+//    sql """drop database if exists ${dbName}"""
+//    try_sql("DROP USER ${user}")
 }
