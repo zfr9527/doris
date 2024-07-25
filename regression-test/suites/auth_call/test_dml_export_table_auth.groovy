@@ -112,6 +112,8 @@ suite("test_dml_export_table_auth","p0,auth") {
         def res = sql """show export;"""
         logger.info("res: " + res)
         assertTrue(res.size() == 1)
+        res = sql """show grants;"""
+        logger.info("res:" + res)
         sql """CANCEL EXPORT
             FROM ${dbName}
             WHERE STATE = "EXPORTING";"""
