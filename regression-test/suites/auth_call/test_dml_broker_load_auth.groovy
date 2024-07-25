@@ -87,6 +87,10 @@ suite("test_dml_broker_load_auth","p0,auth") {
         def res = sql """SHOW LOAD FROM ${dbName} WHERE LABEL LIKE '${loadLabelName}'"""
         assertTrue(res.size() == 0)
 
+        test {
+            sql """CLEAN LABEL ${loadLabelName} FROM ${dbName};"""
+            exception "denied"
+        }
     }
     sql """grant load_priv on ${dbName}.${tableName} to ${user}"""
     connect(user=user, password="${pwd}", url=context.config.jdbcUrl) {
@@ -121,6 +125,11 @@ suite("test_dml_broker_load_auth","p0,auth") {
                 WHERE LABEL = "${loadLabelName}";"""
             exception "denied"
         }
+
+        test {
+            sql """CLEAN LABEL ${loadLabelName} FROM ${dbName};"""
+            exception "denied"
+        }
     }
 
     sql """grant load_priv on ${dbName} to ${user}"""
@@ -134,6 +143,8 @@ suite("test_dml_broker_load_auth","p0,auth") {
                 WHERE LABEL = "${loadLabelName}";"""
         res = sql """SHOW LOAD FROM ${dbName} WHERE LABEL LIKE '${loadLabelName}'"""
         logger.info("res: " + res)
+
+        sql """CLEAN LABEL ${loadLabelName} FROM ${dbName};"""
     }
 
     sql """drop database if exists ${dbName}"""
