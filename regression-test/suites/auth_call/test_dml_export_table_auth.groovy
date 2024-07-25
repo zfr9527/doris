@@ -106,7 +106,7 @@ suite("test_dml_export_table_auth","p0,auth") {
             exception "denied"
         }
     }
-    sql """grant select_priv on ${dbName} to ${user}"""
+    sql """grant load_priv on ${dbName} to ${user}"""
     connect(user=user, password="${pwd}", url=context.config.jdbcUrl) {
         sql """use ${dbName}"""
         def res = sql """show export;"""
