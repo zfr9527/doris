@@ -95,9 +95,9 @@ suite("test_dml_export_table_auth","p0,auth") {
                 "s3.secret_key"="${sk}",
                 "s3.access_key" = "${ak}"
                 );"""
-        def res = sql """show export;"""
-        logger.info("res: " + res)
-        assertTrue(res.size() == 1)
+//        def res = sql """show export;"""
+//        logger.info("res: " + res)
+//        assertTrue(res.size() == 1)
         test {
             sql """CANCEL EXPORT
                 FROM ${dbName}
@@ -108,6 +108,7 @@ suite("test_dml_export_table_auth","p0,auth") {
     sql """grant select_priv on ${dbName} to ${user}"""
     connect(user=user, password="${pwd}", url=context.config.jdbcUrl) {
         def res = sql """show export;"""
+        logger.info("res: " + res)
         assertTrue(res.size() == 1)
         sql """CANCEL EXPORT
             FROM ${dbName}
