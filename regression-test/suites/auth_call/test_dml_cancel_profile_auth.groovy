@@ -35,7 +35,7 @@ suite("test_dml_cancel_profile_auth","p0,auth,nonConcurrent") {
             exception "denied"
         }
     }
-    sql """grant admin_priv on ${dbName}.${tableName} to ${user}"""
+    sql """grant admin_priv on *.*.* to ${user}"""
     connect(user=user, password="${pwd}", url=context.config.jdbcUrl) {
         sql """
             CLEAN ALL PROFILE;
