@@ -20,45 +20,27 @@ import org.codehaus.groovy.runtime.IOGroovyMethods
 
 suite("test_dml_cancel_profile_auth","p0,auth") {
 
-    String user = 'test_dml_analyze_auth_user'
+    String user = 'test_dml_cancel_profile_auth_user'
     String pwd = 'C123_567p'
-    String dbName = 'test_dml_analyze_auth_db'
-    String tableName = 'test_dml_analyze_auth_tb'
 
     try_sql("DROP USER ${user}")
-    try_sql """drop database if exists ${dbName}"""
     sql """CREATE USER '${user}' IDENTIFIED BY '${pwd}'"""
     sql """grant select_priv on regression_test to ${user}"""
-    sql """create database ${dbName}"""
-
-    sql """create table ${dbName}.${tableName} (
-                id BIGINT,
-                username VARCHAR(20)
-            )
-            DISTRIBUTED BY HASH(id) BUCKETS 2
-            PROPERTIES (
-                "replication_num" = "1"
-            );"""
 
     connect(user=user, password="${pwd}", url=context.config.jdbcUrl) {
         test {
             sql """
-                analyze table ${dbName}.${tableName} with sync;
+                CLEAN ALL PROFILE;
                 """
             exception "denied"
         }
     }
-    sql """grant select_priv on ${dbName}.${tableName} to ${user}"""
+    sql """grant admin_priv on ${dbName}.${tableName} to ${user}"""
     connect(user=user, password="${pwd}", url=context.config.jdbcUrl) {
         sql """
-            analyze table ${dbName}.${tableName} with sync;
+            CLEAN ALL PROFILE;
             """
     }
 
-    def res = sql """show column stats ${dbName}.${tableName};"""
-    logger.info("res: " + res)
-    assertTrue(res.size() == 2)
-
-    sql """drop database if exists ${dbName}"""
     try_sql("DROP USER ${user}")
 }
