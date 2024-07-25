@@ -16,7 +16,6 @@
 // under the License.
 
 import org.junit.Assert;
-import org.codehaus.groovy.runtime.IOGroovyMethods
 import org.apache.kafka.clients.producer.KafkaProducer
 import org.apache.kafka.clients.producer.ProducerRecord
 import org.apache.kafka.clients.producer.ProducerConfig
@@ -134,17 +133,11 @@ suite("test_dml_routine_load_auth","p0,auth") {
             """
             sql """RESUME ROUTINE LOAD FOR ${dbName}.${labelName};"""
             sql """STOP ROUTINE LOAD FOR ${dbName}.${labelName};"""
+            sql """use ${dbName};"""
+            def res = sql """show routine load for ${labelName}"""
+            assertTrue(res.size() == 1)
         }
         sql """revoke load_priv on ${dbName}.${tableName} from ${user}"""
-
-        sql """grant load_priv on *.*.* to ${user}"""
-        connect(user = user, password = "${pwd}", url = context.config.jdbcUrl) {
-            test {
-                sql """show routine load for ${dbName}.${labelName}"""
-                exception "denied"
-            }
-        }
-        sql """revoke load_priv on *.*.* from ${user}"""
     }
 
     sql """drop database if exists ${dbName}"""
