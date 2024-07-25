@@ -113,13 +113,20 @@ suite("test_dml_broker_load_auth","p0,auth") {
 
         def res = sql """SHOW LOAD FROM ${dbName} WHERE LABEL LIKE '${loadLabelName}'"""
         logger.info("res: " + res)
-        assertTrue(res.size() == 1)
+        assertTrue(res.size() == 0)
 
         sql """CANCEL LOAD
                 FROM ${dbName}
                 WHERE LABEL = "${loadLabelName}";"""
         res = sql """SHOW LOAD FROM ${dbName} WHERE LABEL LIKE '${loadLabelName}'"""
         logger.info("res: " + res)
+    }
+
+    sql """grant load_priv on ${dbName} to ${user}"""
+    connect(user=user, password="${pwd}", url=context.config.jdbcUrl) {
+        def res = sql """SHOW LOAD FROM ${dbName} WHERE LABEL LIKE '${loadLabelName}'"""
+        logger.info("res: " + res)
+        assertTrue(res.size() == 1)
     }
 
     sql """drop database if exists ${dbName}"""
