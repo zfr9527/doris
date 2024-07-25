@@ -215,6 +215,6 @@ suite("test_dml_routine_load_auth","p0,auth") {
 //    def rows = sql """select count() from ${dbName}.${tableName}"""
 //    assertTrue(rows[0][0] == 3)
 
-    sql """drop database if exists ${dbName}"""
-    try_sql("DROP USER ${user}")
+//    sql """drop database if exists ${dbName}"""
+//    try_sql("DROP USER ${user}")
 }
