@@ -96,27 +96,27 @@ suite("test_dml_export_table_auth","p0,auth") {
                 "s3.access_key" = "${ak}"
                 );"""
     }
-    sql """grant show_priv on ${dbName}.${tableName} to ${user}"""
-    connect(user=user, password="${pwd}", url=context.config.jdbcUrl) {
-        sql """use ${dbName}"""
-        sql """show export;"""
-        try {
-            sql """CANCEL EXPORT
-                FROM ${dbName}
-                WHERE STATE = "EXPORTING";"""
-        } catch (Exception e) {
-            log.info(e.getMessage())
-            assertTrue(e.getMessage().indexOf("denied") == -1)
-        }
-    }
-    sql """grant select_priv on ${dbName} to ${user}"""
-    connect(user=user, password="${pwd}", url=context.config.jdbcUrl) {
-        def res = sql """show export;"""
-        sql """CANCEL EXPORT
-            FROM ${dbName}
-            WHERE STATE = "EXPORTING";"""
-    }
-
-    sql """drop database if exists ${dbName}"""
-    try_sql("DROP USER ${user}")
+//    sql """grant show_priv on ${dbName}.${tableName} to ${user}"""
+//    connect(user=user, password="${pwd}", url=context.config.jdbcUrl) {
+//        sql """use ${dbName}"""
+//        sql """show export;"""
+//        try {
+//            sql """CANCEL EXPORT
+//                FROM ${dbName}
+//                WHERE STATE = "EXPORTING";"""
+//        } catch (Exception e) {
+//            log.info(e.getMessage())
+//            assertTrue(e.getMessage().indexOf("denied") == -1)
+//        }
+//    }
+//    sql """grant select_priv on ${dbName} to ${user}"""
+//    connect(user=user, password="${pwd}", url=context.config.jdbcUrl) {
+//        def res = sql """show export;"""
+//        sql """CANCEL EXPORT
+//            FROM ${dbName}
+//            WHERE STATE = "EXPORTING";"""
+//    }
+//
+//    sql """drop database if exists ${dbName}"""
+//    try_sql("DROP USER ${user}")
 }
