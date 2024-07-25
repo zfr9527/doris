@@ -58,7 +58,6 @@ suite ("test_cluster_management_auth","nonConcurrent,p0,auth") {
         return true
     }
 
-
     String user = 'test_cluster_management_auth_user'
     String pwd = 'C123_567p'
 
@@ -84,8 +83,6 @@ suite ("test_cluster_management_auth","nonConcurrent,p0,auth") {
         sql """grant NODE_PRIV on *.*.* to ${user}"""
         connect(user=user, password="${pwd}", url=context.config.jdbcUrl) {
             sql """show frontends"""
-            sql """ALTER SYSTEM DROP FOLLOWER '${follower_ip}:${follower_host}'"""
-            sql """ALTER SYSTEM add FOLLOWER '${follower_ip}:${follower_host}'"""
         }
         sql """revoke NODE_PRIV on *.*.* from ${user}"""
     }
@@ -108,8 +105,6 @@ suite ("test_cluster_management_auth","nonConcurrent,p0,auth") {
         sql """grant NODE_PRIV on *.*.* to ${user}"""
         connect(user=user, password="${pwd}", url=context.config.jdbcUrl) {
             sql """show frontends"""
-            sql """ALTER SYSTEM DROP OBSERVER '${observer_ip}:${observer_host}'"""
-            sql """ALTER SYSTEM add OBSERVER '${observer_ip}:${observer_host}'"""
         }
         sql """revoke NODE_PRIV on *.*.* from ${user}"""
     }
