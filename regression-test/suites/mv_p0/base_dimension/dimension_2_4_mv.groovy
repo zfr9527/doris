@@ -364,7 +364,7 @@ suite("partition_mv_rewrite_dimension_2_4_mv", "partition_mv_rewrite_dimension_2
     // predicate compensate
     // agg function + predicate compensate
     def mv_name_10 = "mv_name_2_4_10"
-    def mv_stmt_10 = """select o_orderkey
+    def mv_stmt_10 = """select o_orderkey,
             sum(o_totalprice) as sum_total, 
             max(o_totalprice) as max_total, 
             min(o_totalprice) as min_total, 
