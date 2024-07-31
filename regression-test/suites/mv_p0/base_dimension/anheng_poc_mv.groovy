@@ -166,7 +166,7 @@ suite("anheng_poc_mv", "anheng_poc_mv") {
             o_comment 
         """
     create_mv_orders(mv_name, mv_stmt)
-    waitingMVTaskFinished("orders_anheng", mv_stmt)
+    waitingMVTaskFinished("orders_anheng", mv_name)
 
     def query = """select o_shipprioritY, o_comment, 
             count(distinct case when o_shippriority > 1 and o_orderkey IN (1, 3) then o_custkey else null end) as cnt_1,
