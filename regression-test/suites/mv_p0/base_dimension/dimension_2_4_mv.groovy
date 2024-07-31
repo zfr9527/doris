@@ -497,14 +497,14 @@ suite("partition_mv_rewrite_dimension_2_4_mv", "partition_mv_rewrite_dimension_2
     // project rewriting
     // agg function + group by + project rewriting
     def mv_name_13 = "mv_name_2_4_13"
-    def mv_stmt_13 = """select sum(o_totalprice) as sum_total, 
+    def mv_stmt_13 = """select o_orderkey, sum(o_totalprice) as sum_total, 
             max(o_totalprice) as max_total, 
             min(o_totalprice) as min_total, 
             count(*) as count_all, 
             bitmap_union(to_bitmap(case when o_shippriority > 1 and o_orderkey IN (1, 3) then o_custkey else null end)) cnt_1, 
             bitmap_union(to_bitmap(case when o_shippriority > 2 and o_orderkey IN (2) then o_custkey else null end)) as cnt_2 
             from orders_2_4  
-            where  o_orderkey > 1 + 1  """
+            where  o_orderkey > 1 + 1  group by o_orderkey"""
     create_all_mv(mv_name_13, mv_stmt_13)
     waitingMVTaskFinished("orders_2_4", mv_name_13)
 
