@@ -352,7 +352,7 @@ suite("partition_mv_rewrite_dimension_1_mv", "partition_mv_rewrite_dimension_1_m
         """
 
     create_mv_lineitem(mv_name_1, single_table_mv_stmt_1)
-    waitingMVTaskFinished(lineitem_tb, predicate_mv_name_1)
+    waitingMVTaskFinished(lineitem_tb, mv_name_1)
 
     def single_table_query_stmt_1 = """
         select l_Shipdate, l_partkey, l_suppkey 
