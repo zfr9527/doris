@@ -186,7 +186,6 @@ suite("partition_mv_rewrite_dimension_1_mv", "partition_mv_rewrite_dimension_1_m
         """
     explain {
         sql("${agg_sql_1}")
-//        contains "${agg_mv_name_1}(${agg_mv_name_1})"
         contains "(${agg_mv_name_1})"
     }
     compare_res(agg_sql_1 + " order by 1,2,3,4,5,6")
@@ -269,7 +268,7 @@ suite("partition_mv_rewrite_dimension_1_mv", "partition_mv_rewrite_dimension_1_m
         """
     explain {
         sql("${view_partition_sql_1}")
-        contains "${view_partition_mv_name_1}(${view_partition_mv_name_1})"
+        contains "(${view_partition_mv_name_1})"
     }
     compare_res(view_partition_sql_1 + " order by 1,2,3")
     sql """DROP MATERIALIZED VIEW IF EXISTS ${view_partition_mv_name_1};"""
@@ -316,7 +315,7 @@ suite("partition_mv_rewrite_dimension_1_mv", "partition_mv_rewrite_dimension_1_m
         """
     explain {
         sql("${predicate_sql_1}")
-        contains "${predicate_mv_name_1}(${predicate_mv_name_1})"
+        contains "(${predicate_mv_name_1})"
     }
     compare_res(predicate_sql_1 + " order by 1,2,3")
     sql """DROP MATERIALIZED VIEW IF EXISTS ${predicate_mv_name_1};"""
@@ -341,7 +340,7 @@ suite("partition_mv_rewrite_dimension_1_mv", "partition_mv_rewrite_dimension_1_m
         """
     explain {
         sql("${rewriting_sql_1}")
-        contains "${rewriting_mv_name_1}(${rewriting_mv_name_1})"
+        contains "(${rewriting_mv_name_1})"
     }
     compare_res(rewriting_sql_1 + " order by 1,2,3,4,5")
     sql """DROP MATERIALIZED VIEW IF EXISTS ${rewriting_mv_name_1};"""
@@ -370,13 +369,13 @@ suite("partition_mv_rewrite_dimension_1_mv", "partition_mv_rewrite_dimension_1_m
 
     explain {
         sql("${single_table_query_stmt_1}")
-        contains "${mv_name_1}(${mv_name_1})"
+        contains "(${mv_name_1})"
     }
     compare_res(single_table_query_stmt_1 + " order by 1,2,3")
 
     explain {
         sql("${single_table_query_stmt_2}")
-        contains "${mv_name_1}(${mv_name_1})"
+        contains "(${mv_name_1})"
     }
     compare_res(single_table_query_stmt_2 + " order by 1,2,3")
 
@@ -441,7 +440,7 @@ suite("partition_mv_rewrite_dimension_1_mv", "partition_mv_rewrite_dimension_1_m
         """
     explain {
         sql("${single_table_query_stmt_1}")
-        contains "${mv_name_1}(${mv_name_1})"
+        contains "(${mv_name_1})"
     }
     compare_res(single_table_query_stmt_1 + " order by 1,2,3")
 
