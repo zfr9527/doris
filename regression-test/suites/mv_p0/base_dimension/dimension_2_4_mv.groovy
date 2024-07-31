@@ -19,7 +19,7 @@
 This suite is a two dimensional test case file.
 It mainly tests the query partial, view partial, union rewriting, predicate compensate, project rewriting.
  */
-suite("partition_mv_rewrite_dimension_2_4_mv") {
+suite("partition_mv_rewrite_dimension_2_4_mv", "partition_mv_rewrite_dimension_2_4_mv") {
     String db = context.config.getDbNameByFile(context.file)
     sql "use ${db}"
 
