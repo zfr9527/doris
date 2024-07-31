@@ -172,6 +172,7 @@ suite("mv_filter_equal_or_notequal_case", "mv_filter_equal_or_notequal_case") {
         sql("${query_sql}")
         notContains "(${mv_name})"
     }
+    sql """DROP MATERIALIZED VIEW IF EXISTS ${mv_name} ON lineitem_filter;"""
 
     mv_name = "mv2"
     mv_sql = """
@@ -205,6 +206,7 @@ suite("mv_filter_equal_or_notequal_case", "mv_filter_equal_or_notequal_case") {
         contains "(${mv_name})"
     }
     compare_res(query_sql + " order by 1,2,3,4")
+    sql """DROP MATERIALIZED VIEW IF EXISTS ${mv_name} ON lineitem_filter;"""
 
     mv_name = "mv3"
     mv_sql = """
@@ -409,6 +411,7 @@ suite("mv_filter_equal_or_notequal_case", "mv_filter_equal_or_notequal_case") {
         sql("${query_sql}")
         notContains "(${mv_name})"
     }
+    sql """DROP MATERIALIZED VIEW IF EXISTS ${mv_name} ON lineitem_filter;"""
 
     mv_name = "mv4"
     mv_sql = """
@@ -443,8 +446,8 @@ suite("mv_filter_equal_or_notequal_case", "mv_filter_equal_or_notequal_case") {
         contains "(${mv_name})"
     }
     compare_res(query_sql + " order by 1,2,3,4")
+    sql """DROP MATERIALIZED VIEW IF EXISTS ${mv_name} ON lineitem_filter;"""
 
-    //
     mv_name = "mv5"
     mv_sql = """
         select l_shipdate, l_partkey, l_suppkey   
@@ -477,6 +480,7 @@ suite("mv_filter_equal_or_notequal_case", "mv_filter_equal_or_notequal_case") {
         sql("${query_sql}")
         notContains "(${mv_name})"
     }
+    sql """DROP MATERIALIZED VIEW IF EXISTS ${mv_name} ON lineitem_filter;"""
 
     mv_name = "mv6"
     mv_sql = """
@@ -511,8 +515,8 @@ suite("mv_filter_equal_or_notequal_case", "mv_filter_equal_or_notequal_case") {
         contains "(${mv_name})"
     }
     compare_res(query_sql + " order by 1,2,3,4")
+    sql """DROP MATERIALIZED VIEW IF EXISTS ${mv_name} ON lineitem_filter;"""
 
-    // Todo: It is not currently supported and is expected to be
     // between .. and ..
     mv_name = "mv7"
     mv_sql = """
