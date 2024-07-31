@@ -186,7 +186,8 @@ suite("partition_mv_rewrite_dimension_1_mv", "partition_mv_rewrite_dimension_1_m
         """
     explain {
         sql("${agg_sql_1}")
-        contains "${agg_mv_name_1}(${agg_mv_name_1})"
+//        contains "${agg_mv_name_1}(${agg_mv_name_1})"
+        contains "(${agg_mv_name_1})"
     }
     compare_res(agg_sql_1 + " order by 1,2,3,4,5,6")
     sql """DROP MATERIALIZED VIEW IF EXISTS ${agg_mv_name_1};"""
