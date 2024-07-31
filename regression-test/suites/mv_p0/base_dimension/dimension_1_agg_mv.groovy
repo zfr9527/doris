@@ -18,7 +18,7 @@
 /*
 This suite is a one dimensional test case file.
  */
-suite("partition_mv_rewrite_dimension_1_agg_mv") {
+suite("partition_mv_rewrite_dimension_1_agg_mv", "partition_mv_rewrite_dimension_1_agg_mv") {
     String db = context.config.getDbNameByFile(context.file)
     String order_tb = "orders_agg"
     String lineitem_tb = "lineitem_agg"
