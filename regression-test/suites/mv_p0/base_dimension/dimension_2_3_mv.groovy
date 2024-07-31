@@ -320,7 +320,7 @@ suite("partition_mv_rewrite_dimension_2_3_mv", "partition_mv_rewrite_dimension_2
 
     // project rewriting
     def mv_name_8 = "mv_name_2_3_8"
-    def mv_stmt_8 = """select o_orderdate, o_shippriority, o_comment, l_suppkey, o_shippriority + o_custkey, 
+    def mv_stmt_8 = """select o_orderdate, o_shippriority, o_comment, o_custkey, o_shippriority + o_custkey, 
            case when o_shippriority > 1 and o_orderkey IN (1, 3) then o_custkey else null end cnt_1, 
             case when o_shippriority > 2 and o_orderkey IN (2) then o_custkey else null end as cnt_2 
             from orders_2_3  
@@ -328,7 +328,7 @@ suite("partition_mv_rewrite_dimension_2_3_mv", "partition_mv_rewrite_dimension_2
     create_mv_orders(mv_name_8, mv_stmt_8)
     waitingMVTaskFinished("orders_2_3", mv_name_8)
 
-    def sql_stmt_8 = """select o_shippriority, o_comment, o_shippriority + o_custkey  + l_suppkey, 
+    def sql_stmt_8 = """select o_shippriority, o_comment, o_shippriority + o_custkey + o_custkey, 
             case when o_shippriority > 1 and o_orderkey IN (1, 3) then o_custkey else null end as cnt_1,
             case when O_SHIPPRIORITY > 2 and o_orderkey IN (2) then o_custkey else null end as cnt_2 
             from orders_2_3 
