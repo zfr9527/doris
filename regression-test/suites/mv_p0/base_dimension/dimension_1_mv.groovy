@@ -161,6 +161,7 @@ suite("partition_mv_rewrite_dimension_1_mv", "partition_mv_rewrite_dimension_1_m
         CREATE MATERIALIZED VIEW ${agg_mv_name_1}
         AS
         select
+            o_orderkey,
             sum(O_TOTALPRICE) as sum_total,
             max(o_totalprice) as max_total, 
             min(o_totalprice) as min_total, 
@@ -168,6 +169,7 @@ suite("partition_mv_rewrite_dimension_1_mv", "partition_mv_rewrite_dimension_1_m
             bitmap_union(to_bitmap(case when o_shippriority > 1 and o_orderkey IN (1, 3) then o_custkey else null end)) cnt_1, 
             bitmap_union(to_bitmap(case when o_shippriority > 2 and o_orderkey IN (2) then o_custkey else null end)) as cnt_2 
             from orders_1
+            group by o_orderkey
         """
     waitingMVTaskFinished("orders_1", agg_mv_name_1)
 
