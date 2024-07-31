@@ -21,6 +21,29 @@ suite("mv_filter_equal_or_notequal_case", "mv_filter_equal_or_notequal_case") {
     sql "use ${db}"
 
     sql """
+    drop table if exists orders_filter
+    """
+
+    sql """CREATE TABLE `orders_filter` (
+      `o_orderkey` BIGINT NULL,
+      `o_custkey` INT NULL,
+      `o_orderstatus` VARCHAR(1) NULL,
+      `o_totalprice` DECIMAL(15, 2)  NULL,
+      `o_orderpriority` VARCHAR(15) NULL,
+      `o_clerk` VARCHAR(15) NULL,
+      `o_shippriority` INT NULL,
+      `o_comment` VARCHAR(79) NULL,
+      `o_orderdate` DATE not NULL
+    ) ENGINE=OLAP
+    DUPLICATE KEY(`o_orderkey`, `o_custkey`)
+    COMMENT 'OLAP'
+    auto partition by range (date_trunc(`o_orderdate`, 'day')) ()
+    DISTRIBUTED BY HASH(`o_orderkey`) BUCKETS 96
+    PROPERTIES (
+    "replication_allocation" = "tag.location.default: 1"
+    );"""
+
+    sql """
     drop table if exists lineitem_filter
     """
 
@@ -49,6 +72,20 @@ suite("mv_filter_equal_or_notequal_case", "mv_filter_equal_or_notequal_case") {
     PROPERTIES (
     "replication_allocation" = "tag.location.default: 1"
     );"""
+
+    sql """
+    insert into orders_filter values 
+    (null, 1, 'k', 99.5, 'a', 'b', 1, 'yy', '2023-10-17'),
+    (1, null, 'o', 109.2, 'c','d',2, 'mm', '2023-10-17'),
+    (3, 3, null, 99.5, 'a', 'b', 1, 'yy', '2023-10-19'),
+    (1, 2, 'o', null, 'a', 'b', 1, 'yy', '2023-10-20'),
+    (2, 3, 'k', 109.2, null,'d',2, 'mm', '2023-10-21'),
+    (3, 1, 'k', 99.5, 'a', null, 1, 'yy', '2023-10-22'),
+    (1, 3, 'o', 99.5, 'a', 'b', null, 'yy', '2023-10-19'),
+    (2, 1, 'o', 109.2, 'c','d',2, null, '2023-10-18'),
+    (3, 2, 'k', 99.5, 'a', 'b', 1, 'yy', '2023-10-17'),
+    (4, 5, 'k', 99.5, 'a', 'b', 1, 'yy', '2023-10-19'); 
+    """
 
     sql """
     insert into lineitem_filter values 
