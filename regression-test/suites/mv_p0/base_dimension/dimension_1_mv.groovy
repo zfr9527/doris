@@ -421,26 +421,26 @@ suite("partition_mv_rewrite_dimension_1_mv", "partition_mv_rewrite_dimension_1_m
 //    }
 //    compare_res(single_table_query_stmt_2 + " order by 1,2,3,4")
 
-
-    single_table_mv_stmt_1 = """
-        select l_Shipdate, l_partkey, l_suppkey 
-        from lineitem_1 
-        where l_commitdate in (select l_commitdate from lineitem_1) 
-        """
-
-    create_mv_lineitem(mv_name_1, single_table_mv_stmt_1)
-    waitingMVTaskFinished(lineitem_tb, mv_name_1)
-
-    single_table_query_stmt_1 = """
-        select l_Shipdate, l_partkey, l_suppkey 
-        from lineitem_1 
-        where l_commitdate in (select l_commitdate from lineitem_1) 
-        """
-    explain {
-        sql("${single_table_query_stmt_1}")
-        contains "(${mv_name_1})"
-    }
-    compare_res(single_table_query_stmt_1 + " order by 1,2,3")
+    // mv do not support sub-query
+//    single_table_mv_stmt_1 = """
+//        select l_Shipdate, l_partkey, l_suppkey
+//        from lineitem_1
+//        where l_commitdate in (select l_commitdate from lineitem_1)
+//        """
+//
+//    create_mv_lineitem(mv_name_1, single_table_mv_stmt_1)
+//    waitingMVTaskFinished(lineitem_tb, mv_name_1)
+//
+//    single_table_query_stmt_1 = """
+//        select l_Shipdate, l_partkey, l_suppkey
+//        from lineitem_1
+//        where l_commitdate in (select l_commitdate from lineitem_1)
+//        """
+//    explain {
+//        sql("${single_table_query_stmt_1}")
+//        contains "(${mv_name_1})"
+//    }
+//    compare_res(single_table_query_stmt_1 + " order by 1,2,3")
 
 // not supported currently
 //    single_table_mv_stmt_1 = """

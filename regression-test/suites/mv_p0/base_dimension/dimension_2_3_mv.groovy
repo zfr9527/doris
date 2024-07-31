@@ -105,28 +105,20 @@ suite("partition_mv_rewrite_dimension_2_3_mv", "partition_mv_rewrite_dimension_2
     sql """analyze table lineitem_2_3 with sync;"""
 
     def create_mv_lineitem = { mv_name, mv_sql ->
-        sql """DROP MATERIALIZED VIEW IF EXISTS ${mv_name};"""
+        sql """DROP MATERIALIZED VIEW IF EXISTS ${mv_name} on lineitem_1;"""
         sql """DROP TABLE IF EXISTS ${mv_name}"""
         sql"""
         CREATE MATERIALIZED VIEW ${mv_name} 
-        BUILD IMMEDIATE REFRESH AUTO ON MANUAL 
-        partition by(l_shipdate) 
-        DISTRIBUTED BY RANDOM BUCKETS 2 
-        PROPERTIES ('replication_num' = '1')  
         AS  
         ${mv_sql}
         """
     }
 
     def create_mv_orders = { mv_name, mv_sql ->
-        sql """DROP MATERIALIZED VIEW IF EXISTS ${mv_name};"""
+        sql """DROP MATERIALIZED VIEW IF EXISTS ${mv_name} on orders_1;"""
         sql """DROP TABLE IF EXISTS ${mv_name}"""
         sql"""
         CREATE MATERIALIZED VIEW ${mv_name} 
-        BUILD IMMEDIATE REFRESH AUTO ON MANUAL 
-        partition by(o_orderdate) 
-        DISTRIBUTED BY RANDOM BUCKETS 2 
-        PROPERTIES ('replication_num' = '1') 
         AS  
         ${mv_sql}
         """
