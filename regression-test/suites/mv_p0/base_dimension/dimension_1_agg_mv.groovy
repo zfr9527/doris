@@ -31,15 +31,15 @@ suite("partition_mv_rewrite_dimension_1_agg_mv", "partition_mv_rewrite_dimension
     sql """CREATE TABLE `orders_agg` (
       `o_orderkey` BIGINT not NULL,
       `o_custkey` INT not NULL,
-      `o_orderstatus` VARCHAR(1) not NULL,
-      `o_totalprice` DECIMAL(15, 2) not NULL,
-      `o_orderpriority` VARCHAR(15) not NULL,
-      `o_clerk` VARCHAR(15) not NULL,
-      `o_shippriority` INT not NULL,
-      `o_comment` VARCHAR(79) not NULL,
-      `o_orderdate` DATE not NULL
+      `o_orderdate` DATE not null,
+      `o_orderstatus` VARCHAR(1) REPLACE,
+      `o_totalprice` DECIMAL(15, 2) REPLACE,
+      `o_orderpriority` VARCHAR(15) REPLACE,
+      `o_clerk` VARCHAR(15) REPLACE,
+      `o_shippriority` INT REPLACE,
+      `o_comment` VARCHAR(79) REPLACE
     ) ENGINE=OLAP
-    aggregate KEY(`o_orderkey`, `o_custkey`)
+    aggregate KEY(`o_orderkey`, `o_custkey`, `o_orderdate`)
     COMMENT 'OLAP'
     auto partition by range (date_trunc(`o_orderdate`, 'day')) ()
     DISTRIBUTED BY HASH(`o_orderkey`) BUCKETS 96
@@ -56,20 +56,20 @@ suite("partition_mv_rewrite_dimension_1_agg_mv", "partition_mv_rewrite_dimension
       `l_linenumber` INT not NULL,
       `l_partkey` INT not NULL,
       `l_suppkey` INT not NULL,
-      `l_quantity` DECIMAL(15, 2) not NULL,
-      `l_extendedprice` DECIMAL(15, 2) not NULL,
-      `l_discount` DECIMAL(15, 2) not NULL,
-      `l_tax` DECIMAL(15, 2) not NULL,
-      `l_returnflag` VARCHAR(1) not NULL,
-      `l_linestatus` VARCHAR(1) not NULL,
-      `l_commitdate` DATE not NULL,
-      `l_receiptdate` DATE not NULL,
-      `l_shipinstruct` VARCHAR(25) not NULL,
-      `l_shipmode` VARCHAR(10) not NULL,
-      `l_comment` VARCHAR(44) not NULL,
-      `l_shipdate` DATE not NULL
+      `l_shipdate` DATE not null,
+      `l_quantity` DECIMAL(15, 2) REPLACE,
+      `l_extendedprice` DECIMAL(15, 2) REPLACE,
+      `l_discount` DECIMAL(15, 2) REPLACE,
+      `l_tax` DECIMAL(15, 2) REPLACE,
+      `l_returnflag` VARCHAR(1) REPLACE,
+      `l_linestatus` VARCHAR(1) REPLACE,
+      `l_commitdate` DATE REPLACE,
+      `l_receiptdate` DATE REPLACE,
+      `l_shipinstruct` VARCHAR(25) REPLACE,
+      `l_shipmode` VARCHAR(10) REPLACE,
+      `l_comment` VARCHAR(44) REPLACE
     ) ENGINE=OLAP
-    aggregate KEY(l_orderkey, l_linenumber, l_partkey, l_suppkey )
+    aggregate KEY(l_orderkey, l_linenumber, l_partkey, l_suppkey, l_shipdate)
     COMMENT 'OLAP'
     auto partition by range (date_trunc(`l_shipdate`, 'day')) ()
     DISTRIBUTED BY HASH(`l_orderkey`) BUCKETS 96
