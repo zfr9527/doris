@@ -135,10 +135,6 @@ suite("partition_mv_rewrite_dimension_2_6_mv") {
         sql """DROP TABLE IF EXISTS ${mv_name}"""
         sql"""
         CREATE MATERIALIZED VIEW ${mv_name} 
-        BUILD IMMEDIATE REFRESH AUTO ON MANUAL 
-        partition by(l_shipdate) 
-        DISTRIBUTED BY RANDOM BUCKETS 2 
-        PROPERTIES ('replication_num' = '1')  
         AS  
         ${mv_sql}
         """
@@ -149,10 +145,6 @@ suite("partition_mv_rewrite_dimension_2_6_mv") {
         sql """DROP TABLE IF EXISTS ${mv_name}"""
         sql"""
         CREATE MATERIALIZED VIEW ${mv_name} 
-        BUILD IMMEDIATE REFRESH AUTO ON MANUAL 
-        partition by(o_orderdate) 
-        DISTRIBUTED BY RANDOM BUCKETS 2 
-        PROPERTIES ('replication_num' = '1') 
         AS  
         ${mv_sql}
         """
@@ -163,9 +155,6 @@ suite("partition_mv_rewrite_dimension_2_6_mv") {
         sql """DROP TABLE IF EXISTS ${mv_name}"""
         sql"""
         CREATE MATERIALIZED VIEW ${mv_name} 
-        BUILD IMMEDIATE REFRESH AUTO ON MANUAL 
-        DISTRIBUTED BY RANDOM BUCKETS 2 
-        PROPERTIES ('replication_num' = '1') 
         AS  
         ${mv_sql}
         """
@@ -297,10 +286,10 @@ suite("partition_mv_rewrite_dimension_2_6_mv") {
         group by t.l_shipdate, o_orderdate, t.l_partkey"""
     explain {
         sql("${sql_stmt_5}")
-        contains "${mv_name_5}(${mv_name_5})"
+        contains "(${mv_name_5})"
     }
     compare_res(sql_stmt_5 + " order by 1,2,3")
-    sql """DROP MATERIALIZED VIEW IF EXISTS ${mv_name_5};"""
+    sql """DROP MATERIALIZED VIEW IF EXISTS ${mv_name_5} on lineitem_2_6;"""
 
     // project rewriting
     def mv_name_6 = "mv_name_2_6_6"
@@ -319,10 +308,10 @@ suite("partition_mv_rewrite_dimension_2_6_mv") {
         group by t.l_shipdate, o_orderdate, t.l_partkey"""
     explain {
         sql("${sql_stmt_6}")
-        contains "${mv_name_6}(${mv_name_6})"
+        contains "(${mv_name_6})"
     }
     compare_res(sql_stmt_6 + " order by 1,2,3")
-    sql """DROP MATERIALIZED VIEW IF EXISTS ${mv_name_6};"""
+    sql """DROP MATERIALIZED VIEW IF EXISTS ${mv_name_6} on lineitem_2_6;"""
 
 
     // Todo: union rewriting
@@ -389,10 +378,10 @@ suite("partition_mv_rewrite_dimension_2_6_mv") {
             where  o_custkey > (-3) + 5 and o_orderdate >= '2023-10-17'  """
     explain {
         sql("${sql_stmt_9}")
-        contains "${mv_name_9}(${mv_name_9})"
+        contains "(${mv_name_9})"
     }
     compare_res(sql_stmt_9 + " order by 1,2,3,4,5,6")
-    sql """DROP MATERIALIZED VIEW IF EXISTS ${mv_name_9};"""
+    sql """DROP MATERIALIZED VIEW IF EXISTS ${mv_name_9} on orders_2_6;"""
 
 
 }
