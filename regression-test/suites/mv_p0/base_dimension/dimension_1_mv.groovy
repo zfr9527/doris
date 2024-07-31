@@ -18,7 +18,7 @@
 /*
 This suite is a one dimensional test case file.
  */
-suite("partition_mv_rewrite_dimension_1_mv") {
+suite("partition_mv_rewrite_dimension_1_mv", "partition_mv_rewrite_dimension_1_mv") {
     String db = context.config.getDbNameByFile(context.file)
     sql "use ${db}"
 
