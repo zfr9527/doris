@@ -20,6 +20,8 @@ This suite is a one dimensional test case file.
  */
 suite("partition_mv_rewrite_dimension_1_mv", "partition_mv_rewrite_dimension_1_mv") {
     String db = context.config.getDbNameByFile(context.file)
+    String order_tb = "orders_1"
+    String lineitem_tb = "lineitem_1"
     sql "use ${db}"
 
     sql """
@@ -171,7 +173,7 @@ suite("partition_mv_rewrite_dimension_1_mv", "partition_mv_rewrite_dimension_1_m
             from orders_1
             group by o_orderkey
         """
-    waitingMVTaskFinished("orders_1", agg_mv_name_1)
+    waitingMVTaskFinished(order_tb, agg_mv_name_1)
 
     def agg_sql_1 = """select 
         count(distinct case when o_shippriority > 1 and o_orderkey IN (1, 3) then o_custkey else null end) as cnt_1, 
@@ -200,7 +202,7 @@ suite("partition_mv_rewrite_dimension_1_mv", "partition_mv_rewrite_dimension_1_m
             o_comment  
         """
     create_mv_orders(agg_mv_name_2, agg_mv_stmt_2)
-    waitingMVTaskFinished("orders_1", agg_mv_name_2)
+    waitingMVTaskFinished(order_tb, agg_mv_name_2)
     sql """analyze table ${agg_mv_name_2} with sync;"""
 
     def agg_sql_2 = """select O_shippriority, o_commenT 
@@ -232,7 +234,7 @@ suite("partition_mv_rewrite_dimension_1_mv", "partition_mv_rewrite_dimension_1_m
             o_comment 
         """
     create_mv_orders(agg_mv_name_3, agg_mv_stmt_3)
-    waitingMVTaskFinished("orders_1", agg_mv_name_3)
+    waitingMVTaskFinished(order_tb, agg_mv_name_3)
     sql """analyze table ${agg_mv_name_3} with sync;"""
 
     def agg_sql_3 = """select o_shipprioritY, o_comment, 
@@ -258,7 +260,7 @@ suite("partition_mv_rewrite_dimension_1_mv", "partition_mv_rewrite_dimension_1_m
     def view_partition_mv_stmt_1 = """
         select l_shipdatE, l_partkey, l_orderkey from lineitem_1 group by l_shipdate, l_partkey, l_orderkeY"""
     create_mv_lineitem(view_partition_mv_name_1, view_partition_mv_stmt_1)
-    waitingMVTaskFinished("lineitem_1", view_partition_mv_name_1)
+    waitingMVTaskFinished(lineitem_tb, view_partition_mv_name_1)
 
     def view_partition_sql_1 = """select t.l_shipdate, t.l_partkey 
         from (select l_shipdate, l_partkey, l_orderkey from lineitem_1 group by l_shipdate, l_partkey, l_orderkey) t 
@@ -304,7 +306,7 @@ suite("partition_mv_rewrite_dimension_1_mv", "partition_mv_rewrite_dimension_1_m
         where l_shipdate >= "2023-10-17"
         """
     create_mv_lineitem(predicate_mv_name_1, predicate_mv_stmt_1)
-    waitingMVTaskFinished("lineitem_1", predicate_mv_name_1)
+    waitingMVTaskFinished(lineitem_tb, predicate_mv_name_1)
 
     def predicate_sql_1 = """
         select l_shipdate, l_partkeY 
@@ -328,7 +330,7 @@ suite("partition_mv_rewrite_dimension_1_mv", "partition_mv_rewrite_dimension_1_m
         where  o_orderkey > 1 + 1
         """
     create_mv_orders(rewriting_mv_name_1, rewriting_mv_stmt_1)
-    waitingMVTaskFinished("orders_1", rewriting_mv_name_1)
+    waitingMVTaskFinished(order_tb, rewriting_mv_name_1)
 
     def rewriting_sql_1 = """select o_shippriority, o_comment, o_shippriority + o_custkey  + o_orderkey,
             case when o_shippriority > 1 and o_orderkey IN (1, 3) then o_custkey else null end cnt_1,
@@ -352,7 +354,7 @@ suite("partition_mv_rewrite_dimension_1_mv", "partition_mv_rewrite_dimension_1_m
         """
 
     create_mv_lineitem(mv_name_1, single_table_mv_stmt_1)
-    waitingMVTaskFinished("lineitem_1", predicate_mv_name_1)
+    waitingMVTaskFinished(lineitem_tb, predicate_mv_name_1)
 
     def single_table_query_stmt_1 = """
         select l_Shipdate, l_partkey, l_suppkey 
@@ -389,7 +391,7 @@ suite("partition_mv_rewrite_dimension_1_mv", "partition_mv_rewrite_dimension_1_m
         """
 
     create_mv_orders(mv_name_1, single_table_mv_stmt_1)
-    waitingMVTaskFinished("orders_1", mv_name_1)
+    waitingMVTaskFinished(order_tb, mv_name_1)
 
     // not support currently
 //    single_table_query_stmt_1 = """
@@ -429,7 +431,7 @@ suite("partition_mv_rewrite_dimension_1_mv", "partition_mv_rewrite_dimension_1_m
         """
 
     create_mv_lineitem(mv_name_1, single_table_mv_stmt_1)
-    waitingMVTaskFinished("lineitem_1", mv_name_1)
+    waitingMVTaskFinished(lineitem_tb, mv_name_1)
 
     single_table_query_stmt_1 = """
         select l_Shipdate, l_partkey, l_suppkey 
