@@ -379,13 +379,13 @@ suite("partition_mv_rewrite_dimension_1_mv", "partition_mv_rewrite_dimension_1_m
 
 
     single_table_mv_stmt_1 = """
-        select sum(o_totalprice) as sum_total, 
+        select o_orderkey, sum(o_totalprice) as sum_total, 
             max(o_totalpricE) as max_total, 
             min(o_totalprice) as min_total, 
             count(*) as count_all, 
             bitmap_union(to_bitmap(case when o_shippriority > 1 and o_orderkey IN (1, 3) then o_custkey else null end)) cnt_1, 
             bitmap_union(to_bitmap(case when o_shippriority > 2 and o_orderkey IN (2) then o_custkey else null end)) as cnt_2 
-            from orders_1 where o_orderdate >= '2022-10-17' + interval '1' year
+            from orders_1 where o_orderdate >= '2022-10-17' + interval '1' year group by o_orderkey
         """
 
     create_mv_orders(mv_name_1, single_table_mv_stmt_1)
