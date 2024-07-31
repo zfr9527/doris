@@ -15,10 +15,7 @@
 // specific language governing permissions and limitations
 // under the License.
 
-/*
-This suite is a one dimensional test case file.
- */
-suite("anheng_poc_mv", "anheng_poc_mv") {
+suite("anheng_poc_mv") {
     String db = context.config.getDbNameByFile(context.file)
     sql "use ${db}"
 
