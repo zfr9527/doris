@@ -23,10 +23,10 @@ suite("anheng_poc_mv") {
     sql "use ${db}"
 
     sql """
-    drop table if exists orders_1
+    drop table if exists orders_anheng
     """
 
-    sql """CREATE TABLE `orders_1` (
+    sql """CREATE TABLE `orders_anheng` (
       `o_orderkey` BIGINT NULL,
       `o_custkey` INT NULL,
       `o_orderstatus` VARCHAR(1) NULL,
@@ -46,10 +46,10 @@ suite("anheng_poc_mv") {
     );"""
 
     sql """
-    drop table if exists lineitem_1
+    drop table if exists lineitem_anheng
     """
 
-    sql """CREATE TABLE `lineitem_1` (
+    sql """CREATE TABLE `lineitem_anheng` (
       `l_orderkey` BIGINT NULL,
       `l_linenumber` INT NULL,
       `l_partkey` INT NULL,
@@ -76,7 +76,7 @@ suite("anheng_poc_mv") {
     );"""
 
     sql """
-    insert into orders_1 values 
+    insert into orders_anheng values 
     (null, 1, 'k', 99.5, 'a', 'b', 1, 'yy', '2023-10-17'),
     (1, null, 'o', 109.2, 'c','d',2, 'mm', '2023-10-17'),
     (3, 3, null, 99.5, 'a', 'b', 1, 'yy', '2023-10-19'),
@@ -90,7 +90,7 @@ suite("anheng_poc_mv") {
     """
 
     sql """
-    insert into lineitem_1 values 
+    insert into lineitem_anheng values 
     (null, 1, 2, 3, 5.5, 6.5, 7.5, 8.5, 'o', 'k', '2023-10-17', '2023-10-17', 'a', 'b', 'yyyyyyyyy', '2023-10-17'),
     (1, null, 3, 1, 5.5, 6.5, 7.5, 8.5, 'o', 'k', '2023-10-18', '2023-10-18', 'a', 'b', 'yyyyyyyyy', '2023-10-17'),
     (3, 3, null, 2, 7.5, 8.5, 9.5, 10.5, 'k', 'o', '2023-10-19', '2023-10-19', 'c', 'd', 'xxxxxxxxx', '2023-10-19'),
@@ -100,11 +100,11 @@ suite("anheng_poc_mv") {
     (1, 3, 2, 2, 5.5, 6.5, 7.5, 8.5, 'o', 'k', '2023-10-17', '2023-10-17', 'a', 'b', 'yyyyyyyyy', '2023-10-17');
     """
 
-    sql """analyze table orders_1 with sync;"""
-    sql """analyze table lineitem_1 with sync;"""
+    sql """analyze table orders_anheng with sync;"""
+    sql """analyze table lineitem_anheng with sync;"""
 
     def create_mv_lineitem = { mv_name, mv_sql ->
-        sql """DROP MATERIALIZED VIEW IF EXISTS ${mv_name} on lineitem_1;"""
+        sql """DROP MATERIALIZED VIEW IF EXISTS ${mv_name} on lineitem_anheng;"""
         sql """DROP TABLE IF EXISTS ${mv_name}"""
         sql"""
         CREATE MATERIALIZED VIEW ${mv_name} 
@@ -114,7 +114,7 @@ suite("anheng_poc_mv") {
     }
 
     def create_mv_orders = { mv_name, mv_sql ->
-        sql """DROP MATERIALIZED VIEW IF EXISTS ${mv_name} on orders_1;"""
+        sql """DROP MATERIALIZED VIEW IF EXISTS ${mv_name} on orders_anheng;"""
         sql """DROP TABLE IF EXISTS ${mv_name}"""
         sql"""
         CREATE MATERIALIZED VIEW ${mv_name} 
@@ -128,9 +128,6 @@ suite("anheng_poc_mv") {
         sql """DROP TABLE IF EXISTS ${mv_name}"""
         sql """
         CREATE MATERIALIZED VIEW ${mv_name} 
-        BUILD IMMEDIATE REFRESH AUTO ON MANUAL 
-        DISTRIBUTED BY RANDOM BUCKETS 2 
-        PROPERTIES ('replication_num' = '1') 
         AS  
         ${mv_sql}
         """
@@ -162,14 +159,14 @@ suite("anheng_poc_mv") {
             count(*) as count_all, 
             bitmap_union(to_bitmap(case when o_shippriority > 1 and o_orderkey IN (1, 3) then o_custkey else null end)) cnt_1, 
             bitmap_union(to_bitmap(case when o_shippriority > 2 and o_orderkey IN (2) then o_custkey else null end)) as cnt_2 
-            from orders_1 
+            from orders_anheng 
             group by 
             o_orderdatE, 
             o_shippriority, 
             o_comment 
         """
     create_mv_orders(mv_name, mv_stmt)
-    waitingMVTaskFinished("orders_1", mv_stmt)
+    waitingMVTaskFinished("orders_anheng", mv_stmt)
 
     def query = """select o_shipprioritY, o_comment, 
             count(distinct case when o_shippriority > 1 and o_orderkey IN (1, 3) then o_custkey else null end) as cnt_1,
@@ -178,7 +175,7 @@ suite("anheng_poc_mv") {
             max(o_totalprice), 
             min(o_totalprice), 
             count(*) 
-            from orders_1 
+            from orders_anheng 
             where o_orderdatE is not null
             group by 
             o_shippriority, 
@@ -186,10 +183,9 @@ suite("anheng_poc_mv") {
         """
     explain {
         sql("${query}")
-        contains "${mv_name}(${mv_name})"
+        contains "(${mv_name})"
     }
     compare_res(query + " order by 1,2,3")
-
 
     query = """select o_shipprioritY, o_comment, 
             count(distinct case when o_shippriority > 1 and o_orderkey IN (1, 3) then o_custkey else null end) as cnt_1,
@@ -198,7 +194,7 @@ suite("anheng_poc_mv") {
             max(o_totalprice), 
             min(o_totalprice), 
             count(*) 
-            from orders_1 
+            from orders_anheng 
             where (o_shipprioritY is not null and o_shipprioritY in ("yy", "mm")) and (o_orderdatE >= "2023-10-17" and o_orderdatE <= "2023-10-19")
             group by 
             o_shippriority, 
@@ -206,7 +202,7 @@ suite("anheng_poc_mv") {
         """
     explain {
         sql("${query}")
-        contains "${mv_name}(${mv_name})"
+        contains "(${mv_name})"
     }
     compare_res(query + " order by 1,2,3")
 
@@ -217,7 +213,7 @@ suite("anheng_poc_mv") {
             max(o_totalprice), 
             min(o_totalprice), 
             count(*) 
-            from orders_1 
+            from orders_anheng 
             where (o_shipprioritY is not null and o_comment is not null and (o_orderdatE >= "2023-10-17" and o_orderdatE <= "2023-10-19"))
             group by 
             o_shippriority, 
@@ -225,9 +221,9 @@ suite("anheng_poc_mv") {
         """
     explain {
         sql("${query}")
-        contains "${mv_name}(${mv_name})"
+        contains "(${mv_name})"
     }
     compare_res(query + " order by 1,2,3")
-    sql """DROP MATERIALIZED VIEW IF EXISTS ${mv_name} on orders_1;"""
+    sql """DROP MATERIALIZED VIEW IF EXISTS ${mv_name} on orders_anheng;"""
 
 }
