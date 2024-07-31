@@ -203,7 +203,6 @@ suite("partition_mv_rewrite_dimension_1_mv", "partition_mv_rewrite_dimension_1_m
         """
     create_mv_orders(agg_mv_name_2, agg_mv_stmt_2)
     waitingMVTaskFinished(order_tb, agg_mv_name_2)
-    sql """analyze table ${agg_mv_name_2} with sync;"""
 
     def agg_sql_2 = """select O_shippriority, o_commenT 
             from orders_1 
