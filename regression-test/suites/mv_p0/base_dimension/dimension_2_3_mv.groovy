@@ -301,13 +301,13 @@ suite("partition_mv_rewrite_dimension_2_3_mv", "partition_mv_rewrite_dimension_2
 
     // predicate compensate
     def mv_name_7 = "mv_name_2_3_7"
-    def mv_stmt_7 = """select l_shipdate, o_orderdate, l_partkey 
+    def mv_stmt_7 = """select l_shipdate, l_partkey 
         from lineitem_2_3 
         where l_shipdate >= '2023-10-17'"""
     create_mv_lineitem(mv_name_7, mv_stmt_7)
     waitingMVTaskFinished("lineitem_2_3", mv_name_7)
 
-    def sql_stmt_7 = """select l_shipdate, o_orderdate, l_partkey 
+    def sql_stmt_7 = """select l_shipdate, l_partkey 
         from lineitem_2_3 
         where l_shipdate >= "2023-10-17" and l_partkey = 3"""
     explain {
