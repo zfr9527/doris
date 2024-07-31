@@ -263,12 +263,12 @@ suite("partition_mv_rewrite_dimension_2_3_mv", "partition_mv_rewrite_dimension_2
 
     // view partial
     def mv_name_5 = "mv_name_2_3_5"
-    def mv_stmt_5 = """select l_shipdate, l_partkey, l_orderkey, o_orderdate 
+    def mv_stmt_5 = """select l_shipdate, l_partkey, l_orderkey 
         from lineitem_2_3"""
     create_mv_lineitem(mv_name_5, mv_stmt_5)
     waitingMVTaskFinished("lineitem_2_3", mv_name_5)
 
-    def sql_stmt_5 = """select l_shipdate, o_orderdate, l_partkey 
+    def sql_stmt_5 = """select l_shipdate, l_partkey 
         from lineitem_2_3"""
     explain {
         sql("${sql_stmt_5}")
