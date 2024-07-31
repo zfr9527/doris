@@ -390,7 +390,7 @@ suite("partition_mv_rewrite_dimension_2_4_mv") {
         contains "(${mv_name_10})"
     }
     compare_res(sql_stmt_10 + " order by 1")
-    sql """DROP MATERIALIZED VIEW IF EXISTS ${mv_name_10};"""
+    sql """DROP MATERIALIZED VIEW IF EXISTS ${mv_name_10} on orders_2_4;"""
 
 
     // group by + predicate compensate
@@ -415,10 +415,10 @@ suite("partition_mv_rewrite_dimension_2_4_mv") {
             o_comment """
     explain {
         sql("${sql_stmt_11}")
-        notContains "${mv_name_11}(${mv_name_11})"
+        notContains "(${mv_name_11})"
     }
     compare_res(sql_stmt_11 + " order by 1,2,3")
-    sql """DROP MATERIALIZED VIEW IF EXISTS ${mv_name_11};"""
+    sql """DROP MATERIALIZED VIEW IF EXISTS ${mv_name_11} on orders_2_4;"""
 
     def mv_name_16 = "mv_name_2_4_16"
     def mv_stmt_16 = """select o_orderdate, o_shippriority, o_comment, o_totalprice 
@@ -446,7 +446,7 @@ suite("partition_mv_rewrite_dimension_2_4_mv") {
     assert(agg_sql_explain_1.toString().substring(0, mv_index_1).indexOf(mv_name_16) != -1)
 
     compare_res(sql_stmt_16 + " order by 1,2,3")
-    sql """DROP MATERIALIZED VIEW IF EXISTS ${mv_name_16};"""
+    sql """DROP MATERIALIZED VIEW IF EXISTS ${mv_name_16} on orders_2_4;"""
 
     // agg function + group by + predicate compensate
     def mv_name_12 = "mv_name_2_4_12"
@@ -488,10 +488,10 @@ suite("partition_mv_rewrite_dimension_2_4_mv") {
              """
     explain {
         sql("${sql_stmt_12}")
-        contains "${mv_name_12}(${mv_name_12})"
+        contains "(${mv_name_12})"
     }
     compare_res(sql_stmt_12 + " order by 1,2,3,4,5,6,7")
-    sql """DROP MATERIALIZED VIEW IF EXISTS ${mv_name_12};"""
+    sql """DROP MATERIALIZED VIEW IF EXISTS ${mv_name_12} on orders_2_4;"""
 
 
     // project rewriting
@@ -515,10 +515,10 @@ suite("partition_mv_rewrite_dimension_2_4_mv") {
             where o_orderkey > (-3) + 5 """
     explain {
         sql("${sql_stmt_13}")
-        contains "${mv_name_13}(${mv_name_13})"
+        contains "(${mv_name_13})"
     }
     compare_res(sql_stmt_13 + " order by 1")
-    sql """DROP MATERIALIZED VIEW IF EXISTS ${mv_name_13};"""
+    sql """DROP MATERIALIZED VIEW IF EXISTS ${mv_name_13} on orders_2_4;"""
 
 
     // group by + project rewriting
@@ -542,10 +542,10 @@ suite("partition_mv_rewrite_dimension_2_4_mv") {
             o_comment """
     explain {
         sql("${sql_stmt_14}")
-        contains "${mv_name_14}(${mv_name_14})"
+        contains "(${mv_name_14})"
     }
     compare_res(sql_stmt_14 + " order by 1,2")
-    sql """DROP MATERIALIZED VIEW IF EXISTS ${mv_name_14};"""
+    sql """DROP MATERIALIZED VIEW IF EXISTS ${mv_name_14} on orders_2_4;"""
 
 
     // agg function + group by + project rewriting
@@ -580,9 +580,9 @@ suite("partition_mv_rewrite_dimension_2_4_mv") {
             case when O_SHIPPRIORITY > 2 and o_orderkey IN (2) then o_custkey else null end   """
     explain {
         sql("${sql_stmt_15}")
-        contains "${mv_name_15}(${mv_name_15})"
+        contains "(${mv_name_15})"
     }
     compare_res(sql_stmt_15 + " order by 1,2,3,4,5")
-    sql """DROP MATERIALIZED VIEW IF EXISTS ${mv_name_15};"""
+    sql """DROP MATERIALIZED VIEW IF EXISTS ${mv_name_15} on orders_2_4;"""
 
 }
