@@ -189,7 +189,7 @@ suite("partition_mv_rewrite_dimension_1_mv", "partition_mv_rewrite_dimension_1_m
         contains "(${agg_mv_name_1})"
     }
     compare_res(agg_sql_1 + " order by 1,2,3,4,5,6")
-    sql """DROP MATERIALIZED VIEW IF EXISTS ${agg_mv_name_1};"""
+    sql """DROP MATERIALIZED VIEW IF EXISTS ${agg_mv_name_1} ON orders_1;"""
 
     // agg + with group by + without agg function
     def agg_mv_name_2 = "agg_mv_name_2"
@@ -214,7 +214,7 @@ suite("partition_mv_rewrite_dimension_1_mv", "partition_mv_rewrite_dimension_1_m
     def mv_index_1 = agg_sql_explain_2.toString().indexOf("MaterializedViewRewriteFail:")
     assert(mv_index_1 != -1)
     assert(agg_sql_explain_2.toString().substring(0, mv_index_1).indexOf(agg_mv_name_2) != -1)
-    sql """DROP MATERIALIZED VIEW IF EXISTS ${agg_mv_name_2};"""
+    sql """DROP MATERIALIZED VIEW IF EXISTS ${agg_mv_name_2} ON orders_1;"""
 
     // agg + with group by + with agg function
     def agg_mv_name_3 = "agg_mv_name_3"
@@ -251,7 +251,7 @@ suite("partition_mv_rewrite_dimension_1_mv", "partition_mv_rewrite_dimension_1_m
     def mv_index_2 = agg_sql_explain_3.toString().indexOf("MaterializedViewRewriteFail:")
     assert(mv_index_2 != -1)
     assert(agg_sql_explain_3.toString().substring(0, mv_index_2).indexOf(agg_mv_name_3) != -1)
-    sql """DROP MATERIALIZED VIEW IF EXISTS ${agg_mv_name_3};"""
+    sql """DROP MATERIALIZED VIEW IF EXISTS ${agg_mv_name_3} ON orders_1;"""
 
     // view partital rewriting
     def view_partition_mv_name_1 = "view_partition_mv_name_1"
@@ -269,7 +269,7 @@ suite("partition_mv_rewrite_dimension_1_mv", "partition_mv_rewrite_dimension_1_m
         contains "(${view_partition_mv_name_1})"
     }
     compare_res(view_partition_sql_1 + " order by 1,2,3")
-    sql """DROP MATERIALIZED VIEW IF EXISTS ${view_partition_mv_name_1};"""
+    sql """DROP MATERIALIZED VIEW IF EXISTS ${view_partition_mv_name_1} ON lineitem_1;"""
 
     // Todo: union rewrte
 //    def union_mv_name_1 = "union_mv_name_1"
@@ -316,7 +316,7 @@ suite("partition_mv_rewrite_dimension_1_mv", "partition_mv_rewrite_dimension_1_m
         contains "(${predicate_mv_name_1})"
     }
     compare_res(predicate_sql_1 + " order by 1,2,3")
-    sql """DROP MATERIALIZED VIEW IF EXISTS ${predicate_mv_name_1};"""
+    sql """DROP MATERIALIZED VIEW IF EXISTS ${predicate_mv_name_1} on lineitem_1;"""
 
     // Todo: project rewriting
     def rewriting_mv_name_1 = "rewriting_mv_name_1"
@@ -341,7 +341,7 @@ suite("partition_mv_rewrite_dimension_1_mv", "partition_mv_rewrite_dimension_1_m
         contains "(${rewriting_mv_name_1})"
     }
     compare_res(rewriting_sql_1 + " order by 1,2,3,4,5")
-    sql """DROP MATERIALIZED VIEW IF EXISTS ${rewriting_mv_name_1};"""
+    sql """DROP MATERIALIZED VIEW IF EXISTS ${rewriting_mv_name_1} on orders_1;"""
 
     // single table
     def mv_name_1 = "single_tb_mv_1"

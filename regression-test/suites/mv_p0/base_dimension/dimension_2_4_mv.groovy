@@ -135,10 +135,6 @@ suite("partition_mv_rewrite_dimension_2_4_mv") {
         sql """DROP TABLE IF EXISTS ${mv_name}"""
         sql"""
         CREATE MATERIALIZED VIEW ${mv_name} 
-        BUILD IMMEDIATE REFRESH AUTO ON MANUAL 
-        partition by(l_shipdate) 
-        DISTRIBUTED BY RANDOM BUCKETS 2 
-        PROPERTIES ('replication_num' = '1')  
         AS  
         ${mv_sql}
         """
@@ -149,10 +145,6 @@ suite("partition_mv_rewrite_dimension_2_4_mv") {
         sql """DROP TABLE IF EXISTS ${mv_name}"""
         sql"""
         CREATE MATERIALIZED VIEW ${mv_name} 
-        BUILD IMMEDIATE REFRESH AUTO ON MANUAL 
-        partition by(o_orderdate) 
-        DISTRIBUTED BY RANDOM BUCKETS 2 
-        PROPERTIES ('replication_num' = '1') 
         AS  
         ${mv_sql}
         """
@@ -163,9 +155,6 @@ suite("partition_mv_rewrite_dimension_2_4_mv") {
         sql """DROP TABLE IF EXISTS ${mv_name}"""
         sql"""
         CREATE MATERIALIZED VIEW ${mv_name} 
-        BUILD IMMEDIATE REFRESH AUTO ON MANUAL 
-        DISTRIBUTED BY RANDOM BUCKETS 2 
-        PROPERTIES ('replication_num' = '1') 
         AS  
         ${mv_sql}
         """
@@ -375,7 +364,7 @@ suite("partition_mv_rewrite_dimension_2_4_mv") {
     // predicate compensate
     // agg function + predicate compensate
     def mv_name_10 = "mv_name_2_4_10"
-    def mv_stmt_10 = """select 
+    def mv_stmt_10 = """select o_orderkey
             sum(o_totalprice) as sum_total, 
             max(o_totalprice) as max_total, 
             min(o_totalprice) as min_total, 
@@ -383,7 +372,7 @@ suite("partition_mv_rewrite_dimension_2_4_mv") {
             bitmap_union(to_bitmap(case when o_shippriority > 1 and o_orderkey IN (1, 3) then o_custkey else null end)) cnt_1, 
             bitmap_union(to_bitmap(case when o_shippriority > 2 and o_orderkey IN (2) then o_custkey else null end)) as cnt_2 
             from orders_2_4 
-            where o_orderdate >= '2023-10-17'"""
+            where o_orderdate >= '2023-10-17' group by o_orderkey"""
     create_all_mv(mv_name_10, mv_stmt_10)
     waitingMVTaskFinished("orders_2_4", mv_name_10)
 
@@ -398,7 +387,7 @@ suite("partition_mv_rewrite_dimension_2_4_mv") {
             where t.count_all = 3"""
     explain {
         sql("${sql_stmt_10}")
-        contains "${mv_name_10}(${mv_name_10})"
+        contains "(${mv_name_10})"
     }
     compare_res(sql_stmt_10 + " order by 1")
     sql """DROP MATERIALIZED VIEW IF EXISTS ${mv_name_10};"""
