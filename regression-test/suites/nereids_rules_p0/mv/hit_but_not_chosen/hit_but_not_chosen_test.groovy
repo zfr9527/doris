@@ -15,7 +15,7 @@
 // specific language governing permissions and limitations
 // under the License.
 
-suite ("hit_but_not_chosen") {
+suite ("hit_but_not_chosen", "hit_but_not_chosen") {
 
     // 写join大概率不能用
     // 可以写filter
