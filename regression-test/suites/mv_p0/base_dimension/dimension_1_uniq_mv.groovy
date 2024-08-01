@@ -18,28 +18,28 @@
 /*
 This suite is a one dimensional test case file.
  */
-suite("partition_mv_rewrite_dimension_1_agg_mv", "partition_mv_rewrite_dimension_1_agg_mv") {
+suite("partition_mv_rewrite_dimension_1_uniq_mv", "partition_mv_rewrite_dimension_1_uniq_mv") {
     String db = context.config.getDbNameByFile(context.file)
-    String order_tb = "orders_agg"
-    String lineitem_tb = "lineitem_agg"
+    String order_tb = "orders_uniq"
+    String lineitem_tb = "lineitem_uniq"
     sql "use ${db}"
 
     sql """
-    drop table if exists orders_agg
+    drop table if exists orders_uniq
     """
 
-    sql """CREATE TABLE `orders_agg` (
+    sql """CREATE TABLE `orders_uniq` (
       `o_orderkey` BIGINT not NULL,
       `o_custkey` INT not NULL,
       `o_orderdate` DATE not null,
-      `o_orderstatus` VARCHAR(1) replace,
-      `o_totalprice` DECIMAL(15, 2) sum,
-      `o_orderpriority` VARCHAR(15) replace,
-      `o_clerk` VARCHAR(15) replace,
-      `o_shippriority` INT sum,
-      `o_comment` VARCHAR(79) replace
+      `o_orderstatus` VARCHAR(1) null,
+      `o_totalprice` DECIMAL(15, 2) null,
+      `o_orderpriority` VARCHAR(15) null,
+      `o_clerk` VARCHAR(15) null,
+      `o_shippriority` INT null,
+      `o_comment` VARCHAR(79) null
     ) ENGINE=OLAP
-    aggregate KEY(`o_orderkey`, `o_custkey`, `o_orderdate`)
+    unique KEY(`o_orderkey`, `o_custkey`, `o_orderdate`)
     COMMENT 'OLAP'
     auto partition by range (date_trunc(`o_orderdate`, 'day')) ()
     DISTRIBUTED BY HASH(`o_orderkey`) BUCKETS 96
@@ -48,28 +48,28 @@ suite("partition_mv_rewrite_dimension_1_agg_mv", "partition_mv_rewrite_dimension
     );"""
 
     sql """
-    drop table if exists lineitem_agg
+    drop table if exists lineitem_uniq
     """
 
-    sql """CREATE TABLE `lineitem_agg` (
+    sql """CREATE TABLE `lineitem_uniq` (
       `l_orderkey` BIGINT not NULL,
       `l_linenumber` INT not NULL,
       `l_partkey` INT not NULL,
       `l_suppkey` INT not NULL,
       `l_shipdate` DATE not null,
-      `l_quantity` DECIMAL(15, 2) sum,
-      `l_extendedprice` DECIMAL(15, 2) sum,
-      `l_discount` DECIMAL(15, 2) sum,
-      `l_tax` DECIMAL(15, 2) sum,
-      `l_returnflag` VARCHAR(1) replace,
-      `l_linestatus` VARCHAR(1) replace,
-      `l_commitdate` DATE replace,
-      `l_receiptdate` DATE replace,
-      `l_shipinstruct` VARCHAR(25) replace,
-      `l_shipmode` VARCHAR(10) replace,
-      `l_comment` VARCHAR(44) replace
+      `l_quantity` DECIMAL(15, 2) null,
+      `l_extendedprice` DECIMAL(15, 2) null,
+      `l_discount` DECIMAL(15, 2) null,
+      `l_tax` DECIMAL(15, 2) null,
+      `l_returnflag` VARCHAR(1) null,
+      `l_linestatus` VARCHAR(1) null,
+      `l_commitdate` DATE null,
+      `l_receiptdate` DATE null,
+      `l_shipinstruct` VARCHAR(25) null,
+      `l_shipmode` VARCHAR(10) null,
+      `l_comment` VARCHAR(44) null
     ) ENGINE=OLAP
-    aggregate KEY(l_orderkey, l_linenumber, l_partkey, l_suppkey, l_shipdate)
+    unique KEY(l_orderkey, l_linenumber, l_partkey, l_suppkey, l_shipdate)
     COMMENT 'OLAP'
     auto partition by range (date_trunc(`l_shipdate`, 'day')) ()
     DISTRIBUTED BY HASH(`l_orderkey`) BUCKETS 96
@@ -78,7 +78,7 @@ suite("partition_mv_rewrite_dimension_1_agg_mv", "partition_mv_rewrite_dimension
     );"""
 
     sql """
-    insert into orders_agg values 
+    insert into orders_uniq values 
     (2, 1, '2023-10-17', 'k', 99.5, 'a', 'b', 1, 'yy'),
     (1, 2, '2023-10-17', 'o', 109.2, 'c','d',2, 'mm'),
     (3, 3, '2023-10-19', null, 99.5, 'a', 'b', 1, 'yy'),
@@ -92,7 +92,7 @@ suite("partition_mv_rewrite_dimension_1_agg_mv", "partition_mv_rewrite_dimension
     """
 
     sql """
-    insert into lineitem_agg values 
+    insert into lineitem_uniq values 
     (2, 1, 2, 3, '2023-10-17', 5.5, 6.5, 7.5, 8.5, 'o', 'k', '2023-10-17', '2023-10-17', 'a', 'b', 'yyyyyyyyy'),
     (1, 2, 3, 1, '2023-10-17', 5.5, 6.5, 7.5, 8.5, 'o', 'k', '2023-10-18', '2023-10-18', 'a', 'b', 'yyyyyyyyy'),
     (3, 3, 1, 2, '2023-10-19', 7.5, 8.5, 9.5, 10.5, 'k', 'o', '2023-10-19', '2023-10-19', 'c', 'd', 'xxxxxxxxx'),
@@ -102,11 +102,11 @@ suite("partition_mv_rewrite_dimension_1_agg_mv", "partition_mv_rewrite_dimension
     (1, 3, 2, 2, '2023-10-17', 5.5, 6.5, 7.5, 8.5, 'o', 'k', '2023-10-17', '2023-10-17', 'a', 'b', 'yyyyyyyyy');
     """
 
-    sql """analyze table orders_agg with sync;"""
-    sql """analyze table lineitem_agg with sync;"""
+    sql """analyze table orders_uniq with sync;"""
+    sql """analyze table lineitem_uniq with sync;"""
 
     def create_mv_lineitem = { mv_name, mv_sql ->
-        sql """DROP MATERIALIZED VIEW IF EXISTS ${mv_name} on lineitem_agg;"""
+        sql """DROP MATERIALIZED VIEW IF EXISTS ${mv_name} on lineitem_uniq;"""
         sql """DROP TABLE IF EXISTS ${mv_name}"""
         sql"""
         CREATE MATERIALIZED VIEW ${mv_name} 
@@ -116,7 +116,7 @@ suite("partition_mv_rewrite_dimension_1_agg_mv", "partition_mv_rewrite_dimension
     }
 
     def create_mv_orders = { mv_name, mv_sql ->
-        sql """DROP MATERIALIZED VIEW IF EXISTS ${mv_name} on orders_agg;"""
+        sql """DROP MATERIALIZED VIEW IF EXISTS ${mv_name} on orders_uniq;"""
         sql """DROP TABLE IF EXISTS ${mv_name}"""
         sql"""
         CREATE MATERIALIZED VIEW ${mv_name} 
@@ -154,110 +154,57 @@ suite("partition_mv_rewrite_dimension_1_agg_mv", "partition_mv_rewrite_dimension
     // agg
     // agg + without group by + with agg function
     def agg_mv_name_1 = "agg_mv_name_1"
-    sql """DROP MATERIALIZED VIEW IF EXISTS ${agg_mv_name_1} ON orders_agg;"""
+    sql """DROP MATERIALIZED VIEW IF EXISTS ${agg_mv_name_1} ON orders_uniq;"""
     sql """DROP TABLE IF EXISTS ${agg_mv_name_1}"""
     sql """
         CREATE MATERIALIZED VIEW ${agg_mv_name_1}
         AS
-        select
+        select 
             o_orderkey,
-            sum(O_TOTALPRICE) as sum_total,
-            max(o_totalprice) as max_total, 
-            min(o_totalprice) as min_total, 
-            count(*) as count_all, 
-            bitmap_union(to_bitmap(o_shippriority)) cnt_1  
-            from orders_agg
-            group by o_orderkey
+            case when o_shippriority > 1 then 1 else 2 end cnt_1
+            from orders_uniq
         """
     waitingMVTaskFinished(order_tb, agg_mv_name_1)
 
     def agg_sql_1 = """select 
-        count(distinct case when o_shippriority > 1 and o_orderkey IN (1, 3) then o_custkey else null end) as cnt_1, 
-        count(distinct case when O_SHIPPRIORITY > 2 and o_orderkey IN (2) then o_custkey else null end) as cnt_2, 
-        sum(O_totalprice), 
-        max(o_totalprice), 
-        min(o_totalprice), 
-        count(*) 
-        from orders_agg
+            o_orderkey,
+            case when o_shippriority > 1 then 1 else 2 end cnt_1 
+            from orders_uniq
         """
     explain {
         sql("${agg_sql_1}")
         contains "(${agg_mv_name_1})"
     }
     compare_res(agg_sql_1 + " order by 1,2,3,4,5,6")
-    sql """DROP MATERIALIZED VIEW IF EXISTS ${agg_mv_name_1} ON orders_agg;"""
+    sql """DROP MATERIALIZED VIEW IF EXISTS ${agg_mv_name_1} ON orders_uniq;"""
 
     // agg + with group by + without agg function
     def agg_mv_name_2 = "agg_mv_name_2"
     def agg_mv_stmt_2 = """
         select o_orderdatE, O_SHIPPRIORITY, o_comment  
-            from orders_agg 
-            group by 
-            o_orderdate, 
-            o_shippriority, 
-            o_comment  
+            from orders_uniq 
         """
     create_mv_orders(agg_mv_name_2, agg_mv_stmt_2)
     waitingMVTaskFinished(order_tb, agg_mv_name_2)
 
     def agg_sql_2 = """select O_shippriority, o_commenT 
-            from orders_agg 
-            group by 
-            o_shippriority, 
-            o_comment 
+            from orders_uniq 
         """
     def agg_sql_explain_2 = sql """explain ${agg_sql_2};"""
     def mv_index_1 = agg_sql_explain_2.toString().indexOf("MaterializedViewRewriteFail:")
     assert(mv_index_1 != -1)
     assert(agg_sql_explain_2.toString().substring(0, mv_index_1).indexOf(agg_mv_name_2) != -1)
-    sql """DROP MATERIALIZED VIEW IF EXISTS ${agg_mv_name_2} ON orders_agg;"""
-
-    // agg + with group by + with agg function
-    def agg_mv_name_3 = "agg_mv_name_3"
-    def agg_mv_stmt_3 = """
-        select o_orderdatE, o_shippriority, o_comment, 
-            sum(o_totalprice) as sum_total, 
-            max(o_totalpricE) as max_total, 
-            min(o_totalprice) as min_total, 
-            count(*) as count_all, 
-            bitmap_union(to_bitmap(case when o_shippriority > 1 and o_orderkey IN (1, 3) then o_custkey else null end)) cnt_1, 
-            bitmap_union(to_bitmap(case when o_shippriority > 2 and o_orderkey IN (2) then o_custkey else null end)) as cnt_2 
-            from orders_agg 
-            group by 
-            o_orderdatE, 
-            o_shippriority, 
-            o_comment 
-        """
-    create_mv_orders(agg_mv_name_3, agg_mv_stmt_3)
-    waitingMVTaskFinished(order_tb, agg_mv_name_3)
-
-    def agg_sql_3 = """select o_shipprioritY, o_comment, 
-            count(distinct case when o_shippriority > 1 and o_orderkey IN (1, 3) then o_custkey else null end) as cnt_1,
-            count(distinct case when O_SHIPPRIORITY > 2 and o_orderkey IN (2) then o_custkey else null end) as cnt_2, 
-            sum(o_totalprice), 
-            max(o_totalprice), 
-            min(o_totalprice), 
-            count(*) 
-            from orders_agg 
-            group by 
-            o_shippriority, 
-            o_commenT 
-        """
-    def agg_sql_explain_3 = sql """explain ${agg_sql_3};"""
-    def mv_index_2 = agg_sql_explain_3.toString().indexOf("MaterializedViewRewriteFail:")
-    assert(mv_index_2 != -1)
-    assert(agg_sql_explain_3.toString().substring(0, mv_index_2).indexOf(agg_mv_name_3) != -1)
-    sql """DROP MATERIALIZED VIEW IF EXISTS ${agg_mv_name_3} ON orders_agg;"""
+    sql """DROP MATERIALIZED VIEW IF EXISTS ${agg_mv_name_2} ON orders_uniq;"""
 
     // view partital rewriting
     def view_partition_mv_name_1 = "view_partition_mv_name_1"
     def view_partition_mv_stmt_1 = """
-        select l_shipdatE, l_partkey, l_orderkey from lineitem_agg group by l_shipdate, l_partkey, l_orderkeY"""
+        select l_shipdatE, l_partkey, l_orderkey from lineitem_uniq group by l_shipdate, l_partkey, l_orderkeY"""
     create_mv_lineitem(view_partition_mv_name_1, view_partition_mv_stmt_1)
     waitingMVTaskFinished(lineitem_tb, view_partition_mv_name_1)
 
     def view_partition_sql_1 = """select t.l_shipdate, t.l_partkey 
-        from (select l_shipdate, l_partkey, l_orderkey from lineitem_agg group by l_shipdate, l_partkey, l_orderkey) t 
+        from (select l_shipdate, l_partkey, l_orderkey from lineitem_uniq group by l_shipdate, l_partkey, l_orderkey) t 
         group by t.l_shipdate, t.l_partkey
         """
     explain {
@@ -265,15 +212,15 @@ suite("partition_mv_rewrite_dimension_1_agg_mv", "partition_mv_rewrite_dimension
         contains "(${view_partition_mv_name_1})"
     }
     compare_res(view_partition_sql_1 + " order by 1,2,3")
-    sql """DROP MATERIALIZED VIEW IF EXISTS ${view_partition_mv_name_1} ON lineitem_agg;"""
+    sql """DROP MATERIALIZED VIEW IF EXISTS ${view_partition_mv_name_1} ON lineitem_uniq;"""
 
     // Todo: union rewrte
 //    def union_mv_name_1 = "union_mv_name_1"
 //    def union_mv_stmt_1 = """
 //        select l_shipdate, o_orderdate, l_partkey, count(*)
-//        from lineitem_agg
-//        left join orders_agg
-//        on lineitem_agg.l_orderkey = orders_agg.o_orderkey
+//        from lineitem_uniq
+//        left join orders_uniq
+//        on lineitem_uniq.l_orderkey = orders_uniq.o_orderkey
 //        where l_shipdate >= "2023-12-04"
 //        """
 //    create_mv_orders(union_mv_name_1, union_mv_stmt_1)
@@ -281,9 +228,9 @@ suite("partition_mv_rewrite_dimension_1_agg_mv", "partition_mv_rewrite_dimension
 //    waitingMTMVTaskFinished(union_job_name_1)
 //
 //    def union_sql_1 = """select l_shipdate, o_orderdate, l_partkey, count(*)
-//        from lineitem_agg
-//        left join orders_agg
-//        on lineitem_agg.l_orderkey = orders_agg.o_orderkey
+//        from lineitem_uniq
+//        left join orders_uniq
+//        on lineitem_uniq.l_orderkey = orders_uniq.o_orderkey
 //        where l_shipdate >= "2023-12-01"
 //        """
 //    explain {
@@ -296,7 +243,7 @@ suite("partition_mv_rewrite_dimension_1_agg_mv", "partition_mv_rewrite_dimension
     def predicate_mv_name_1 = "predicate_mv_name_1"
     def predicate_mv_stmt_1 = """
         select l_shipdatE, l_partkey 
-        from lineitem_agg 
+        from lineitem_uniq 
         where l_shipdate >= "2023-10-17"
         """
     create_mv_lineitem(predicate_mv_name_1, predicate_mv_stmt_1)
@@ -304,7 +251,7 @@ suite("partition_mv_rewrite_dimension_1_agg_mv", "partition_mv_rewrite_dimension
 
     def predicate_sql_1 = """
         select l_shipdate, l_partkeY 
-        from lineitem_agg 
+        from lineitem_uniq 
         where l_shipdate >= "2023-10-17" and l_partkey = 1
         """
     explain {
@@ -312,24 +259,22 @@ suite("partition_mv_rewrite_dimension_1_agg_mv", "partition_mv_rewrite_dimension
         contains "(${predicate_mv_name_1})"
     }
     compare_res(predicate_sql_1 + " order by 1,2,3")
-    sql """DROP MATERIALIZED VIEW IF EXISTS ${predicate_mv_name_1} on lineitem_agg;"""
+    sql """DROP MATERIALIZED VIEW IF EXISTS ${predicate_mv_name_1} on lineitem_uniq;"""
 
     // Todo: project rewriting
     def rewriting_mv_name_1 = "rewriting_mv_name_1"
     def rewriting_mv_stmt_1 = """
         select o_orderdate, o_shippriority, o_comment, o_orderkey, o_shippriority + o_custkey,
-        case when o_shippriority > 1 and o_orderkey IN (1, 3) then o_custkey else null end cnt_1,
-        case when o_shippriority > 2 and o_orderkey IN (2) then o_custkey else null end as cnt_2
-        from orders_agg
+        case when o_shippriority > 1 then 1 else 2 end cnt_1 
+        from orders_uniq
         where  o_orderkey > 1 + 1
         """
     create_mv_orders(rewriting_mv_name_1, rewriting_mv_stmt_1)
     waitingMVTaskFinished(order_tb, rewriting_mv_name_1)
 
     def rewriting_sql_1 = """select o_shippriority, o_comment, o_shippriority + o_custkey  + o_orderkey,
-            case when o_shippriority > 1 and o_orderkey IN (1, 3) then o_custkey else null end cnt_1,
-        case when o_shippriority > 2 and o_orderkey IN (2) then o_custkey else null end as cnt_2
-            from orders_agg
+            case when o_shippriority > 1 then 1 else 2 end cnt_1 
+            from orders_uniq
            where  o_orderkey > (-3) + 5
         """
     explain {
@@ -337,13 +282,13 @@ suite("partition_mv_rewrite_dimension_1_agg_mv", "partition_mv_rewrite_dimension
         contains "(${rewriting_mv_name_1})"
     }
     compare_res(rewriting_sql_1 + " order by 1,2,3,4,5")
-    sql """DROP MATERIALIZED VIEW IF EXISTS ${rewriting_mv_name_1} on orders_agg;"""
+    sql """DROP MATERIALIZED VIEW IF EXISTS ${rewriting_mv_name_1} on orders_uniq;"""
 
     // single table
     def mv_name_1 = "single_tb_mv_1"
     def single_table_mv_stmt_1 = """
         select l_Shipdate, l_partkey, l_suppkey 
-        from lineitem_agg 
+        from lineitem_uniq 
         where l_commitdate like '2023-10-%'
         """
 
@@ -352,12 +297,12 @@ suite("partition_mv_rewrite_dimension_1_agg_mv", "partition_mv_rewrite_dimension
 
     def single_table_query_stmt_1 = """
         select l_Shipdate, l_partkey, l_suppkey 
-        from lineitem_agg 
+        from lineitem_uniq 
         where l_commitdate like '2023-10-%'
         """
     def single_table_query_stmt_2 = """
         select l_Shipdate, l_partkey, l_suppkey 
-        from lineitem_agg 
+        from lineitem_uniq 
         where l_commitdate like '2023-10-%' and l_partkey > 0 + 1
         """
 
@@ -373,21 +318,20 @@ suite("partition_mv_rewrite_dimension_1_agg_mv", "partition_mv_rewrite_dimension
     }
     compare_res(single_table_query_stmt_2 + " order by 1,2,3")
 
+// not support currently
+//    single_table_mv_stmt_1 = """
+//        select o_orderkey,
+//            max(o_totalpricE) as max_total,
+//            min(o_totalprice) as min_total,
+//            count(*) as count_all,
+//            bitmap_union(to_bitmap(case when o_shippriority > 1 and o_orderkey IN (1, 3) then o_custkey else null end)) cnt_1,
+//            bitmap_union(to_bitmap(case when o_shippriority > 2 and o_orderkey IN (2) then o_custkey else null end)) as cnt_2
+//            from orders_uniq where o_orderdate >= '2022-10-17' + interval '1' year group by o_orderkey
+//        """
+//
+//    create_mv_orders(mv_name_1, single_table_mv_stmt_1)
+//    waitingMVTaskFinished(order_tb, mv_name_1)
 
-    single_table_mv_stmt_1 = """
-        select o_orderkey, sum(o_totalprice) as sum_total, 
-            max(o_totalpricE) as max_total, 
-            min(o_totalprice) as min_total, 
-            count(*) as count_all, 
-            bitmap_union(to_bitmap(case when o_shippriority > 1 and o_orderkey IN (1, 3) then o_custkey else null end)) cnt_1, 
-            bitmap_union(to_bitmap(case when o_shippriority > 2 and o_orderkey IN (2) then o_custkey else null end)) as cnt_2 
-            from orders_agg where o_orderdate >= '2022-10-17' + interval '1' year group by o_orderkey
-        """
-
-    create_mv_orders(mv_name_1, single_table_mv_stmt_1)
-    waitingMVTaskFinished(order_tb, mv_name_1)
-
-    // not support currently
 //    single_table_query_stmt_1 = """
 //        select sum(o_totalprice) as sum_total,
 //            max(o_totalpricE) as max_total,
@@ -395,7 +339,7 @@ suite("partition_mv_rewrite_dimension_1_agg_mv", "partition_mv_rewrite_dimension
 //            count(*) as count_all,
 //            bitmap_union(to_bitmap(case when o_shippriority > 1 and o_orderkey IN (1, 3) then o_custkey else null end)) cnt_1,
 //            bitmap_union(to_bitmap(case when o_shippriority > 2 and o_orderkey IN (2) then o_custkey else null end)) as cnt_2
-//            from orders_agg where o_orderdate >= '2022-10-17' + interval '1' year
+//            from orders_uniq where o_orderdate >= '2022-10-17' + interval '1' year
 //        """
 //    single_table_query_stmt_2 = """
 //        select sum(o_totalprice) as sum_total,
@@ -404,7 +348,7 @@ suite("partition_mv_rewrite_dimension_1_agg_mv", "partition_mv_rewrite_dimension
 //            count(*) as count_all,
 //            bitmap_union(to_bitmap(case when o_shippriority > 1 and o_orderkey IN (1, 3) then o_custkey else null end)) cnt_1,
 //            bitmap_union(to_bitmap(case when o_shippriority > 2 and o_orderkey IN (2) then o_custkey else null end)) as cnt_2
-//            from orders_agg where o_orderdate > '2022-10-17' + interval '1' year
+//            from orders_uniq where o_orderdate > '2022-10-17' + interval '1' year
 //        """
 //    explain {
 //        sql("${single_table_query_stmt_1}")
@@ -420,8 +364,8 @@ suite("partition_mv_rewrite_dimension_1_agg_mv", "partition_mv_rewrite_dimension
     // mv do not support sub-query
 //    single_table_mv_stmt_1 = """
 //        select l_Shipdate, l_partkey, l_suppkey
-//        from lineitem_agg
-//        where l_commitdate in (select l_commitdate from lineitem_agg)
+//        from lineitem_uniq
+//        where l_commitdate in (select l_commitdate from lineitem_uniq)
 //        """
 //
 //    create_mv_lineitem(mv_name_1, single_table_mv_stmt_1)
@@ -429,8 +373,8 @@ suite("partition_mv_rewrite_dimension_1_agg_mv", "partition_mv_rewrite_dimension
 //
 //    single_table_query_stmt_1 = """
 //        select l_Shipdate, l_partkey, l_suppkey
-//        from lineitem_agg
-//        where l_commitdate in (select l_commitdate from lineitem_agg)
+//        from lineitem_uniq
+//        where l_commitdate in (select l_commitdate from lineitem_uniq)
 //        """
 //    explain {
 //        sql("${single_table_query_stmt_1}")
@@ -441,8 +385,8 @@ suite("partition_mv_rewrite_dimension_1_agg_mv", "partition_mv_rewrite_dimension
 // not supported currently
 //    single_table_mv_stmt_1 = """
 //        select l_Shipdate, l_partkey, l_suppkey
-//        from lineitem_agg
-//        where exists (select l_commitdate from lineitem_agg where l_commitdate like "2023-10-17")
+//        from lineitem_uniq
+//        where exists (select l_commitdate from lineitem_uniq where l_commitdate like "2023-10-17")
 //        """
 //
 //    create_mv_lineitem_without_partition(mv_name_1, single_table_mv_stmt_1)
@@ -451,8 +395,8 @@ suite("partition_mv_rewrite_dimension_1_agg_mv", "partition_mv_rewrite_dimension
 //
 //    single_table_query_stmt_1 = """
 //        select l_Shipdate, l_partkey, l_suppkey
-//        from lineitem_agg
-//        where exists (select l_commitdate from lineitem_agg where l_commitdate like "2023-10-17")
+//        from lineitem_uniq
+//        where exists (select l_commitdate from lineitem_uniq where l_commitdate like "2023-10-17")
 //        """
 //    explain {
 //        sql("${single_table_query_stmt_1}")
@@ -463,8 +407,8 @@ suite("partition_mv_rewrite_dimension_1_agg_mv", "partition_mv_rewrite_dimension
 //
 //    single_table_mv_stmt_1 = """
 //        select t.l_Shipdate, t.l_partkey, t.l_suppkey
-//        from (select * from lineitem_agg) as t
-//        where exists (select l_commitdate from lineitem_agg where l_commitdate like "2023-10-17")
+//        from (select * from lineitem_uniq) as t
+//        where exists (select l_commitdate from lineitem_uniq where l_commitdate like "2023-10-17")
 //        """
 //
 //    create_mv_lineitem_without_partition(mv_name_1, single_table_mv_stmt_1)
@@ -473,8 +417,8 @@ suite("partition_mv_rewrite_dimension_1_agg_mv", "partition_mv_rewrite_dimension
 //
 //    single_table_query_stmt_1 = """
 //        select t.l_Shipdate, t.l_partkey, t.l_suppkey
-//        from (select * from lineitem_agg) as t
-//        where exists (select l_commitdate from lineitem_agg where l_commitdate like "2023-10-17")
+//        from (select * from lineitem_uniq) as t
+//        where exists (select l_commitdate from lineitem_uniq where l_commitdate like "2023-10-17")
 //        """
 //    explain {
 //        sql("${single_table_query_stmt_1}")
