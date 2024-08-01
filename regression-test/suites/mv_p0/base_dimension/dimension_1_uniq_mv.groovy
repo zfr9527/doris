@@ -199,7 +199,7 @@ suite("partition_mv_rewrite_dimension_1_uniq_mv", "partition_mv_rewrite_dimensio
     // view partital rewriting
     def view_partition_mv_name_1 = "view_partition_mv_name_1"
     def view_partition_mv_stmt_1 = """
-        select l_shipdatE, l_partkey, l_orderkey from lineitem_uniq group by l_shipdate, l_partkey, l_orderkeY"""
+        select l_shipdatE, l_partkey, l_orderkey from lineitem_uniq"""
     create_mv_lineitem(view_partition_mv_name_1, view_partition_mv_stmt_1)
     waitingMVTaskFinished(lineitem_tb, view_partition_mv_name_1)
 
