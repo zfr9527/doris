@@ -207,7 +207,7 @@ suite("partition_mv_rewrite_dimension_1_agg_mv", "partition_mv_rewrite_dimension
     def agg_mv_name_3 = "agg_mv_name_3"
     def agg_mv_stmt_3 = """
         select o_orderdatE, o_custkey, o_orderkey, 
-            sum(o_totalprice) as sum_total, 
+            sum(o_totalprice) as sum_total 
             from orders_agg 
             group by 
             o_orderdatE, 
@@ -218,7 +218,7 @@ suite("partition_mv_rewrite_dimension_1_agg_mv", "partition_mv_rewrite_dimension
     waitingMVTaskFinished(order_tb, agg_mv_name_3)
 
     def agg_sql_3 = """select o_custkey, o_orderkey, 
-            sum(o_totalprice) as sum_total, 
+            sum(o_totalprice) as sum_total 
             from orders_agg 
             group by 
             o_custkey, 
