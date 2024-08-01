@@ -24,10 +24,10 @@ suite("partition_mv_rewrite_dimension_2_6_mv") {
     sql "use ${db}"
 
     sql """
-    drop table if exists orders_2_6
+    drop table if exists orders_2_3
     """
 
-    sql """CREATE TABLE `orders_2_6` (
+    sql """CREATE TABLE `orders_2_3` (
       `o_orderkey` BIGINT NULL,
       `o_custkey` INT NULL,
       `o_orderstatus` VARCHAR(1) NULL,
@@ -47,10 +47,10 @@ suite("partition_mv_rewrite_dimension_2_6_mv") {
     );"""
 
     sql """
-    drop table if exists lineitem_2_6
+    drop table if exists lineitem_2_3
     """
 
-    sql """CREATE TABLE `lineitem_2_6` (
+    sql """CREATE TABLE `lineitem_2_3` (
       `l_orderkey` BIGINT NULL,
       `l_linenumber` INT NULL,
       `l_partkey` INT NULL,
@@ -95,7 +95,7 @@ suite("partition_mv_rewrite_dimension_2_6_mv") {
     );"""
 
     sql """
-    insert into orders_2_6 values 
+    insert into orders_2_3 values 
     (null, 1, 'o', 99.5, 'a', 'b', 1, 'yy', '2023-10-17'),
     (1, null, 'k', 109.2, 'c','d',2, 'mm', '2023-10-17'),
     (3, 3, null, 99.5, 'a', 'b', 1, 'yy', '2023-10-19'),
@@ -109,7 +109,7 @@ suite("partition_mv_rewrite_dimension_2_6_mv") {
     """
 
     sql """
-    insert into lineitem_2_6 values 
+    insert into lineitem_2_3 values 
     (null, 1, 2, 3, 5.5, 6.5, 7.5, 8.5, 'o', 'k', '2023-10-17', '2023-10-17', 'a', 'b', 'yyyyyyyyy', '2023-10-17'),
     (1, null, 3, 1, 5.5, 6.5, 7.5, 8.5, 'o', 'k', '2023-10-18', '2023-10-18', 'a', 'b', 'yyyyyyyyy', '2023-10-17'),
     (3, 3, null, 2, 7.5, 8.5, 9.5, 10.5, 'k', 'o', '2023-10-19', '2023-10-19', 'c', 'd', 'xxxxxxxxx', '2023-10-19'),
@@ -126,8 +126,8 @@ suite("partition_mv_rewrite_dimension_2_6_mv") {
     (3, null, 1, 99.5, 'yy'); 
     """
 
-    sql """analyze table orders_2_6 with sync;"""
-    sql """analyze table lineitem_2_6 with sync;"""
+    sql """analyze table orders_2_3 with sync;"""
+    sql """analyze table lineitem_2_3 with sync;"""
     sql """analyze table partsupp_2_6 with sync;"""
 
     def create_mv_lineitem = { mv_name, mv_sql ->
@@ -180,9 +180,9 @@ suite("partition_mv_rewrite_dimension_2_6_mv") {
     // union rewriting
 //    def mv_name_1 = "mv_name_2_6_1"
 //    def mv_stmt_1 = """select l_shipdate, o_orderdate, l_partkey, l_suppkey, count(*)
-//        from lineitem_2_6
-//        left join orders_2_6
-//        on lineitem_2_6.l_orderkey = orders_2_6.o_orderkey
+//        from lineitem_2_3
+//        left join orders_2_3
+//        on lineitem_2_3.l_orderkey = orders_2_3.o_orderkey
 //        where l_shipdate >= "2023-10-17"
 //        group by l_shipdate, o_orderdate, l_partkey, l_suppkey"""
 //    create_mv_lineitem(mv_name_1, mv_stmt_1)
@@ -190,7 +190,7 @@ suite("partition_mv_rewrite_dimension_2_6_mv") {
 //    waitingMTMVTaskFinished(job_name_1)
 //
 //    def sql_stmt_1 = """select l_shipdate, l_partkey, l_suppkey, count(*)
-//        from lineitem_2_6
+//        from lineitem_2_3
 //        where l_shipdate >= "2023-10-10"
 //        group by l_shipdate, l_partkey, l_suppkey """
 //    explain {
@@ -202,9 +202,9 @@ suite("partition_mv_rewrite_dimension_2_6_mv") {
     // predicate compensate
 //    def mv_name_2 = "mv_name_2_6_2"
 //    def mv_stmt_2 = """select l_shipdate, o_orderdate, l_partkey, l_suppkey, count(*)
-//        from lineitem_2_6
-//        left join orders_2_6
-//        on lineitem_2_6.l_orderkey = orders_2_6.o_orderkey
+//        from lineitem_2_3
+//        left join orders_2_3
+//        on lineitem_2_3.l_orderkey = orders_2_3.o_orderkey
 //        where l_shipdate >= "2023-10-17"
 //        group by l_shipdate, o_orderdate, l_partkey, l_suppkey"""
 //    create_mv_lineitem(mv_name_2, mv_stmt_2)
@@ -212,7 +212,7 @@ suite("partition_mv_rewrite_dimension_2_6_mv") {
 //    waitingMTMVTaskFinished(job_name_2)
 //
 //    def sql_stmt_2 = """select l_shipdate, l_partkey, l_suppkey, count(*)
-//        from lineitem_2_6
+//        from lineitem_2_3
 //        where l_shipdate >= "2023-10-10" and l_partkey  > 1 + 1
 //        group by l_shipdate, l_partkey, l_suppkey"""
 //    explain {
@@ -227,9 +227,9 @@ suite("partition_mv_rewrite_dimension_2_6_mv") {
 //    def mv_stmt_3 = """select o_orderdate, o_shippriority, o_comment, l_suppkey, o_shippriority + o_custkey,
 //        case when o_shippriority > 1 and o_orderkey IN (1, 3) then o_custkey else null end cnt_1,
 //        case when o_shippriority > 2 and o_orderkey IN (2) then o_custkey else null end as cnt_2
-//        from orders_2_6
-//        left join lineitem_2_6
-//        on lineitem_2_6.l_orderkey = orders_2_6.o_orderkey
+//        from orders_2_3
+//        left join lineitem_2_3
+//        on lineitem_2_3.l_orderkey = orders_2_3.o_orderkey
 //        where  o_custkey > 1 + 1"""
 //    create_mv_lineitem(mv_name_3, mv_stmt_3)
 //    def job_name_3 = getJobName(db, mv_name_3)
@@ -238,7 +238,7 @@ suite("partition_mv_rewrite_dimension_2_6_mv") {
 //    def sql_stmt_3 = """select o_orderdate, o_shippriority, o_comment, o_shippriority + o_custkey,
 //        case when o_shippriority > 1 and o_orderkey IN (1, 3) then o_custkey else null end cnt_1,
 //        case when o_shippriority > 2 and o_orderkey IN (2) then o_custkey else null end as cnt_2
-//        from orders_2_6
+//        from orders_2_3
 //        where  o_custkey > (-3) + 5"""
 //    explain {
 //        sql("${sql_stmt_3}")
@@ -250,7 +250,7 @@ suite("partition_mv_rewrite_dimension_2_6_mv") {
     // union rewriting
 //    def mv_name_4 = "mv_name_2_6_4"
 //    def mv_stmt_4 = """select l_shipdate, l_partkey, l_orderkey
-//        from lineitem_2_6
+//        from lineitem_2_3
 //        where l_shipdate >= "2023-10-17"
 //        group by l_shipdate, l_partkey, l_orderkey"""
 //    create_mv_lineitem(mv_name_4, mv_stmt_4)
@@ -258,9 +258,9 @@ suite("partition_mv_rewrite_dimension_2_6_mv") {
 //    waitingMTMVTaskFinished(job_name_4)
 //
 //    def sql_stmt_4 = """select t.l_shipdate, o_orderdate, t.l_partkey
-//        from (select l_shipdate, l_partkey, l_orderkey from lineitem_2_6 group by l_shipdate, l_partkey, l_orderkey) t
-//        left join orders_2_6
-//        on t.l_orderkey = orders_2_6.o_orderkey
+//        from (select l_shipdate, l_partkey, l_orderkey from lineitem_2_3 group by l_shipdate, l_partkey, l_orderkey) t
+//        left join orders_2_3
+//        on t.l_orderkey = orders_2_3.o_orderkey
 //        where l_shipdate >= "2023-10-10"
 //        group by t.l_shipdate, o_orderdate, t.l_partkey"""
 //    explain {
@@ -272,16 +272,16 @@ suite("partition_mv_rewrite_dimension_2_6_mv") {
     // predicate compensate
     def mv_name_5 = "mv_name_2_6_5"
     def mv_stmt_5 = """select l_shipdate, l_partkey, l_orderkey 
-        from lineitem_2_6 
+        from lineitem_2_3 
         where l_shipdate >= "2023-10-17"
         group by l_shipdate, l_partkey, l_orderkey"""
     create_mv_lineitem(mv_name_5, mv_stmt_5)
-    waitingMVTaskFinished("lineitem_2_6", mv_name_5)
+    waitingMVTaskFinished("lineitem_2_3", mv_name_5)
 
     def sql_stmt_5 = """select t.l_shipdate, o_orderdate, t.l_partkey 
-        from (select l_shipdate, l_partkey, l_orderkey from lineitem_2_6 group by l_shipdate, l_partkey, l_orderkey) t 
-        left join orders_2_6   
-        on t.l_orderkey = orders_2_6.o_orderkey 
+        from (select l_shipdate, l_partkey, l_orderkey from lineitem_2_3 group by l_shipdate, l_partkey, l_orderkey) t 
+        left join orders_2_3   
+        on t.l_orderkey = orders_2_3.o_orderkey 
         where l_shipdate >= "2023-10-17" and l_partkey  > 1 + 1 
         group by t.l_shipdate, o_orderdate, t.l_partkey"""
     explain {
@@ -289,21 +289,21 @@ suite("partition_mv_rewrite_dimension_2_6_mv") {
         contains "(${mv_name_5})"
     }
     compare_res(sql_stmt_5 + " order by 1,2,3")
-    sql """DROP MATERIALIZED VIEW IF EXISTS ${mv_name_5} on lineitem_2_6;"""
+    sql """DROP MATERIALIZED VIEW IF EXISTS ${mv_name_5} on lineitem_2_3;"""
 
     // project rewriting
     def mv_name_6 = "mv_name_2_6_6"
     def mv_stmt_6 = """select l_shipdate, l_partkey, l_orderkey
-        from lineitem_2_6
+        from lineitem_2_3
         where l_partkey  > 1 + 1
         group by l_shipdate, l_partkey, l_orderkey"""
     create_mv_lineitem(mv_name_6, mv_stmt_6)
-    waitingMVTaskFinished("lineitem_2_6", mv_name_6)
+    waitingMVTaskFinished("lineitem_2_3", mv_name_6)
 
     def sql_stmt_6 = """select t.l_shipdate, o_orderdate, t.l_partkey * 2
-        from (select l_shipdate, l_partkey, l_orderkey from lineitem_2_6 group by l_shipdate, l_partkey, l_orderkey) t
-        left join orders_2_6
-        on t.l_orderkey = orders_2_6.o_orderkey
+        from (select l_shipdate, l_partkey, l_orderkey from lineitem_2_3 group by l_shipdate, l_partkey, l_orderkey) t
+        left join orders_2_3
+        on t.l_orderkey = orders_2_3.o_orderkey
         where  l_partkey  > (-3) + 5
         group by t.l_shipdate, o_orderdate, t.l_partkey"""
     explain {
@@ -311,25 +311,25 @@ suite("partition_mv_rewrite_dimension_2_6_mv") {
         contains "(${mv_name_6})"
     }
     compare_res(sql_stmt_6 + " order by 1,2,3")
-    sql """DROP MATERIALIZED VIEW IF EXISTS ${mv_name_6} on lineitem_2_6;"""
+    sql """DROP MATERIALIZED VIEW IF EXISTS ${mv_name_6} on lineitem_2_3;"""
 
 
     // Todo: union rewriting
     // predicate compensate
 //    def mv_name_7 = "mv_name_2_6_7"
 //    def mv_stmt_7 = """select l_shipdate, o_orderdate, l_partkey
-//        from lineitem_2_6
-//        left join orders_2_6
-//        on lineitem_2_6.l_orderkey = orders_2_6.o_orderkey
+//        from lineitem_2_3
+//        left join orders_2_3
+//        on lineitem_2_3.l_orderkey = orders_2_3.o_orderkey
 //        where l_shipdate >= '2023-10-17'"""
 //    create_mv_lineitem(mv_name_7, mv_stmt_7)
 //    def job_name_7 = getJobName(db, mv_name_7)
 //    waitingMTMVTaskFinished(job_name_7)
 //
 //    def sql_stmt_7 = """select l_shipdate, o_orderdate, l_partkey
-//        from lineitem_2_6
-//        left join orders_2_6
-//        on lineitem_2_6.l_orderkey = orders_2_6.o_orderkey
+//        from lineitem_2_3
+//        left join orders_2_3
+//        on lineitem_2_3.l_orderkey = orders_2_3.o_orderkey
 //        where l_shipdate >= "2023-10-10" and o_custkey > 1 + 1 """
 //    explain {
 //        sql("${sql_stmt_7}")
@@ -341,18 +341,18 @@ suite("partition_mv_rewrite_dimension_2_6_mv") {
 //    // project rewriting
 //    def mv_name_8 = "mv_name_2_6_8"
 //    def mv_stmt_8 = """select l_shipdate, o_orderdate, l_partkey
-//        from lineitem_2_6
-//        left join orders_2_6
-//        on lineitem_2_6.l_orderkey = orders_2_6.o_orderkey
+//        from lineitem_2_3
+//        left join orders_2_3
+//        on lineitem_2_3.l_orderkey = orders_2_3.o_orderkey
 //        where l_shipdate >= "2023-10-17" and o_custkey > 1 + 1"""
 //    create_mv_lineitem(mv_name_8, mv_stmt_8)
 //    def job_name_8 = getJobName(db, mv_name_8)
 //    waitingMTMVTaskFinished(job_name_8)
 //
 //    def sql_stmt_8 = """select l_shipdate, o_orderdate, l_partkey
-//        from lineitem_2_6
-//        left join orders_2_6
-//        on lineitem_2_6.l_orderkey = orders_2_6.o_orderkey
+//        from lineitem_2_3
+//        left join orders_2_3
+//        on lineitem_2_3.l_orderkey = orders_2_3.o_orderkey
 //        where l_shipdate >= "2023-10-10" and o_custkey > (-3) + 5 """
 //    explain {
 //        sql("${sql_stmt_8}")
@@ -366,22 +366,22 @@ suite("partition_mv_rewrite_dimension_2_6_mv") {
     def mv_stmt_9 = """ select o_orderdate, o_shippriority, o_comment, o_custkey,
             case when o_shippriority > 1 and o_orderkey IN (1, 3) then o_custkey else null end cnt_1,
             case when o_shippriority > 2 and o_orderkey IN (2) then o_custkey else null end as cnt_2
-            from orders_2_6 
+            from orders_2_3 
             where  o_custkey > 1 + 1"""
     create_mv_orders(mv_name_9, mv_stmt_9)
-    waitingMVTaskFinished("orders_2_6", mv_name_9)
+    waitingMVTaskFinished("orders_2_3", mv_name_9)
 
     def sql_stmt_9 = """select o_orderdate, o_shippriority, o_comment, o_shippriority + o_custkey,
             case when o_shippriority > 1 and o_orderkey IN (1, 3) then o_custkey else null end cnt_1,
             case when o_shippriority > 2 and o_orderkey IN (2) then o_custkey else null end as cnt_2
-            from orders_2_6 
+            from orders_2_3 
             where  o_custkey > (-3) + 5 and o_orderdate >= '2023-10-17'  """
     explain {
         sql("${sql_stmt_9}")
         contains "(${mv_name_9})"
     }
     compare_res(sql_stmt_9 + " order by 1,2,3,4,5,6")
-    sql """DROP MATERIALIZED VIEW IF EXISTS ${mv_name_9} on orders_2_6;"""
+    sql """DROP MATERIALIZED VIEW IF EXISTS ${mv_name_9} on orders_2_3;"""
 
 
 }
