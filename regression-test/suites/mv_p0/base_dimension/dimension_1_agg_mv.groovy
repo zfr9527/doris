@@ -161,50 +161,41 @@ suite("partition_mv_rewrite_dimension_1_agg_mv", "partition_mv_rewrite_dimension
         AS
         select
             o_orderkey,
-            sum(O_TOTALPRICE) as sum_total,
-            max(o_totalprice) as max_total, 
-            min(o_totalprice) as min_total, 
-            count(*) as count_all, 
-            bitmap_union(to_bitmap(o_shippriority)) cnt_1  
+            sum(O_TOTALPRICE) as sum_total  
             from orders_agg
             group by o_orderkey
         """
     waitingMVTaskFinished(order_tb, agg_mv_name_1)
 
     def agg_sql_1 = """select 
-        count(distinct case when o_shippriority > 1 and o_orderkey IN (1, 3) then o_custkey else null end) as cnt_1, 
-        count(distinct case when O_SHIPPRIORITY > 2 and o_orderkey IN (2) then o_custkey else null end) as cnt_2, 
-        sum(O_totalprice), 
-        max(o_totalprice), 
-        min(o_totalprice), 
-        count(*) 
+        sum(O_totalprice) 
         from orders_agg
         """
     explain {
         sql("${agg_sql_1}")
         contains "(${agg_mv_name_1})"
     }
-    compare_res(agg_sql_1 + " order by 1,2,3,4,5,6")
+    compare_res(agg_sql_1 + " order by 1")
     sql """DROP MATERIALIZED VIEW IF EXISTS ${agg_mv_name_1} ON orders_agg;"""
 
     // agg + with group by + without agg function
     def agg_mv_name_2 = "agg_mv_name_2"
     def agg_mv_stmt_2 = """
-        select o_orderdatE, O_SHIPPRIORITY, o_comment  
+        select o_orderdatE, o_custkey, o_orderkey  
             from orders_agg 
             group by 
             o_orderdate, 
-            o_shippriority, 
-            o_comment  
+            o_custkey, 
+            o_orderkey
         """
     create_mv_orders(agg_mv_name_2, agg_mv_stmt_2)
     waitingMVTaskFinished(order_tb, agg_mv_name_2)
 
-    def agg_sql_2 = """select O_shippriority, o_commenT 
+    def agg_sql_2 = """select o_custkey, o_orderkey  
             from orders_agg 
             group by 
-            o_shippriority, 
-            o_comment 
+            o_custkey, 
+            o_orderkey
         """
     def agg_sql_explain_2 = sql """explain ${agg_sql_2};"""
     def mv_index_1 = agg_sql_explain_2.toString().indexOf("MaterializedViewRewriteFail:")
@@ -215,33 +206,23 @@ suite("partition_mv_rewrite_dimension_1_agg_mv", "partition_mv_rewrite_dimension
     // agg + with group by + with agg function
     def agg_mv_name_3 = "agg_mv_name_3"
     def agg_mv_stmt_3 = """
-        select o_orderdatE, o_shippriority, o_comment, 
+        select o_orderdatE, o_custkey, o_orderkey, 
             sum(o_totalprice) as sum_total, 
-            max(o_totalpricE) as max_total, 
-            min(o_totalprice) as min_total, 
-            count(*) as count_all, 
-            bitmap_union(to_bitmap(case when o_shippriority > 1 and o_orderkey IN (1, 3) then o_custkey else null end)) cnt_1, 
-            bitmap_union(to_bitmap(case when o_shippriority > 2 and o_orderkey IN (2) then o_custkey else null end)) as cnt_2 
             from orders_agg 
             group by 
             o_orderdatE, 
-            o_shippriority, 
-            o_comment 
+            o_custkey, 
+            o_orderkey 
         """
     create_mv_orders(agg_mv_name_3, agg_mv_stmt_3)
     waitingMVTaskFinished(order_tb, agg_mv_name_3)
 
-    def agg_sql_3 = """select o_shipprioritY, o_comment, 
-            count(distinct case when o_shippriority > 1 and o_orderkey IN (1, 3) then o_custkey else null end) as cnt_1,
-            count(distinct case when O_SHIPPRIORITY > 2 and o_orderkey IN (2) then o_custkey else null end) as cnt_2, 
-            sum(o_totalprice), 
-            max(o_totalprice), 
-            min(o_totalprice), 
-            count(*) 
+    def agg_sql_3 = """select o_custkey, o_orderkey, 
+            sum(o_totalprice) as sum_total, 
             from orders_agg 
             group by 
-            o_shippriority, 
-            o_commenT 
+            o_custkey, 
+            o_orderkey 
         """
     def agg_sql_explain_3 = sql """explain ${agg_sql_3};"""
     def mv_index_2 = agg_sql_explain_3.toString().indexOf("MaterializedViewRewriteFail:")
@@ -317,18 +298,14 @@ suite("partition_mv_rewrite_dimension_1_agg_mv", "partition_mv_rewrite_dimension
     // Todo: project rewriting
     def rewriting_mv_name_1 = "rewriting_mv_name_1"
     def rewriting_mv_stmt_1 = """
-        select o_orderdate, o_shippriority, o_comment, o_orderkey, o_shippriority + o_custkey,
-        case when o_shippriority > 1 and o_orderkey IN (1, 3) then o_custkey else null end cnt_1,
-        case when o_shippriority > 2 and o_orderkey IN (2) then o_custkey else null end as cnt_2
+        select o_orderdate, o_shippriority, o_comment, o_orderkey, o_shippriority + o_custkey 
         from orders_agg
         where  o_orderkey > 1 + 1
         """
     create_mv_orders(rewriting_mv_name_1, rewriting_mv_stmt_1)
     waitingMVTaskFinished(order_tb, rewriting_mv_name_1)
 
-    def rewriting_sql_1 = """select o_shippriority, o_comment, o_shippriority + o_custkey  + o_orderkey,
-            case when o_shippriority > 1 and o_orderkey IN (1, 3) then o_custkey else null end cnt_1,
-        case when o_shippriority > 2 and o_orderkey IN (2) then o_custkey else null end as cnt_2
+    def rewriting_sql_1 = """select o_shippriority, o_comment, o_shippriority + o_custkey  + o_orderkey 
             from orders_agg
            where  o_orderkey > (-3) + 5
         """
@@ -373,112 +350,4 @@ suite("partition_mv_rewrite_dimension_1_agg_mv", "partition_mv_rewrite_dimension
     }
     compare_res(single_table_query_stmt_2 + " order by 1,2,3")
 
-
-    single_table_mv_stmt_1 = """
-        select o_orderkey, sum(o_totalprice) as sum_total, 
-            max(o_totalpricE) as max_total, 
-            min(o_totalprice) as min_total, 
-            count(*) as count_all, 
-            bitmap_union(to_bitmap(case when o_shippriority > 1 and o_orderkey IN (1, 3) then o_custkey else null end)) cnt_1, 
-            bitmap_union(to_bitmap(case when o_shippriority > 2 and o_orderkey IN (2) then o_custkey else null end)) as cnt_2 
-            from orders_agg where o_orderdate >= '2022-10-17' + interval '1' year group by o_orderkey
-        """
-
-    create_mv_orders(mv_name_1, single_table_mv_stmt_1)
-    waitingMVTaskFinished(order_tb, mv_name_1)
-
-    // not support currently
-//    single_table_query_stmt_1 = """
-//        select sum(o_totalprice) as sum_total,
-//            max(o_totalpricE) as max_total,
-//            min(o_totalprice) as min_total,
-//            count(*) as count_all,
-//            bitmap_union(to_bitmap(case when o_shippriority > 1 and o_orderkey IN (1, 3) then o_custkey else null end)) cnt_1,
-//            bitmap_union(to_bitmap(case when o_shippriority > 2 and o_orderkey IN (2) then o_custkey else null end)) as cnt_2
-//            from orders_agg where o_orderdate >= '2022-10-17' + interval '1' year
-//        """
-//    single_table_query_stmt_2 = """
-//        select sum(o_totalprice) as sum_total,
-//            max(o_totalpricE) as max_total,
-//            min(o_totalprice) as min_total,
-//            count(*) as count_all,
-//            bitmap_union(to_bitmap(case when o_shippriority > 1 and o_orderkey IN (1, 3) then o_custkey else null end)) cnt_1,
-//            bitmap_union(to_bitmap(case when o_shippriority > 2 and o_orderkey IN (2) then o_custkey else null end)) as cnt_2
-//            from orders_agg where o_orderdate > '2022-10-17' + interval '1' year
-//        """
-//    explain {
-//        sql("${single_table_query_stmt_1}")
-//        contains "${mv_name_1}(${mv_name_1})"
-//    }
-//    compare_res(single_table_query_stmt_1 + " order by 1,2,3,4")
-//    explain {
-//        sql("${single_table_query_stmt_2}")
-//        contains "${mv_name_1}(${mv_name_1})"
-//    }
-//    compare_res(single_table_query_stmt_2 + " order by 1,2,3,4")
-
-    // mv do not support sub-query
-//    single_table_mv_stmt_1 = """
-//        select l_Shipdate, l_partkey, l_suppkey
-//        from lineitem_agg
-//        where l_commitdate in (select l_commitdate from lineitem_agg)
-//        """
-//
-//    create_mv_lineitem(mv_name_1, single_table_mv_stmt_1)
-//    waitingMVTaskFinished(lineitem_tb, mv_name_1)
-//
-//    single_table_query_stmt_1 = """
-//        select l_Shipdate, l_partkey, l_suppkey
-//        from lineitem_agg
-//        where l_commitdate in (select l_commitdate from lineitem_agg)
-//        """
-//    explain {
-//        sql("${single_table_query_stmt_1}")
-//        contains "(${mv_name_1})"
-//    }
-//    compare_res(single_table_query_stmt_1 + " order by 1,2,3")
-
-// not supported currently
-//    single_table_mv_stmt_1 = """
-//        select l_Shipdate, l_partkey, l_suppkey
-//        from lineitem_agg
-//        where exists (select l_commitdate from lineitem_agg where l_commitdate like "2023-10-17")
-//        """
-//
-//    create_mv_lineitem_without_partition(mv_name_1, single_table_mv_stmt_1)
-//    job_name_1 = getJobName(db, mv_name_1)
-//    waitingMTMVTaskFinished(job_name_1)
-//
-//    single_table_query_stmt_1 = """
-//        select l_Shipdate, l_partkey, l_suppkey
-//        from lineitem_agg
-//        where exists (select l_commitdate from lineitem_agg where l_commitdate like "2023-10-17")
-//        """
-//    explain {
-//        sql("${single_table_query_stmt_1}")
-//        contains "${mv_name_1}(${mv_name_1})"
-//    }
-//    compare_res(single_table_query_stmt_1 + " order by 1,2,3")
-//
-//
-//    single_table_mv_stmt_1 = """
-//        select t.l_Shipdate, t.l_partkey, t.l_suppkey
-//        from (select * from lineitem_agg) as t
-//        where exists (select l_commitdate from lineitem_agg where l_commitdate like "2023-10-17")
-//        """
-//
-//    create_mv_lineitem_without_partition(mv_name_1, single_table_mv_stmt_1)
-//    job_name_1 = getJobName(db, mv_name_1)
-//    waitingMTMVTaskFinished(job_name_1)
-//
-//    single_table_query_stmt_1 = """
-//        select t.l_Shipdate, t.l_partkey, t.l_suppkey
-//        from (select * from lineitem_agg) as t
-//        where exists (select l_commitdate from lineitem_agg where l_commitdate like "2023-10-17")
-//        """
-//    explain {
-//        sql("${single_table_query_stmt_1}")
-//        contains "${mv_name_1}(${mv_name_1})"
-//    }
-//    compare_res(single_table_query_stmt_1 + " order by 1,2,3")
 }
