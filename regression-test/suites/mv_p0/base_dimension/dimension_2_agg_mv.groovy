@@ -173,20 +173,20 @@ suite("partition_mv_rewrite_dimension_2_agg_mv", "partition_mv_rewrite_dimension
 
     // join + group by
     def mv_name_2 = "mv_name_2_3_2"
-    def mv_stmt_2 = """select o_orderdate, o_shippriority, o_comment
+    def mv_stmt_2 = """select o_orderdate, o_orderkey, o_custkey
             from orders_2_agg
             group by
             o_orderdate,
-            o_shippriority,
-            o_comment"""
+            o_orderkey,
+            o_custkey"""
     create_mv_orders(mv_name_2, mv_stmt_2)
     waitingMVTaskFinished("orders_2_agg", mv_name_2)
 
-    def sql_stmt_2 = """select o_shippriority, o_comment
+    def sql_stmt_2 = """select o_orderkey, o_custkey 
             from orders_2_agg
             group by
-            o_shippriority,
-            o_comment """
+            o_orderkey,
+            o_custkey """
     explain {
         sql("${sql_stmt_2}")
         contains "(${mv_name_2})"
@@ -196,22 +196,22 @@ suite("partition_mv_rewrite_dimension_2_agg_mv", "partition_mv_rewrite_dimension
 
     // join + group by + agg function
     def mv_name_3 = "mv_name_2_3_3"
-    def mv_stmt_3 = """select o_orderdate, o_shippriority, o_comment, 
+    def mv_stmt_3 = """select o_orderdate, o_orderkey, o_custkey,  
             sum(o_totalprice) as sum_total 
             from orders_2_agg 
             group by 
             o_orderdate, 
-            o_shippriority, 
-            o_comment """
+            o_orderkey, 
+            o_custkey """
     create_mv_orders(mv_name_3, mv_stmt_3)
     waitingMVTaskFinished("orders_2_agg", mv_name_3)
 
-    def sql_stmt_3 = """select o_shippriority, o_comment, 
+    def sql_stmt_3 = """select o_orderdate, o_custkey,  
             sum(o_totalprice)  
             from orders_2_agg 
             group by 
-            o_shippriority, 
-            o_comment """
+            o_orderdate, 
+            o_custkey """
     explain {
         sql("${sql_stmt_3}")
         contains "(${mv_name_3})"
@@ -256,13 +256,13 @@ suite("partition_mv_rewrite_dimension_2_agg_mv", "partition_mv_rewrite_dimension
 
     // project rewriting
     def mv_name_8 = "mv_name_2_3_8"
-    def mv_stmt_8 = """select o_orderdate, o_shippriority, o_comment, o_custkey, o_shippriority + o_custkey, 
+    def mv_stmt_8 = """select o_orderdate, o_shippriority, o_comment, o_custkey, o_shippriority + o_custkey 
            from orders_2_agg  
             where  o_orderkey > 1 + 1 """
     create_mv_orders(mv_name_8, mv_stmt_8)
     waitingMVTaskFinished("orders_2_agg", mv_name_8)
 
-    def sql_stmt_8 = """select o_shippriority, o_comment, o_shippriority + o_custkey + o_custkey, 
+    def sql_stmt_8 = """select o_shippriority, o_comment, o_shippriority + o_custkey + o_custkey 
             from orders_2_agg 
            where  o_orderkey > (-3) + 5 """
     explain {
