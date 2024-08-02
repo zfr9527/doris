@@ -163,7 +163,7 @@ suite ("hit_but_not_chosen", "hit_but_not_chosen") {
         }
     }
 
-    def mv_name = "mv_join_1"
+    def mv_name = "mv_1"
 
     def mv_sql = """
         select o_orderdatE, O_SHIPPRIORITY, o_comment  
@@ -222,6 +222,36 @@ suite ("hit_but_not_chosen", "hit_but_not_chosen") {
             group by 
             o_shippriority, 
             o_commenT 
+        """
+    explain {
+        sql("${query_sql}")
+        contains "${mv_name}(${mv_name})"
+    }
+    compare_res(query_sql + " order by 1,2")
+
+    mv_sql = """
+        select o_orderdate, o_shippriority, o_comment, o_totalprice 
+            from orders_1 
+            where o_orderdate >= "2023-10-17"
+            group by 
+            o_orderdate, 
+            o_shippriority, 
+            o_comment,
+            o_totalprice 
+        """
+
+    create_mv_orders(mv_name, mv_sql)
+    job_name = getJobName(db, mv_name)
+    waitingMTMVTaskFinished(job_name)
+
+    query_sql = """
+        select o_orderdate, o_shippriority, o_comment
+            from orders_1
+            where o_orderdate >= "2023-10-17" and o_totalprice = 1
+            group by
+            o_orderdate,
+            o_shippriority,
+            o_comment
         """
     explain {
         sql("${query_sql}")
