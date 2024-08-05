@@ -18,7 +18,7 @@
 /*
 This suite is a one dimensional test case file.
  */
-suite("partition_mv_rewrite_dimension_1") {
+suite("partition_mv_rewrite_dimension_1_hive") {
     String enabled = context.config.otherConfigs.get("enableHiveTest")
     if (enabled == null || !enabled.equalsIgnoreCase("true")) {
         logger.info("diable Hive test.")
