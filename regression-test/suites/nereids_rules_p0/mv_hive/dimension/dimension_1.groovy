@@ -498,10 +498,10 @@ suite("partition_mv_rewrite_dimension_1_hive") {
                 group by 
                 o_shippriority, 
                 o_comment """
-            explain {
-                sql("${query_sql}")
-                contains "${mv_name}(${mv_name})"
-            }
+            def sql_explain_2 = sql """explain ${query_sql};"""
+            def mv_index_1 = sql_explain_2.toString().indexOf("MaterializedViewRewriteFail:")
+            assert(mv_index_1 != -1)
+            assert(sql_explain_2.toString().substring(0, mv_index_1).indexOf(mv_name) != -1)
             compare_res(query_sql + " order by 1,2")
 
             // agg + with group by + with agg function
