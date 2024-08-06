@@ -18,7 +18,7 @@
 /*
 This suite is a one dimensional test case file.
  */
-suite("partition_mv_rewrite_dimension_1_hive") {
+suite("partition_mv_rewrite_dimension_hive") {
     String enabled = context.config.otherConfigs.get("enableHiveTest")
     if (enabled == null || !enabled.equalsIgnoreCase("true")) {
         logger.info("diable Hive test.")
@@ -132,12 +132,10 @@ suite("partition_mv_rewrite_dimension_1_hive") {
                   `ps_availqty` INT NULL,
                   `ps_supplycost` DECIMAL(15, 2) NULL,
                   `ps_comment` VARCHAR(199) NULL
-                ) ENGINE=OLAP
-                DUPLICATE KEY(`ps_partkey`, `ps_suppkey`)
-                COMMENT 'OLAP'
-                DISTRIBUTED BY HASH(`ps_partkey`) BUCKETS 24
-                PROPERTIES (
-                "replication_allocation" = "tag.location.default: 1"
+                ) ENGINE=hive
+                PROPERTIES ( 
+                    "replication_num" = "1",
+                    'file_format'='orc'
                 );"""
 
             sql """
