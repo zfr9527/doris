@@ -145,30 +145,33 @@ suite("partition_mv_rewrite_dimension_1_hive") {
                 (3, 1, 1, 2, 7.5, 8.5, 9.5, 10.5, 'k', 'o', '2023-10-19', null, 'c', 'd', 'xxxxxxxxx', '2023-10-19'),
                 (1, 3, 2, 2, 5.5, 6.5, 7.5, 8.5, 'o', 'k', '2023-10-17', '2023-10-17', 'a', 'b', 'yyyyyyyyy', '2023-10-17');
                 """
+            sql """switch internal"""
+            sql """create database if not exists ${db}"""
+            sql """use ${db}"""
             def mv_name = "test_mv"
             def mtmv_sql = """
                 select l_Shipdate, o_Orderdate, l_partkey, l_suppkey 
-                from lineitem_1 
-                left join orders_1 
-                on lineitem_1.l_orderkey = orders_1.o_orderkey
+                from `${catalog_name}`.`${db}`.lineitem_1 
+                left join `${catalog_name}`.`${db}`.orders_1 
+                on `${catalog_name}`.`${db}`.lineitem_1.l_orderkey = `${catalog_name}`.`${db}`.orders_1.o_orderkey
                 """
             create_mv(mv_name, mtmv_sql)
             def job_name = getJobName(db, mv_name)
             waitingMTMVTaskFinished(job_name)
 
             def query_sql = """select L_SHIPDATE 
-                from lineitem_1 
-                left join orders_1 
-                on lineitem_1.l_orderkey = orders_1.o_orderkey"""
+                from `${catalog_name}`.`${db}`.lineitem_1 
+                left join `${catalog_name}`.`${db}`.orders_1 
+                on `${catalog_name}`.`${db}`.lineitem_1.l_orderkey = `${catalog_name}`.`${db}`.orders_1.o_orderkey"""
             explain {
                 sql("${query_sql}")
                 contains "${mv_name}(${mv_name})"
             }
             compare_res(query_sql + " order by 1")
             query_sql = """select L_SHIPDATE 
-                from  orders_1 
-                left join lineitem_1 
-                on orders_1.o_orderkey = lineitem_1.L_ORDERKEY"""
+                from  `${catalog_name}`.`${db}`.orders_1 
+                left join `${catalog_name}`.`${db}`.lineitem_1 
+                on `${catalog_name}`.`${db}`.orders_1.o_orderkey = `${catalog_name}`.`${db}`.lineitem_1.L_ORDERKEY"""
             explain {
                 sql("${query_sql}")
                 notContains "${mv_name}(${mv_name})"
@@ -176,18 +179,18 @@ suite("partition_mv_rewrite_dimension_1_hive") {
 
             mtmv_sql = """
                 select L_SHIPDATE, O_orderdate, l_partkey, l_suppkey 
-                from lineitem_1 
-                inner join orders_1 
-                on lineitem_1.l_orderkey = orders_1.o_orderkey
+                from `${catalog_name}`.`${db}`.lineitem_1 
+                inner join `${catalog_name}`.`${db}`.orders_1 
+                on `${catalog_name}`.`${db}`.lineitem_1.l_orderkey = `${catalog_name}`.`${db}`.orders_1.o_orderkey
                 """
             create_mv(mv_name, mtmv_sql)
             job_name = getJobName(db, mv_name)
             waitingMTMVTaskFinished(job_name)
 
             query_sql = """select l_shipdaTe 
-                from lineitem_1 
-                inner join orders_1 
-                on lineitem_1.l_orderkey = orders_1.o_orderkey"""
+                from `${catalog_name}`.`${db}`.lineitem_1 
+                inner join `${catalog_name}`.`${db}`.orders_1 
+                on `${catalog_name}`.`${db}`.lineitem_1.l_orderkey = `${catalog_name}`.`${db}`.orders_1.o_orderkey"""
             explain {
                 sql("${query_sql}")
                 contains "${mv_name}(${mv_name})"
@@ -195,9 +198,9 @@ suite("partition_mv_rewrite_dimension_1_hive") {
             compare_res(query_sql + " order by 1")
 
             query_sql = """select L_shipdate 
-                from  orders_1 
-                inner join lineitem_1 
-                on orders_1.o_orderkey = lineitem_1.l_orderkey"""
+                from  `${catalog_name}`.`${db}`.orders_1 
+                inner join `${catalog_name}`.`${db}`.lineitem_1 
+                on `${catalog_name}`.`${db}`.orders_1.o_orderkey = `${catalog_name}`.`${db}`.lineitem_1.l_orderkey"""
             explain {
                 sql("${query_sql}")
                 contains "${mv_name}(${mv_name})"
@@ -210,43 +213,43 @@ suite("partition_mv_rewrite_dimension_1_hive") {
             // join filter position
             def join_filter_stmt_1 = """
                 select L_SHIPDATE, o_orderdate, l_partkey, l_suppkey, O_orderkey 
-                from lineitem_1  
-                left join orders_1 
-                on lineitem_1.l_orderkey = orders_1.o_orderkey"""
+                from `${catalog_name}`.`${db}`.lineitem_1  
+                left join `${catalog_name}`.`${db}`.orders_1 
+                on `${catalog_name}`.`${db}`.lineitem_1.l_orderkey = `${catalog_name}`.`${db}`.orders_1.o_orderkey"""
             def join_filter_stmt_2 = """
                 select l_shipdate, o_orderdate, L_partkey, l_suppkey, O_ORDERKEY    
-                from (select * from lineitem_1 where l_shipdate = '2023-10-17' ) t1 
-                left join orders_1 
-                on t1.l_orderkey = orders_1.o_orderkey"""
+                from (select * from `${catalog_name}`.`${db}`.lineitem_1 where l_shipdate = '2023-10-17' ) t1 
+                left join `${catalog_name}`.`${db}`.orders_1 
+                on t1.l_orderkey = `${catalog_name}`.`${db}`.orders_1.o_orderkey"""
             def join_filter_stmt_3 = """
                 select l_shipdate, o_orderdate, l_Partkey, l_suppkey, o_orderkey  
-                from lineitem_1 
-                left join (select * from orders_1 where o_orderdate = '2023-10-17' ) t2 
-                on lineitem_1.l_orderkey = t2.o_orderkey"""
+                from `${catalog_name}`.`${db}`.lineitem_1 
+                left join (select * from `${catalog_name}`.`${db}`.orders_1 where o_orderdate = '2023-10-17' ) t2 
+                on `${catalog_name}`.`${db}`.lineitem_1.l_orderkey = t2.o_orderkey"""
             def join_filter_stmt_4 = """
                 select l_shipdate, o_orderdate, l_parTkey, l_suppkey, o_orderkey 
-                from lineitem_1 
-                left join orders_1 
-                on lineitem_1.l_orderkey = orders_1.o_orderkey 
+                from `${catalog_name}`.`${db}`.lineitem_1 
+                left join `${catalog_name}`.`${db}`.orders_1 
+                on `${catalog_name}`.`${db}`.lineitem_1.l_orderkey = `${catalog_name}`.`${db}`.orders_1.o_orderkey 
                 where l_shipdate = '2023-10-17' and o_orderdate = '2023-10-17'"""
             def join_filter_stmt_5 = """
                 select l_shipdate, o_orderdate, l_partkeY, l_suppkey, o_orderkey 
-                from lineitem_1 
-                left join orders_1 
-                on lineitem_1.l_orderkey = orders_1.o_orderkey 
+                from `${catalog_name}`.`${db}`.lineitem_1 
+                left join `${catalog_name}`.`${db}`.orders_1 
+                on `${catalog_name}`.`${db}`.lineitem_1.l_orderkey = `${catalog_name}`.`${db}`.orders_1.o_orderkey 
                 where l_shipdate = '2023-10-17'"""
             def join_filter_stmt_6 = """
                 select l_shipdatE, o_orderdate, l_partkey, l_suppkey, o_orderkey 
-                from lineitem_1 
-                left join orders_1 
-                on lineitem_1.l_orderkey = orders_1.o_orderkey 
+                from `${catalog_name}`.`${db}`.lineitem_1 
+                left join `${catalog_name}`.`${db}`.orders_1 
+                on `${catalog_name}`.`${db}`.lineitem_1.l_orderkey = `${catalog_name}`.`${db}`.orders_1.o_orderkey 
                 where  o_orderdate = '2023-10-17'"""
             def join_filter_stmt_7 = """
                 select l_shipdate, o_orderdate, l_partkey, l_suppkey, o_orderkeY 
-                from lineitem_1 
-                left join orders_1 
-                on lineitem_1.l_orderkey = orders_1.o_orderkey 
-                where  orders_1.O_ORDERKEY=1"""
+                from `${catalog_name}`.`${db}`.lineitem_1 
+                left join `${catalog_name}`.`${db}`.orders_1 
+                on `${catalog_name}`.`${db}`.lineitem_1.l_orderkey = `${catalog_name}`.`${db}`.orders_1.o_orderkey 
+                where  `${catalog_name}`.`${db}`.orders_1.O_ORDERKEY=1"""
 
             def mv_list = [
                     join_filter_stmt_1, join_filter_stmt_2, join_filter_stmt_3, join_filter_stmt_4,
@@ -376,51 +379,51 @@ suite("partition_mv_rewrite_dimension_1_hive") {
             // join type
             def join_type_stmt_1 = """
                 select l_shipdate, o_orderdate, l_partkey, l_suppkey 
-                from lineitem_1 
-                left join orders_1 
-                on lineitem_1.L_ORDERKEY = orders_1.o_orderkey"""
+                from `${catalog_name}`.`${db}`.lineitem_1 
+                left join `${catalog_name}`.`${db}`.orders_1 
+                on `${catalog_name}`.`${db}`.lineitem_1.L_ORDERKEY = `${catalog_name}`.`${db}`.orders_1.o_orderkey"""
             def join_type_stmt_2 = """
                 select l_shipdate, o_orderdate, l_partkey, l_suppkey  
-                from lineitem_1 
-                inner join orders_1 
-                on lineitem_1.l_orderkey = orders_1.o_orderkey"""
+                from `${catalog_name}`.`${db}`.lineitem_1 
+                inner join `${catalog_name}`.`${db}`.orders_1 
+                on `${catalog_name}`.`${db}`.lineitem_1.l_orderkey = `${catalog_name}`.`${db}`.orders_1.o_orderkey"""
 
             // Todo: right/cross/full/semi/anti join
             // Currently, only left join and inner join are supported.
             def join_type_stmt_3 = """
                 select l_shipdate, o_orderdatE, l_partkey, l_suppkey
-                from lineitem_1
-                right join orders_1
-                on lineitem_1.l_orderkey = orders_1.o_orderkey"""
+                from `${catalog_name}`.`${db}`.lineitem_1
+                right join `${catalog_name}`.`${db}`.orders_1
+                on `${catalog_name}`.`${db}`.lineitem_1.l_orderkey = `${catalog_name}`.`${db}`.orders_1.o_orderkey"""
         //    def join_type_stmt_4 = """
         //        select l_shipdate, o_orderdate, l_partkey, l_suppkey
-        //        from lineitem_1
-        //        cross join orders_1"""
+        //        from `${catalog_name}`.`${db}`.lineitem_1
+        //        cross join `${catalog_name}`.`${db}`.orders_1"""
             def join_type_stmt_5 = """
                 select l_shipdate, o_orderdate, L_partkey, l_suppkey
-                from lineitem_1
-                full join orders_1
-                on lineitem_1.l_orderkey = orders_1.o_orderkey"""
+                from `${catalog_name}`.`${db}`.lineitem_1
+                full join `${catalog_name}`.`${db}`.orders_1
+                on `${catalog_name}`.`${db}`.lineitem_1.l_orderkey = `${catalog_name}`.`${db}`.orders_1.o_orderkey"""
             def join_type_stmt_6 = """
                 select l_shipdate, l_partkey, l_suppkey, l_Shipmode, l_orderkey 
-                from lineitem_1
-                left semi join orders_1
-                on lineitem_1.L_ORDERKEY = orders_1.o_orderkey"""
+                from `${catalog_name}`.`${db}`.lineitem_1
+                left semi join `${catalog_name}`.`${db}`.orders_1
+                on `${catalog_name}`.`${db}`.lineitem_1.L_ORDERKEY = `${catalog_name}`.`${db}`.orders_1.o_orderkey"""
             def join_type_stmt_7 = """
                 select o_orderkey, o_custkey, o_Orderdate, o_clerk, o_totalprice 
-                from lineitem_1
-                right semi join orders_1
-                on lineitem_1.l_orderkey = orders_1.o_orderkey"""
+                from `${catalog_name}`.`${db}`.lineitem_1
+                right semi join `${catalog_name}`.`${db}`.orders_1
+                on `${catalog_name}`.`${db}`.lineitem_1.l_orderkey = `${catalog_name}`.`${db}`.orders_1.o_orderkey"""
             def join_type_stmt_8 = """
                 select l_shipdate, l_partkey, l_suppkeY, l_shipmode, l_orderkey 
-                from lineitem_1
-                left anti join orders_1
-                on lineitem_1.l_orderkey = orders_1.o_orderkeY"""
+                from `${catalog_name}`.`${db}`.lineitem_1
+                left anti join `${catalog_name}`.`${db}`.orders_1
+                on `${catalog_name}`.`${db}`.lineitem_1.l_orderkey = `${catalog_name}`.`${db}`.orders_1.o_orderkeY"""
             def join_type_stmt_9 = """
                 select o_orderkey, o_custkeY, o_orderdate, o_clerk, o_totalprice 
-                from lineitem_1
-                right anti join orders_1
-                on lineitem_1.L_ORDERKEY = orders_1.o_orderkey"""
+                from `${catalog_name}`.`${db}`.lineitem_1
+                right anti join `${catalog_name}`.`${db}`.orders_1
+                on `${catalog_name}`.`${db}`.lineitem_1.L_ORDERKEY = `${catalog_name}`.`${db}`.orders_1.o_orderkey"""
             def join_type_stmt_list = [join_type_stmt_1, join_type_stmt_2, join_type_stmt_3,
                                        join_type_stmt_5, join_type_stmt_6, join_type_stmt_7, join_type_stmt_8, join_type_stmt_9]
             for (int i = 0; i < join_type_stmt_list.size(); i++) {
@@ -457,7 +460,7 @@ suite("partition_mv_rewrite_dimension_1_hive") {
                 count(*) as count_all, 
                 bitmap_union(to_bitmap(case when o_shippriority > 1 and o_orderkey IN (1, 3) then o_custkey else null end)) cnt_1, 
                 bitmap_union(to_bitmap(case when o_shippriority > 2 and o_orderkey IN (2) then o_custkey else null end)) as cnt_2 
-                from orders_1
+                from `${catalog_name}`.`${db}`.orders_1
                 """
             create_mv(mv_name, mtmv_sql)
             job_name = getJobName(db, mv_name)
@@ -470,7 +473,7 @@ suite("partition_mv_rewrite_dimension_1_hive") {
                 max(o_totalprice), 
                 min(o_totalprice), 
                 count(*) 
-                from orders_1"""
+                from `${catalog_name}`.`${db}`.orders_1"""
             explain {
                 sql("${query_sql}")
                 contains "${mv_name}(${mv_name})"
@@ -480,7 +483,7 @@ suite("partition_mv_rewrite_dimension_1_hive") {
             // agg + with group by + without agg function
             mtmv_sql = """
                 select o_orderdatE, O_SHIPPRIORITY, o_comment  
-                from orders_1 
+                from `${catalog_name}`.`${db}`.orders_1 
                 group by 
                 o_orderdate, 
                 o_shippriority, 
@@ -491,7 +494,7 @@ suite("partition_mv_rewrite_dimension_1_hive") {
             waitingMTMVTaskFinished(job_name)
 
             query_sql = """select O_shippriority, o_commenT 
-                from orders_1 
+                from `${catalog_name}`.`${db}`.orders_1 
                 group by 
                 o_shippriority, 
                 o_comment """
@@ -510,7 +513,7 @@ suite("partition_mv_rewrite_dimension_1_hive") {
                 count(*) as count_all, 
                 bitmap_union(to_bitmap(case when o_shippriority > 1 and o_orderkey IN (1, 3) then o_custkey else null end)) cnt_1, 
                 bitmap_union(to_bitmap(case when o_shippriority > 2 and o_orderkey IN (2) then o_custkey else null end)) as cnt_2 
-                from orders_1 
+                from `${catalog_name}`.`${db}`.orders_1 
                 group by 
                 o_orderdatE, 
                 o_shippriority, 
@@ -527,7 +530,7 @@ suite("partition_mv_rewrite_dimension_1_hive") {
                 max(o_totalprice), 
                 min(o_totalprice), 
                 count(*) 
-                from orders_1 
+                from `${catalog_name}`.`${db}`.orders_1 
                 group by 
                 o_shippriority, 
                 o_commenT """
@@ -539,16 +542,16 @@ suite("partition_mv_rewrite_dimension_1_hive") {
 
             // view partital rewriting
             mtmv_sql = """
-                select l_shipdatE, l_partkey, l_orderkey from lineitem_1 group by l_shipdate, l_partkey, l_orderkeY
+                select l_shipdatE, l_partkey, l_orderkey from `${catalog_name}`.`${db}`.lineitem_1 group by l_shipdate, l_partkey, l_orderkeY
                 """
             create_mv(mv_name, mtmv_sql)
             job_name = getJobName(db, mv_name)
             waitingMTMVTaskFinished(job_name)
 
             query_sql = """select t.l_shipdate, o_orderdate, t.l_partkey 
-                from (select l_shipdate, l_partkey, l_orderkey from lineitem_1 group by l_shipdate, l_partkey, l_orderkey) t
-                left join orders_1   
-                on t.l_orderkey = orders_1.o_orderkey group by t.l_shipdate, o_orderdate, t.l_partkey"""
+                from (select l_shipdate, l_partkey, l_orderkey from `${catalog_name}`.`${db}`.lineitem_1 group by l_shipdate, l_partkey, l_orderkey) t
+                left join `${catalog_name}`.`${db}`.orders_1   
+                on t.l_orderkey = `${catalog_name}`.`${db}`.orders_1.o_orderkey group by t.l_shipdate, o_orderdate, t.l_partkey"""
             explain {
                 sql("${query_sql}")
                 contains "${mv_name}(${mv_name})"
@@ -558,9 +561,9 @@ suite("partition_mv_rewrite_dimension_1_hive") {
             // predicate compensate
             mtmv_sql = """
                 select l_shipdatE, o_orderdate, l_partkey 
-                from lineitem_1 
-                left join orders_1   
-                on lineitem_1.l_orderkey = orders_1.o_orderkey
+                from `${catalog_name}`.`${db}`.lineitem_1 
+                left join `${catalog_name}`.`${db}`.orders_1   
+                on `${catalog_name}`.`${db}`.lineitem_1.l_orderkey = `${catalog_name}`.`${db}`.orders_1.o_orderkey
                 where l_shipdate >= "2023-10-17"
                 """
             create_mv(mv_name, mtmv_sql)
@@ -568,9 +571,9 @@ suite("partition_mv_rewrite_dimension_1_hive") {
             waitingMTMVTaskFinished(job_name)
 
             query_sql = """select l_shipdate, o_orderdate, l_partkeY 
-                from lineitem_1 
-                left join orders_1   
-                on lineitem_1.l_orderkey = orders_1.o_orderkey
+                from `${catalog_name}`.`${db}`.lineitem_1 
+                left join `${catalog_name}`.`${db}`.orders_1   
+                on `${catalog_name}`.`${db}`.lineitem_1.l_orderkey = `${catalog_name}`.`${db}`.orders_1.o_orderkey
                 where l_shipdate >= "2023-10-17" and l_partkey = 1"""
             explain {
                 sql("${query_sql}")
@@ -581,7 +584,7 @@ suite("partition_mv_rewrite_dimension_1_hive") {
             // single table
             mtmv_sql = """
                 select l_Shipdate, l_partkey, l_suppkey 
-                from lineitem_1 
+                from `${catalog_name}`.`${db}`.lineitem_1 
                 where l_commitdate like '2023-10-%'
                 """
             create_mv(mv_name, mtmv_sql)
@@ -589,7 +592,7 @@ suite("partition_mv_rewrite_dimension_1_hive") {
             waitingMTMVTaskFinished(job_name)
 
             query_sql = """select l_Shipdate, l_partkey, l_suppkey 
-                from lineitem_1 
+                from `${catalog_name}`.`${db}`.lineitem_1 
                 where l_commitdate like '2023-10-%'"""
             explain {
                 sql("${query_sql}")
@@ -598,7 +601,7 @@ suite("partition_mv_rewrite_dimension_1_hive") {
             compare_res(query_sql + " order by 1,2,3")
 
             query_sql = """select l_Shipdate, l_partkey, l_suppkey 
-                from lineitem_1 
+                from `${catalog_name}`.`${db}`.lineitem_1 
                 where l_commitdate like '2023-10-%' and l_partkey > 0 + 1"""
             explain {
                 sql("${query_sql}")
@@ -608,16 +611,16 @@ suite("partition_mv_rewrite_dimension_1_hive") {
 
             mtmv_sql = """
                 select l_Shipdate, l_partkey, l_suppkey 
-                from lineitem_1 
-                where l_commitdate in (select l_commitdate from lineitem_1) 
+                from `${catalog_name}`.`${db}`.lineitem_1 
+                where l_commitdate in (select l_commitdate from `${catalog_name}`.`${db}`.lineitem_1) 
                 """
             create_mv(mv_name, mtmv_sql)
             job_name = getJobName(db, mv_name)
             waitingMTMVTaskFinished(job_name)
 
             query_sql = """select l_Shipdate, l_partkey, l_suppkey 
-                from lineitem_1 
-                where l_commitdate in (select l_commitdate from lineitem_1) """
+                from `${catalog_name}`.`${db}`.lineitem_1 
+                where l_commitdate in (select l_commitdate from `${catalog_name}`.`${db}`.lineitem_1) """
             explain {
                 sql("${query_sql}")
                 contains "${mv_name}(${mv_name})"
