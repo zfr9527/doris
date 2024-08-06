@@ -209,9 +209,6 @@ suite("partition_mv_rewrite_dimension_1_hive") {
             }
             compare_res(query_sql + " order by 1")
 
-            sql """drop catalog if exists ${catalog_name}"""
-
-
             // join filter position
             def join_filter_stmt_1 = """
                 select L_SHIPDATE, o_orderdate, l_partkey, l_suppkey, O_orderkey 
@@ -628,6 +625,8 @@ suite("partition_mv_rewrite_dimension_1_hive") {
                 contains "${mv_name}(${mv_name})"
             }
             compare_res(query_sql + " order by 1,2,3")
+
+            sql """drop catalog if exists ${catalog_name}"""
 
         } finally {
         }
