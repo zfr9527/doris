@@ -1001,7 +1001,7 @@ suite("partition_mv_rewrite_dimension_hive") {
             query_sql = """select o_orderdate, o_shippriority, o_comment
                 from `${catalog_name}`.`${db}`.orders_1
                 left join `${catalog_name}`.`${db}`.lineitem_1 on `${catalog_name}`.`${db}`.lineitem_1.l_orderkey = `${catalog_name}`.`${db}`.orders_1.o_orderkey
-                left join partsupp_2_5 on partsupp_2_5.ps_partkey = `${catalog_name}`.`${db}`.lineitem_1.l_orderkey
+                left join `${catalog_name}`.`${db}`.partsupp_1 on `${catalog_name}`.`${db}`.partsupp_1.ps_partkey = `${catalog_name}`.`${db}`.lineitem_1.l_orderkey
                 group by
                 o_orderdate,
                 o_shippriority,
@@ -1015,7 +1015,7 @@ suite("partition_mv_rewrite_dimension_hive") {
             query_sql = """select o_orderdate, o_shippriority, o_comment
                 from `${catalog_name}`.`${db}`.orders_1
                 left join `${catalog_name}`.`${db}`.lineitem_1 on `${catalog_name}`.`${db}`.lineitem_1.l_orderkey = `${catalog_name}`.`${db}`.orders_1.o_orderkey
-                left join partsupp_2_5 on partsupp_2_5.ps_partkey = `${catalog_name}`.`${db}`.orders_1.o_orderkey
+                left join `${catalog_name}`.`${db}`.partsupp_1 on `${catalog_name}`.`${db}`.partsupp_1.ps_partkey = `${catalog_name}`.`${db}`.orders_1.o_orderkey
                 group by
                 o_orderdate,
                 o_shippriority,
