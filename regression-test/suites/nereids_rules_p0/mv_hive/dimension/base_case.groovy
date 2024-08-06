@@ -781,6 +781,7 @@ suite("partition_mv_rewrite_dimension_hive") {
                 sql("${query_sql}")
                 notContains "${mv_name}(${mv_name})"
             }
+            compare_res(query_sql + " order by 1,2,3")
 
             mtmv_sql = """
                 select  o_orderdate, o_shippriority, o_comment,
@@ -867,7 +868,7 @@ suite("partition_mv_rewrite_dimension_hive") {
                 o_comment """
             explain {
                 sql("${query_sql}")
-                contains "${mv_name}(${mv_name})"
+                notContains "${mv_name}(${mv_name})"
             }
             compare_res(query_sql + " order by 1,2,3")
 
@@ -1007,7 +1008,7 @@ suite("partition_mv_rewrite_dimension_hive") {
                 o_comment"""
             explain {
                 sql("${query_sql}")
-                contains "${mv_name}(${mv_name})"
+                notContains "${mv_name}(${mv_name})"
             }
             compare_res(query_sql + " order by 1,2,3")
 
