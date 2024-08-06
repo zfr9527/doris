@@ -41,6 +41,34 @@ suite("partition_mv_rewrite_dimension_inner_join_hive") {
         """
     }
 
+    def create_mv_lineitem = { mv_name, mv_sql ->
+        sql """DROP MATERIALIZED VIEW IF EXISTS ${mv_name};"""
+        sql """DROP TABLE IF EXISTS ${mv_name}"""
+        sql"""
+        CREATE MATERIALIZED VIEW ${mv_name} 
+        BUILD IMMEDIATE REFRESH AUTO ON MANUAL 
+        partition by(l_shipdate) 
+        DISTRIBUTED BY RANDOM BUCKETS 2 
+        PROPERTIES ('replication_num' = '1')  
+        AS  
+        ${mv_sql}
+        """
+    }
+
+    def create_mv_orders = { mv_name, mv_sql ->
+        sql """DROP MATERIALIZED VIEW IF EXISTS ${mv_name};"""
+        sql """DROP TABLE IF EXISTS ${mv_name}"""
+        sql"""
+        CREATE MATERIALIZED VIEW ${mv_name} 
+        BUILD IMMEDIATE REFRESH AUTO ON MANUAL 
+        partition by(o_orderdate) 
+        DISTRIBUTED BY RANDOM BUCKETS 2 
+        PROPERTIES ('replication_num' = '1') 
+        AS  
+        ${mv_sql}
+        """
+    }
+
     def compare_res = { def stmt ->
         sql "SET materialized_view_rewrite_enable_contain_external_table=false"
         def origin_res = sql stmt
@@ -227,7 +255,11 @@ suite("partition_mv_rewrite_dimension_inner_join_hive") {
             for (int i = 0; i < mv_list_1.size(); i++) {
                 logger.info("i:" + i)
                 def mv_name = """mv_name_2_inner_join_${i}"""
-                create_mv(mv_name, mv_list_1[i])
+                if (i < 6) {
+                    create_mv_lineitem(mv_name, mv_list_1[i])
+                } else {
+                    create_mv_orders(mv_name, mv_list_1[i])
+                }
                 def job_name = getJobName(db, mv_name)
                 waitingMTMVTaskFinished(job_name)
                 if (i == 0) {

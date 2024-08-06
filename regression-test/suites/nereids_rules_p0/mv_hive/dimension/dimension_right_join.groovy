@@ -19,7 +19,7 @@
 This suite is a two dimensional test case file.
 It mainly tests the full join and filter positions.
  */
-suite("partition_mv_rewrite_dimension_left_join_hive") {
+suite("partition_mv_rewrite_dimension_right_join_hive") {
     String enabled = context.config.otherConfigs.get("enableHiveTest")
     if (enabled == null || !enabled.equalsIgnoreCase("true")) {
         logger.info("diable Hive test.")
@@ -85,7 +85,7 @@ suite("partition_mv_rewrite_dimension_left_join_hive") {
         }
     }
 
-    String ctl = "mv_rewrite_dimension_left_join"
+    String ctl = "mv_rewrite_dimension_right_join"
     String db = context.config.getDbNameByFile(context.file)
     for (String hivePrefix : ["hive2", "hive3"]) {
         try {
@@ -105,11 +105,14 @@ suite("partition_mv_rewrite_dimension_left_join_hive") {
             sql """create database if not exists ${db}"""
             sql """use `${catalog_name}`.`${db}`"""
 
+            def order_tb = "orders_2_left_anti_join"
+            def lineitem_tb = "lineitem_2_left_anti_join"
+
             sql """
-                drop table if exists orders_2_1
+                drop table if exists ${order_tb}
                 """
 
-            sql """CREATE TABLE `orders_2_1` (
+            sql """CREATE TABLE `${order_tb}` (
                   `o_orderkey` BIGINT,
                   `o_custkey` int,
                   `o_orderstatus` VARCHAR(1),
@@ -127,9 +130,9 @@ suite("partition_mv_rewrite_dimension_left_join_hive") {
                 );"""
 
             sql """
-                drop table if exists lineitem_2_1
+                drop table if exists ${lineitem_tb}
                 """
-            sql """CREATE TABLE `lineitem_2_1` (
+            sql """CREATE TABLE `${lineitem_tb}` (
                   `l_orderkey` BIGINT,
                   `l_linenumber` INT,
                   `l_partkey` INT,
@@ -154,7 +157,7 @@ suite("partition_mv_rewrite_dimension_left_join_hive") {
                 );"""
 
             sql """
-                insert into orders_2_1 values 
+                insert into ${order_tb} values 
                 (null, 1, 'k', 99.5, 'a', 'b', 1, 'yy', '2023-10-17'),
                 (1, null, 'o', 109.2, 'c','d',2, 'mm', '2023-10-17'),
                 (3, 3, null, 99.5, 'a', 'b', 1, 'yy', '2023-10-19'),
@@ -167,7 +170,7 @@ suite("partition_mv_rewrite_dimension_left_join_hive") {
                 (4, 5, 'k', 99.5, 'a', 'b', 1, 'yy', '2023-10-19'); 
                 """
             sql """
-                insert into lineitem_2_1 values 
+                insert into ${lineitem_tb} values 
                 (null, 1, 2, 3, 5.5, 6.5, 7.5, 8.5, 'o', 'k', '2023-10-17', '2023-10-17', 'a', 'b', 'yyyyyyyyy', '2023-10-17'),
                 (1, null, 3, 1, 5.5, 6.5, 7.5, 8.5, 'o', 'k', '2023-10-18', '2023-10-18', 'a', 'b', 'yyyyyyyyy', '2023-10-17'),
                 (3, 3, null, 2, 7.5, 8.5, 9.5, 10.5, 'k', 'o', '2023-10-19', '2023-10-19', 'c', 'd', 'xxxxxxxxx', '2023-10-19'),
@@ -181,82 +184,83 @@ suite("partition_mv_rewrite_dimension_left_join_hive") {
             sql """create database if not exists ${db}"""
             sql """use ${db}"""
 
-            def mv_stmt_0 = """select t.l_shipdate, o_orderdate, t.l_partkey, t.l_suppkey, `${catalog_name}`.`${db}`.orders_2_1.o_orderkey 
-                from (select l_shipdate, l_partkey, l_suppkey, l_orderkey from `${catalog_name}`.`${db}`.lineitem_2_1 where l_shipdate = '2023-10-17') t
-                left join `${catalog_name}`.`${db}`.orders_2_1 
-                on t.l_orderkey = `${catalog_name}`.`${db}`.orders_2_1.o_orderkey"""
+            def mv_stmt_0 = """select t.l_shipdate, o_orderdate, t.l_partkey, t.l_suppkey, `${catalog_name}`.`${db}`.${order_tb}.o_orderkey 
+                from `${catalog_name}`.`${db}`.${order_tb} 
+                right join  (select l_shipdate, l_orderkey, l_partkey, l_suppkey  from `${catalog_name}`.`${db}`.${lineitem_tb}  where l_shipdate = '2023-10-17') t 
+                on t.l_orderkey = `${catalog_name}`.`${db}`.${order_tb}.o_orderkey"""
 
-            def mv_stmt_1 = """select l_shipdate, t.o_orderdate, l_partkey, l_suppkey, t.o_orderkey
-                from `${catalog_name}`.`${db}`.lineitem_2_1  
-                left join (select o_orderdate,o_orderkey from `${catalog_name}`.`${db}`.orders_2_1 where o_orderdate = '2023-10-17' ) t 
-                on `${catalog_name}`.`${db}`.lineitem_2_1.l_orderkey = t.o_orderkey"""
+            def mv_stmt_1 = """select l_shipdate, t.o_orderdate, l_partkey, l_suppkey, t.o_orderkey 
+                from (select o_orderdate, o_orderkey from `${catalog_name}`.`${db}`.${order_tb} where o_orderdate = '2023-10-17' ) t 
+                right join `${catalog_name}`.`${db}`.${lineitem_tb}   
+                on `${catalog_name}`.`${db}`.${lineitem_tb}.l_orderkey = t.o_orderkey"""
 
-            def mv_stmt_2 = """select l_shipdate, o_orderdate, l_partkey, l_suppkey, `${catalog_name}`.`${db}`.orders_2_1.o_orderkey 
-                from `${catalog_name}`.`${db}`.lineitem_2_1  
-                left join `${catalog_name}`.`${db}`.orders_2_1 
-                on `${catalog_name}`.`${db}`.lineitem_2_1.l_orderkey = `${catalog_name}`.`${db}`.orders_2_1.o_orderkey 
+            def mv_stmt_2 = """select l_shipdate, o_orderdate, l_partkey, l_suppkey, `${catalog_name}`.`${db}`.${order_tb}.o_orderkey 
+                from `${catalog_name}`.`${db}`.${order_tb}  
+                right join `${catalog_name}`.`${db}`.${lineitem_tb}  
+                on `${catalog_name}`.`${db}`.${lineitem_tb}.l_orderkey = `${catalog_name}`.`${db}`.${order_tb}.o_orderkey 
+                where l_shipdate = '2023-10-17' """
+
+            def mv_stmt_3 = """select l_shipdate, o_orderdate, l_partkey, l_suppkey, `${catalog_name}`.`${db}`.${order_tb}.o_orderkey 
+                from `${catalog_name}`.`${db}`.${order_tb} 
+                right join `${catalog_name}`.`${db}`.${lineitem_tb}  
+                on `${catalog_name}`.`${db}`.${lineitem_tb}.l_orderkey = `${catalog_name}`.`${db}`.${order_tb}.o_orderkey 
+                where o_orderdate = '2023-10-17'  """
+
+            def mv_stmt_4 = """select l_shipdate, o_orderdate, l_partkey, l_suppkey, `${catalog_name}`.`${db}`.${order_tb}.o_orderkey  
+                from `${catalog_name}`.`${db}`.${order_tb} 
+                right join  `${catalog_name}`.`${db}`.${lineitem_tb}  
+                on `${catalog_name}`.`${db}`.${lineitem_tb}.l_orderkey = `${catalog_name}`.`${db}`.${order_tb}.o_orderkey 
+                where l_shipdate = '2023-10-17'  and o_orderdate = '2023-10-17'  """
+
+            def mv_stmt_5 = """select l_shipdate, o_orderdate, l_partkey, l_suppkey, `${catalog_name}`.`${db}`.${order_tb}.o_orderkey 
+                from `${catalog_name}`.`${db}`.${order_tb}  
+                right join `${catalog_name}`.`${db}`.${lineitem_tb}  
+                on `${catalog_name}`.`${db}`.${lineitem_tb}.l_orderkey = `${catalog_name}`.`${db}`.${order_tb}.o_orderkey
+                where l_shipdate = '2023-10-17'  and o_orderdate = '2023-10-17'   
+                and o_orderkey = 1"""
+
+            // right join + filter on different position
+            def mv_stmt_6 = """select t.l_shipdate, o_orderdate, t.l_partkey, t.l_suppkey, `${catalog_name}`.`${db}`.${order_tb}.o_orderkey 
+                from (select l_shipdate, l_partkey, l_suppkey, l_orderkey from `${catalog_name}`.`${db}`.${lineitem_tb} where l_shipdate = '2023-10-17') t
+                right join `${catalog_name}`.`${db}`.${order_tb} 
+                on t.l_orderkey = `${catalog_name}`.`${db}`.${order_tb}.o_orderkey"""
+
+            def mv_stmt_7 = """select l_shipdate, t.o_orderdate, l_partkey, l_suppkey, t.o_orderkey
+                from `${catalog_name}`.`${db}`.${lineitem_tb}  
+                right join (select o_orderdate,o_orderkey from `${catalog_name}`.`${db}`.${order_tb} where o_orderdate = '2023-10-17' ) t 
+                on `${catalog_name}`.`${db}`.${lineitem_tb}.l_orderkey = t.o_orderkey"""
+
+            def mv_stmt_8 = """select l_shipdate, o_orderdate, l_partkey, l_suppkey, `${catalog_name}`.`${db}`.${order_tb}.o_orderkey 
+                from `${catalog_name}`.`${db}`.${lineitem_tb}  
+                right join `${catalog_name}`.`${db}`.${order_tb} 
+                on `${catalog_name}`.`${db}`.${lineitem_tb}.l_orderkey = `${catalog_name}`.`${db}`.${order_tb}.o_orderkey 
                 where l_shipdate = '2023-10-17'"""
 
-            def mv_stmt_3 = """select l_shipdate, o_orderdate, l_partkey, l_suppkey, `${catalog_name}`.`${db}`.orders_2_1.o_orderkey 
-                from `${catalog_name}`.`${db}`.lineitem_2_1  
-                left join `${catalog_name}`.`${db}`.orders_2_1 
-                on `${catalog_name}`.`${db}`.lineitem_2_1.l_orderkey = `${catalog_name}`.`${db}`.orders_2_1.o_orderkey 
+            def mv_stmt_9 = """select l_shipdate, o_orderdate, l_partkey, l_suppkey, `${catalog_name}`.`${db}`.${order_tb}.o_orderkey 
+                from `${catalog_name}`.`${db}`.${lineitem_tb}  
+                right join `${catalog_name}`.`${db}`.${order_tb} 
+                on `${catalog_name}`.`${db}`.${lineitem_tb}.l_orderkey = `${catalog_name}`.`${db}`.${order_tb}.o_orderkey 
                 where o_orderdate = '2023-10-17'"""
 
-            def mv_stmt_4 = """select l_shipdate, o_orderdate, l_partkey, l_suppkey, `${catalog_name}`.`${db}`.orders_2_1.o_orderkey  
-                from `${catalog_name}`.`${db}`.lineitem_2_1  
-                left join `${catalog_name}`.`${db}`.orders_2_1 
-                on `${catalog_name}`.`${db}`.lineitem_2_1.l_orderkey = `${catalog_name}`.`${db}`.orders_2_1.o_orderkey 
+            def mv_stmt_10 = """select l_shipdate, o_orderdate, l_partkey, l_suppkey, `${catalog_name}`.`${db}`.${order_tb}.o_orderkey  
+                from `${catalog_name}`.`${db}`.${lineitem_tb}  
+                right join `${catalog_name}`.`${db}`.${order_tb} 
+                on `${catalog_name}`.`${db}`.${lineitem_tb}.l_orderkey = `${catalog_name}`.`${db}`.${order_tb}.o_orderkey 
                 where l_shipdate = '2023-10-17'  and o_orderdate = '2023-10-17'"""
 
-            def mv_stmt_5 = """select l_shipdate, o_orderdate, l_partkey, l_suppkey, `${catalog_name}`.`${db}`.orders_2_1.o_orderkey 
-                from `${catalog_name}`.`${db}`.lineitem_2_1  
-                left join `${catalog_name}`.`${db}`.orders_2_1 
-                on `${catalog_name}`.`${db}`.lineitem_2_1.l_orderkey = `${catalog_name}`.`${db}`.orders_2_1.o_orderkey 
+            def mv_stmt_11 = """select l_shipdate, o_orderdate, l_partkey, l_suppkey, `${catalog_name}`.`${db}`.${order_tb}.o_orderkey 
+                from `${catalog_name}`.`${db}`.${lineitem_tb}  
+                right join `${catalog_name}`.`${db}`.${order_tb} 
+                on `${catalog_name}`.`${db}`.${lineitem_tb}.l_orderkey = `${catalog_name}`.`${db}`.${order_tb}.o_orderkey 
                 where l_shipdate = '2023-10-17'  and o_orderdate = '2023-10-17'  
                 and o_orderkey = 1"""
 
-            def mv_stmt_6 = """select t.l_shipdate, o_orderdate, t.l_partkey, t.l_suppkey, `${catalog_name}`.`${db}`.orders_2_1.o_orderkey 
-                from `${catalog_name}`.`${db}`.orders_2_1 
-                left join  (select l_shipdate, l_orderkey, l_partkey, l_suppkey  from `${catalog_name}`.`${db}`.lineitem_2_1  where l_shipdate = '2023-10-17') t 
-                on t.l_orderkey = `${catalog_name}`.`${db}`.orders_2_1.o_orderkey"""
-
-            def mv_stmt_7 = """select l_shipdate, t.o_orderdate, l_partkey, l_suppkey, t.o_orderkey 
-                from (select o_orderdate, o_orderkey from `${catalog_name}`.`${db}`.orders_2_1 where o_orderdate = '2023-10-17' ) t 
-                left join `${catalog_name}`.`${db}`.lineitem_2_1   
-                on `${catalog_name}`.`${db}`.lineitem_2_1.l_orderkey = t.o_orderkey"""
-
-            def mv_stmt_8 = """select l_shipdate, o_orderdate, l_partkey, l_suppkey, `${catalog_name}`.`${db}`.orders_2_1.o_orderkey 
-                from `${catalog_name}`.`${db}`.orders_2_1  
-                left join `${catalog_name}`.`${db}`.lineitem_2_1  
-                on `${catalog_name}`.`${db}`.lineitem_2_1.l_orderkey = `${catalog_name}`.`${db}`.orders_2_1.o_orderkey 
-                where l_shipdate = '2023-10-17' """
-
-            def mv_stmt_9 = """select l_shipdate, o_orderdate, l_partkey, l_suppkey, `${catalog_name}`.`${db}`.orders_2_1.o_orderkey 
-                from `${catalog_name}`.`${db}`.orders_2_1 
-                left join `${catalog_name}`.`${db}`.lineitem_2_1  
-                on `${catalog_name}`.`${db}`.lineitem_2_1.l_orderkey = `${catalog_name}`.`${db}`.orders_2_1.o_orderkey 
-                where o_orderdate = '2023-10-17'  """
-
-            def mv_stmt_10 = """select l_shipdate, o_orderdate, l_partkey, l_suppkey, `${catalog_name}`.`${db}`.orders_2_1.o_orderkey  
-                from `${catalog_name}`.`${db}`.orders_2_1 
-                left join  `${catalog_name}`.`${db}`.lineitem_2_1  
-                on `${catalog_name}`.`${db}`.lineitem_2_1.l_orderkey = `${catalog_name}`.`${db}`.orders_2_1.o_orderkey 
-                where l_shipdate = '2023-10-17'  and o_orderdate = '2023-10-17'  """
-
-            def mv_stmt_11 = """select l_shipdate, o_orderdate, l_partkey, l_suppkey, `${catalog_name}`.`${db}`.orders_2_1.o_orderkey 
-                from `${catalog_name}`.`${db}`.orders_2_1  
-                left join `${catalog_name}`.`${db}`.lineitem_2_1  
-                on `${catalog_name}`.`${db}`.lineitem_2_1.l_orderkey = `${catalog_name}`.`${db}`.orders_2_1.o_orderkey
-                where l_shipdate = '2023-10-17'  and o_orderdate = '2023-10-17'   
-                and o_orderkey = 1"""
             def mv_list_1 = [mv_stmt_0, mv_stmt_1, mv_stmt_2, mv_stmt_3, mv_stmt_4, mv_stmt_5, mv_stmt_6,
                              mv_stmt_7, mv_stmt_8, mv_stmt_9, mv_stmt_10, mv_stmt_11]
             for (int i = 0; i < mv_list_1.size(); i++) {
                 logger.info("i:" + i)
-                def mv_name = """mv_name_2_1_${i}"""
-//                create_mv(mv_name, mv_list_1[i])
-                if (i < 3) {
+                def mv_name = """mv_name_2_right_join_${i}"""
+                if (i < 6) {
                     create_mv_lineitem(mv_name, mv_list_1[i])
                 } else {
                     create_mv_orders(mv_name, mv_list_1[i])
