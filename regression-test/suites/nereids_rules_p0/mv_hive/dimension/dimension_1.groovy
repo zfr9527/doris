@@ -123,6 +123,22 @@ suite("partition_mv_rewrite_dimension_1_hive") {
                     "replication_num" = "1",
                     'file_format'='orc'
                 );"""
+            sql """
+                drop table if exists partsupp_1
+                """
+            sql """CREATE TABLE `partsupp_1` (
+                  `ps_partkey` INT NULL,
+                  `ps_suppkey` INT NULL,
+                  `ps_availqty` INT NULL,
+                  `ps_supplycost` DECIMAL(15, 2) NULL,
+                  `ps_comment` VARCHAR(199) NULL
+                ) ENGINE=OLAP
+                DUPLICATE KEY(`ps_partkey`, `ps_suppkey`)
+                COMMENT 'OLAP'
+                DISTRIBUTED BY HASH(`ps_partkey`) BUCKETS 24
+                PROPERTIES (
+                "replication_allocation" = "tag.location.default: 1"
+                );"""
 
             sql """
                 insert into orders_1 values 
@@ -146,6 +162,12 @@ suite("partition_mv_rewrite_dimension_1_hive") {
                 (2, 3, 2, 1, 5.5, 6.5, 7.5, 8.5, 'o', 'k', null, '2023-10-18', 'a', 'b', 'yyyyyyyyy', '2023-10-18'),
                 (3, 1, 1, 2, 7.5, 8.5, 9.5, 10.5, 'k', 'o', '2023-10-19', null, 'c', 'd', 'xxxxxxxxx', '2023-10-19'),
                 (1, 3, 2, 2, 5.5, 6.5, 7.5, 8.5, 'o', 'k', '2023-10-17', '2023-10-17', 'a', 'b', 'yyyyyyyyy', '2023-10-17');
+                """
+            sql"""
+                insert into partsupp_1 values 
+                (1, 1, 1, 99.5, 'yy'),
+                (null, 2, 2, 109.2, 'mm'),
+                (3, null, 1, 99.5, 'yy'); 
                 """
             sql """switch internal"""
             sql """create database if not exists ${db}"""
@@ -731,7 +753,7 @@ suite("partition_mv_rewrite_dimension_1_hive") {
                 from `${catalog_name}`.`${db}`.orders_1 
                 left join `${catalog_name}`.`${db}`.lineitem_1
                 on `${catalog_name}`.`${db}`.lineitem_1.l_orderkey = `${catalog_name}`.`${db}`.orders_1.o_orderkey
-                left join partsupp_2_4 on partsupp_2_4.ps_partkey = `${catalog_name}`.`${db}`.lineitem_1.l_orderkey"""
+                left join `${catalog_name}`.`${db}`.partsupp_1 on `${catalog_name}`.`${db}`.partsupp_1.ps_partkey = `${catalog_name}`.`${db}`.lineitem_1.l_orderkey"""
             explain {
                 sql("${query_sql}")
                 contains "${mv_name}(${mv_name})"
@@ -752,7 +774,7 @@ suite("partition_mv_rewrite_dimension_1_hive") {
             query_sql = """select o_orderdate, o_shippriority, o_comment
                 from `${catalog_name}`.`${db}`.orders_1
                 left join `${catalog_name}`.`${db}`.lineitem_1 on `${catalog_name}`.`${db}`.lineitem_1.l_orderkey = `${catalog_name}`.`${db}`.orders_1.o_orderkey
-                left join partsupp_2_4 on partsupp_2_4.ps_partkey = `${catalog_name}`.`${db}`.lineitem_1.l_orderkey
+                left join `${catalog_name}`.`${db}`.partsupp_1 on `${catalog_name}`.`${db}`.partsupp_1.ps_partkey = `${catalog_name}`.`${db}`.lineitem_1.l_orderkey
                 group by
                 o_orderdate,
                 o_shippriority,
@@ -789,7 +811,7 @@ suite("partition_mv_rewrite_dimension_1_hive") {
                 bitmap_union(to_bitmap(case when o_shippriority > 2 and o_orderkey IN (2) then o_custkey else null end)) as cnt_2 
                 from `${catalog_name}`.`${db}`.orders_1 
                 left join `${catalog_name}`.`${db}`.lineitem_1 on `${catalog_name}`.`${db}`.lineitem_1.l_orderkey = `${catalog_name}`.`${db}`.orders_1.o_orderkey
-                left join partsupp_2_4 on partsupp_2_4.ps_partkey = `${catalog_name}`.`${db}`.lineitem_1.l_orderkey 
+                left join `${catalog_name}`.`${db}`.partsupp_1 on `${catalog_name}`.`${db}`.partsupp_1.ps_partkey = `${catalog_name}`.`${db}`.lineitem_1.l_orderkey 
                 group by 
                 o_orderdate, 
                 o_shippriority, 
