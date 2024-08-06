@@ -478,7 +478,7 @@ suite("partition_mv_rewrite_dimension_1_hive") {
                 sql("${query_sql}")
                 contains "${mv_name}(${mv_name})"
             }
-            compare_res(agg_sql_1 + " order by 1,2,3,4,5,6")
+            compare_res(query_sql + " order by 1,2,3,4,5,6")
 
             // agg + with group by + without agg function
             mtmv_sql = """
