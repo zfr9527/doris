@@ -669,6 +669,301 @@ suite("partition_mv_rewrite_dimension_1_hive") {
             }
             compare_res(query_sql + " order by 1,2,3")
 
+            mtmv_sql = """
+                select l_shipdate, o_orderdate, l_partkey 
+                from `${catalog_name}`.`${db}`.lineitem_1 
+                left join `${catalog_name}`.`${db}`.orders_1   
+                on `${catalog_name}`.`${db}`.lineitem_1.l_orderkey = `${catalog_name}`.`${db}`.orders_1.o_orderkey
+                where l_shipdate >= '2023-10-17'"""
+            create_mv(mv_name, mtmv_sql)
+            waitingMTMVTaskFinishedByMvName(mv_name)
+
+            query_sql = """select l_shipdate, o_orderdate, l_partkey 
+                from `${catalog_name}`.`${db}`.lineitem_1 
+                left join `${catalog_name}`.`${db}`.orders_1   
+                on `${catalog_name}`.`${db}`.lineitem_1.l_orderkey = `${catalog_name}`.`${db}`.orders_1.o_orderkey
+                where l_shipdate >= "2023-10-17" and l_partkey = 3"""
+            explain {
+                sql("${query_sql}")
+                contains "${mv_name}(${mv_name})"
+            }
+            compare_res(query_sql + " order by 1,2,3")
+
+            mtmv_sql = """
+                select o_orderdate, o_shippriority, o_comment, l_suppkey, o_shippriority + o_custkey, 
+                case when o_shippriority > 1 and o_orderkey IN (1, 3) then o_custkey else null end cnt_1, 
+                case when o_shippriority > 2 and o_orderkey IN (2) then o_custkey else null end as cnt_2 
+                from `${catalog_name}`.`${db}`.orders_1  left join `${catalog_name}`.`${db}`.lineitem_1   on `${catalog_name}`.`${db}`.lineitem_1.l_orderkey = `${catalog_name}`.`${db}`.orders_1.o_orderkey
+                where  o_orderkey > 1 + 1 """
+            create_mv(mv_name, mtmv_sql)
+            waitingMTMVTaskFinishedByMvName(mv_name)
+
+            query_sql = """select o_shippriority, o_comment, o_shippriority + o_custkey  + l_suppkey, 
+                case when o_shippriority > 1 and o_orderkey IN (1, 3) then o_custkey else null end as cnt_1,
+                case when O_SHIPPRIORITY > 2 and o_orderkey IN (2) then o_custkey else null end as cnt_2 
+                from `${catalog_name}`.`${db}`.orders_1  left join `${catalog_name}`.`${db}`.lineitem_1   on `${catalog_name}`.`${db}`.lineitem_1.l_orderkey = `${catalog_name}`.`${db}`.orders_1.o_orderkey
+                where  o_orderkey > (-3) + 5 """
+            explain {
+                sql("${query_sql}")
+                contains "${mv_name}(${mv_name})"
+            }
+            compare_res(query_sql + " order by 1,2,3,4,5")
+
+            mtmv_sql = """
+                select 
+                o_totalprice, 
+                o_shippriority,
+                o_orderkey,
+                l_orderkey,
+                o_custkey 
+                from `${catalog_name}`.`${db}`.orders_1 
+                left join `${catalog_name}`.`${db}`.lineitem_1
+                on `${catalog_name}`.`${db}`.lineitem_1.l_orderkey = `${catalog_name}`.`${db}`.orders_1.o_orderkey"""
+            create_mv(mv_name, mtmv_sql)
+            waitingMTMVTaskFinishedByMvName(mv_name)
+
+            query_sql = """select 
+                o_totalprice, 
+                o_shippriority,
+                o_orderkey,
+                l_orderkey,
+                o_custkey 
+                from `${catalog_name}`.`${db}`.orders_1 
+                left join `${catalog_name}`.`${db}`.lineitem_1
+                on `${catalog_name}`.`${db}`.lineitem_1.l_orderkey = `${catalog_name}`.`${db}`.orders_1.o_orderkey
+                left join partsupp_2_4 on partsupp_2_4.ps_partkey = `${catalog_name}`.`${db}`.lineitem_1.l_orderkey"""
+            explain {
+                sql("${query_sql}")
+                contains "${mv_name}(${mv_name})"
+            }
+            compare_res(query_sql + " order by 1,2,3,4,5")
+
+            mtmv_sql = """
+                select o_orderdate, o_shippriority, o_comment 
+                from `${catalog_name}`.`${db}`.orders_1 
+                left join `${catalog_name}`.`${db}`.lineitem_1 on `${catalog_name}`.`${db}`.lineitem_1.l_orderkey = `${catalog_name}`.`${db}`.orders_1.o_orderkey
+                group by 
+                o_orderdate, 
+                o_shippriority, 
+                o_comment"""
+            create_mv(mv_name, mtmv_sql)
+            waitingMTMVTaskFinishedByMvName(mv_name)
+
+            query_sql = """select o_orderdate, o_shippriority, o_comment
+                from `${catalog_name}`.`${db}`.orders_1
+                left join `${catalog_name}`.`${db}`.lineitem_1 on `${catalog_name}`.`${db}`.lineitem_1.l_orderkey = `${catalog_name}`.`${db}`.orders_1.o_orderkey
+                left join partsupp_2_4 on partsupp_2_4.ps_partkey = `${catalog_name}`.`${db}`.lineitem_1.l_orderkey
+                group by
+                o_orderdate,
+                o_shippriority,
+                o_comment """
+            explain {
+                sql("${query_sql}")
+                contains "${mv_name}(${mv_name})"
+            }
+            compare_res(query_sql + " order by 1,2,3")
+
+            mtmv_sql = """
+                select  o_orderdate, o_shippriority, o_comment,
+                sum(o_totalprice) as sum_total, 
+                max(o_totalprice) as max_total, 
+                min(o_totalprice) as min_total, 
+                count(*) as count_all, 
+                bitmap_union(to_bitmap(case when o_shippriority > 1 and o_orderkey IN (1, 3) then o_custkey else null end)) cnt_1, 
+                bitmap_union(to_bitmap(case when o_shippriority > 2 and o_orderkey IN (2) then o_custkey else null end)) as cnt_2 
+                from `${catalog_name}`.`${db}`.orders_1 
+                left join `${catalog_name}`.`${db}`.lineitem_1 on `${catalog_name}`.`${db}`.lineitem_1.l_orderkey = `${catalog_name}`.`${db}`.orders_1.o_orderkey
+                group by 
+                o_orderdate, 
+                o_shippriority, 
+                o_comment"""
+            create_mv(mv_name, mtmv_sql)
+            waitingMTMVTaskFinishedByMvName(mv_name)
+
+            query_sql = """select  o_orderdate, o_shippriority, o_comment,
+                sum(o_totalprice) as sum_total, 
+                max(o_totalprice) as max_total, 
+                min(o_totalprice) as min_total, 
+                count(*) as count_all, 
+                bitmap_union(to_bitmap(case when o_shippriority > 1 and o_orderkey IN (1, 3) then o_custkey else null end)) cnt_1, 
+                bitmap_union(to_bitmap(case when o_shippriority > 2 and o_orderkey IN (2) then o_custkey else null end)) as cnt_2 
+                from `${catalog_name}`.`${db}`.orders_1 
+                left join `${catalog_name}`.`${db}`.lineitem_1 on `${catalog_name}`.`${db}`.lineitem_1.l_orderkey = `${catalog_name}`.`${db}`.orders_1.o_orderkey
+                left join partsupp_2_4 on partsupp_2_4.ps_partkey = `${catalog_name}`.`${db}`.lineitem_1.l_orderkey 
+                group by 
+                o_orderdate, 
+                o_shippriority, 
+                o_comment"""
+            explain {
+                sql("${query_sql}")
+                contains "${mv_name}(${mv_name})"
+            }
+            compare_res(query_sql + " order by 1,2,3,4,5,6,7")
+
+            mtmv_sql = """
+                select 
+                sum(o_totalprice) as sum_total, 
+                max(o_totalprice) as max_total, 
+                min(o_totalprice) as min_total, 
+                count(*) as count_all, 
+                bitmap_union(to_bitmap(case when o_shippriority > 1 and o_orderkey IN (1, 3) then o_custkey else null end)) cnt_1, 
+                bitmap_union(to_bitmap(case when o_shippriority > 2 and o_orderkey IN (2) then o_custkey else null end)) as cnt_2 
+                from `${catalog_name}`.`${db}`.orders_1 
+                where o_orderdate >= '2023-10-17'"""
+            create_mv(mv_name, mtmv_sql)
+            waitingMTMVTaskFinishedByMvName(mv_name)
+
+            query_sql = """select t.sum_total from (select 
+                sum(o_totalprice) as sum_total, 
+                max(o_totalprice) as max_total, 
+                min(o_totalprice) as min_total, 
+                count(*) as count_all, 
+                bitmap_union(to_bitmap(case when o_shippriority > 1 and o_orderkey IN (1, 3) then o_custkey else null end)) cnt_1, 
+                bitmap_union(to_bitmap(case when o_shippriority > 2 and o_orderkey IN (2) then o_custkey else null end)) as cnt_2 
+                from `${catalog_name}`.`${db}`.orders_1 where o_orderdate >= "2023-10-17" )  as t
+                where t.count_all = 3"""
+            explain {
+                sql("${query_sql}")
+                contains "${mv_name}(${mv_name})"
+            }
+            compare_res(query_sql + " order by 1")
+
+            mtmv_sql = """
+                select o_orderdate, o_shippriority, o_comment 
+                from `${catalog_name}`.`${db}`.orders_1 
+                where o_orderdate >= "2023-10-17"
+                group by 
+                o_orderdate, 
+                o_shippriority, 
+                o_comment"""
+            create_mv(mv_name, mtmv_sql)
+            waitingMTMVTaskFinishedByMvName(mv_name)
+
+            query_sql = """select o_orderdate, o_shippriority, o_comment
+                from `${catalog_name}`.`${db}`.orders_1
+                where o_orderdate >= "2023-10-17" and o_totalprice = 1
+                group by
+                o_orderdate,
+                o_shippriority,
+                o_comment """
+            explain {
+                sql("${query_sql}")
+                contains "${mv_name}(${mv_name})"
+            }
+            compare_res(query_sql + " order by 1,2,3")
+
+            mtmv_sql = """
+                select o_orderdate, o_shippriority, o_comment, o_totalprice 
+                from `${catalog_name}`.`${db}`.orders_1 
+                where o_orderdate >= "2023-10-17"
+                group by 
+                o_orderdate, 
+                o_shippriority, 
+                o_comment,
+                o_totalprice"""
+            create_mv(mv_name, mtmv_sql)
+            waitingMTMVTaskFinishedByMvName(mv_name)
+
+            query_sql = """select o_orderdate, o_shippriority, o_comment
+                from `${catalog_name}`.`${db}`.orders_1
+                where o_orderdate >= "2023-10-17" and o_totalprice = 1
+                group by
+                o_orderdate,
+                o_shippriority,
+                o_comment """
+            explain {
+                sql("${query_sql}")
+                contains "${mv_name}(${mv_name})"
+            }
+            compare_res(query_sql + " order by 1,2,3")
+
+            mtmv_sql = """
+                select o_orderdate, o_shippriority, o_comment , o_totalprice, 
+                sum(o_totalprice) as sum_total, 
+                max(o_totalprice) as max_total, 
+                min(o_totalprice) as min_total, 
+                count(*) as count_all, 
+                bitmap_union(to_bitmap(case when o_shippriority > 1 and o_orderkey IN (1, 3) then o_custkey else null end)) cnt_1, 
+                bitmap_union(to_bitmap(case when o_shippriority > 2 and o_orderkey IN (2) then o_custkey else null end)) as cnt_2 
+                from `${catalog_name}`.`${db}`.orders_1 
+                where o_orderdate >= "2023-10-17" 
+                group by 
+                o_orderdate, 
+                o_shippriority, 
+                o_comment,
+                o_totalprice"""
+            create_mv(mv_name, mtmv_sql)
+            waitingMTMVTaskFinishedByMvName(mv_name)
+
+            query_sql = """select t.o_orderdate, t.o_shippriority, t.o_comment, 
+                t.sum_total, t.max_total, t.min_total, t.count_all 
+                from  (
+                select o_orderdate, o_shippriority, o_comment , o_totalprice, 
+                sum(o_totalprice) as sum_total, 
+                max(o_totalprice) as max_total, 
+                min(o_totalprice) as min_total, 
+                count(*) as count_all, 
+                bitmap_union(to_bitmap(case when o_shippriority > 1 and o_orderkey IN (1, 3) then o_custkey else null end)) cnt_1, 
+                bitmap_union(to_bitmap(case when o_shippriority > 2 and o_orderkey IN (2) then o_custkey else null end)) as cnt_2 
+                from `${catalog_name}`.`${db}`.orders_1 where o_orderdate >= "2023-10-17" 
+                group by 
+                o_orderdate, 
+                o_shippriority, 
+                o_comment,
+                o_totalprice 
+                ) as t 
+                where t.o_totalprice = 1 """
+            explain {
+                sql("${query_sql}")
+                contains "${mv_name}(${mv_name})"
+            }
+            compare_res(query_sql + " order by 1,2,3,4,5,6,7")
+
+            mtmv_sql = """
+                select sum(o_totalprice) as sum_total, 
+                max(o_totalprice) as max_total, 
+                min(o_totalprice) as min_total, 
+                count(*) as count_all, 
+                bitmap_union(to_bitmap(case when o_shippriority > 1 and o_orderkey IN (1, 3) then o_custkey else null end)) cnt_1, 
+                bitmap_union(to_bitmap(case when o_shippriority > 2 and o_orderkey IN (2) then o_custkey else null end)) as cnt_2 
+                from `${catalog_name}`.`${db}`.orders_1  
+                where  o_orderkey > 1 + 1"""
+            create_mv(mv_name, mtmv_sql)
+            waitingMTMVTaskFinishedByMvName(mv_name)
+
+            query_sql = """select sum(o_totalprice) + count(*) , 
+            count(distinct case when o_shippriority > 1 and o_orderkey IN (1, 3) then o_custkey else null end) as cnt_1,
+            count(distinct case when O_SHIPPRIORITY > 2 and o_orderkey IN (2) then o_custkey else null end) as cnt_2 
+            from `${catalog_name}`.`${db}`.orders_1  
+            where o_orderkey > (-3) + 5"""
+            explain {
+                sql("${query_sql}")
+                contains "${mv_name}(${mv_name})"
+            }
+            compare_res(query_sql + " order by 1")
+
+            mtmv_sql = """
+                select sum(o_totalprice) as sum_total, 
+                max(o_totalprice) as max_total, 
+                min(o_totalprice) as min_total, 
+                count(*) as count_all, 
+                bitmap_union(to_bitmap(case when o_shippriority > 1 and o_orderkey IN (1, 3) then o_custkey else null end)) cnt_1, 
+                bitmap_union(to_bitmap(case when o_shippriority > 2 and o_orderkey IN (2) then o_custkey else null end)) as cnt_2 
+                from `${catalog_name}`.`${db}`.orders_1  
+                where  o_orderkey > 1 + 1"""
+            create_mv(mv_name, mtmv_sql)
+            waitingMTMVTaskFinishedByMvName(mv_name)
+
+            query_sql = """select sum(o_totalprice) + count(*) , 
+                count(distinct case when o_shippriority > 1 and o_orderkey IN (1, 3) then o_custkey else null end) as cnt_1,
+                count(distinct case when O_SHIPPRIORITY > 2 and o_orderkey IN (2) then o_custkey else null end) as cnt_2 
+                from `${catalog_name}`.`${db}`.orders_1  
+                where o_orderkey > (-3) + 5"""
+            explain {
+                sql("${query_sql}")
+                contains "${mv_name}(${mv_name})"
+            }
+            compare_res(query_sql + " order by 1,2,3,4,5")
 
 
             sql """drop catalog if exists ${catalog_name}"""
