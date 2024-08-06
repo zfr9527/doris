@@ -158,8 +158,7 @@ suite("partition_mv_rewrite_dimension_1_hive") {
                 on `${catalog_name}`.`${db}`.lineitem_1.l_orderkey = `${catalog_name}`.`${db}`.orders_1.o_orderkey
                 """
             create_mv(mv_name, mtmv_sql)
-            def job_name = getJobName(db, mv_name)
-            waitingMTMVTaskFinished(job_name)
+            waitingMTMVTaskFinishedByMvName(mv_name)
 
             def query_sql = """select L_SHIPDATE 
                 from `${catalog_name}`.`${db}`.lineitem_1 
@@ -186,8 +185,7 @@ suite("partition_mv_rewrite_dimension_1_hive") {
                 on `${catalog_name}`.`${db}`.lineitem_1.l_orderkey = `${catalog_name}`.`${db}`.orders_1.o_orderkey
                 """
             create_mv(mv_name, mtmv_sql)
-            job_name = getJobName(db, mv_name)
-            waitingMTMVTaskFinished(job_name)
+            waitingMTMVTaskFinishedByMvName(mv_name)
 
             query_sql = """select l_shipdaTe 
                 from `${catalog_name}`.`${db}`.lineitem_1 
@@ -259,8 +257,8 @@ suite("partition_mv_rewrite_dimension_1_hive") {
                 logger.info("i:" + i)
                 def join_filter_mv = """join_filter_mv_${i}"""
                 create_mv(join_filter_mv, mv_list[i])
-                job_name = getJobName(db, join_filter_mv)
-                waitingMTMVTaskFinished(job_name)
+                waitingMTMVTaskFinishedByMvName(join_filter_mv)
+
                 def res_1 = sql """show partitions from ${join_filter_mv};"""
                 logger.info("res_1:" + res_1)
                 if (i == 0) {
@@ -430,8 +428,7 @@ suite("partition_mv_rewrite_dimension_1_hive") {
                 logger.info("i:" + i)
                 String join_type_mv = """join_type_mv_${i}"""
                 create_mv(join_type_mv, join_type_stmt_list[i])
-                job_name = getJobName(db, join_type_mv)
-                waitingMTMVTaskFinished(job_name)
+                waitingMTMVTaskFinishedByMvName(join_type_mv)
                 for (int j = 0; j < join_type_stmt_list.size(); j++) {
                     logger.info("j:" + j)
                     if (i == j) {
@@ -463,8 +460,7 @@ suite("partition_mv_rewrite_dimension_1_hive") {
                 from `${catalog_name}`.`${db}`.orders_1
                 """
             create_mv(mv_name, mtmv_sql)
-            job_name = getJobName(db, mv_name)
-            waitingMTMVTaskFinished(job_name)
+            waitingMTMVTaskFinishedByMvName(mv_name)
 
             query_sql = """select 
                 count(distinct case when o_shippriority > 1 and o_orderkey IN (1, 3) then o_custkey else null end) as cnt_1, 
@@ -490,8 +486,7 @@ suite("partition_mv_rewrite_dimension_1_hive") {
                 o_comment  
                 """
             create_mv(mv_name, mtmv_sql)
-            job_name = getJobName(db, mv_name)
-            waitingMTMVTaskFinished(job_name)
+            waitingMTMVTaskFinishedByMvName(mv_name)
 
             query_sql = """select O_shippriority, o_commenT 
                 from `${catalog_name}`.`${db}`.orders_1 
@@ -520,8 +515,7 @@ suite("partition_mv_rewrite_dimension_1_hive") {
                 o_comment
                 """
             create_mv(mv_name, mtmv_sql)
-            job_name = getJobName(db, mv_name)
-            waitingMTMVTaskFinished(job_name)
+            waitingMTMVTaskFinishedByMvName(mv_name)
 
             query_sql = """select o_shipprioritY, o_comment, 
                 count(distinct case when o_shippriority > 1 and o_orderkey IN (1, 3) then o_custkey else null end) as cnt_1,
@@ -545,8 +539,7 @@ suite("partition_mv_rewrite_dimension_1_hive") {
                 select l_shipdatE, l_partkey, l_orderkey from `${catalog_name}`.`${db}`.lineitem_1 group by l_shipdate, l_partkey, l_orderkeY
                 """
             create_mv(mv_name, mtmv_sql)
-            job_name = getJobName(db, mv_name)
-            waitingMTMVTaskFinished(job_name)
+            waitingMTMVTaskFinishedByMvName(mv_name)
 
             query_sql = """select t.l_shipdate, o_orderdate, t.l_partkey 
                 from (select l_shipdate, l_partkey, l_orderkey from `${catalog_name}`.`${db}`.lineitem_1 group by l_shipdate, l_partkey, l_orderkey) t
@@ -567,8 +560,7 @@ suite("partition_mv_rewrite_dimension_1_hive") {
                 where l_shipdate >= "2023-10-17"
                 """
             create_mv(mv_name, mtmv_sql)
-            job_name = getJobName(db, mv_name)
-            waitingMTMVTaskFinished(job_name)
+            waitingMTMVTaskFinishedByMvName(mv_name)
 
             query_sql = """select l_shipdate, o_orderdate, l_partkeY 
                 from `${catalog_name}`.`${db}`.lineitem_1 
@@ -588,8 +580,7 @@ suite("partition_mv_rewrite_dimension_1_hive") {
 //                where l_commitdate like '2023-10-%'
 //                """
 //            create_mv(mv_name, mtmv_sql)
-//            job_name = getJobName(db, mv_name)
-//            waitingMTMVTaskFinished(job_name)
+//            waitingMTMVTaskFinishedByMvName(mv_name)
 //
 //            query_sql = """select l_Shipdate, l_partkey, l_suppkey
 //                from `${catalog_name}`.`${db}`.lineitem_1
@@ -615,8 +606,7 @@ suite("partition_mv_rewrite_dimension_1_hive") {
                 where l_commitdate in (select l_commitdate from `${catalog_name}`.`${db}`.lineitem_1) 
                 """
             create_mv(mv_name, mtmv_sql)
-            job_name = getJobName(db, mv_name)
-            waitingMTMVTaskFinished(job_name)
+            waitingMTMVTaskFinishedByMvName(mv_name)
 
             query_sql = """select l_Shipdate, l_partkey, l_suppkey 
                 from `${catalog_name}`.`${db}`.lineitem_1 
@@ -627,8 +617,61 @@ suite("partition_mv_rewrite_dimension_1_hive") {
             }
             compare_res(query_sql + " order by 1,2,3")
 
-            sql """drop catalog if exists ${catalog_name}"""
+            mtmv_sql = """
+                select o_orderdate, o_shippriority, o_comment, 
+                sum(o_totalprice) as sum_total, 
+                max(o_totalprice) as max_total, 
+                min(o_totalprice) as min_total, 
+                count(*) as count_all, 
+                bitmap_union(to_bitmap(case when o_shippriority > 1 and o_orderkey IN (1, 3) then o_custkey else null end)) cnt_1, 
+                bitmap_union(to_bitmap(case when o_shippriority > 2 and o_orderkey IN (2) then o_custkey else null end)) as cnt_2 
+                from `${catalog_name}`.`${db}`.orders_1 
+                left join `${catalog_name}`.`${db}`.lineitem_1 on `${catalog_name}`.`${db}`.lineitem_1.l_orderkey = `${catalog_name}`.`${db}`.orders_1.o_orderkey
+                group by 
+                o_orderdate, 
+                o_shippriority, 
+                o_comment"""
+            create_mv(mv_name, mtmv_sql)
+            waitingMTMVTaskFinishedByMvName(mv_name)
 
+            query_sql = """select o_shippriority, o_comment, 
+                count(distinct case when o_shippriority > 1 and o_orderkey IN (1, 3) then o_custkey else null end) as cnt_1,
+                count(distinct case when O_SHIPPRIORITY > 2 and o_orderkey IN (2) then o_custkey else null end) as cnt_2, 
+                sum(o_totalprice), 
+                max(o_totalprice), 
+                min(o_totalprice), 
+                count(*) 
+                from `${catalog_name}`.`${db}`.orders_1 
+                left join `${catalog_name}`.`${db}`.lineitem_1 on `${catalog_name}`.`${db}`.lineitem_1.l_orderkey = `${catalog_name}`.`${db}`.orders_1.o_orderkey
+                group by 
+                o_shippriority, 
+                o_comment"""
+            explain {
+                sql("${query_sql}")
+                contains "${mv_name}(${mv_name})"
+            }
+            compare_res(query_sql + " order by 1,2,3,4,5,6,7,8")
+
+            mtmv_sql = """
+                select l_shipdate, l_partkey, l_orderkey, o_orderdate 
+                from `${catalog_name}`.`${db}`.lineitem_1 
+                left join `${catalog_name}`.`${db}`.orders_1 
+                on `${catalog_name}`.`${db}`.lineitem_1.l_orderkey = `${catalog_name}`.`${db}`.orders_1.o_orderkey"""
+            create_mv(mv_name, mtmv_sql)
+            waitingMTMVTaskFinishedByMvName(mv_name)
+
+            query_sql = """select l_shipdate, o_orderdate, l_partkey 
+                from `${catalog_name}`.`${db}`.lineitem_1 
+                left join `${catalog_name}`.`${db}`.orders_1  on `${catalog_name}`.`${db}`.lineitem_1.l_orderkey = `${catalog_name}`.`${db}`.orders_1.o_orderkey"""
+            explain {
+                sql("${query_sql}")
+                contains "${mv_name}(${mv_name})"
+            }
+            compare_res(query_sql + " order by 1,2,3")
+
+
+
+            sql """drop catalog if exists ${catalog_name}"""
         } finally {
         }
     }
