@@ -19,7 +19,7 @@
 This suite is a two dimensional test case file.
 It mainly tests the full join and filter positions.
  */
-suite("partition_mv_rewrite_dimension_full_join_hive") {
+suite("partition_mv_rewrite_dimension_inner_join_hive") {
     String enabled = context.config.otherConfigs.get("enableHiveTest")
     if (enabled == null || !enabled.equalsIgnoreCase("true")) {
         logger.info("diable Hive test.")
@@ -57,7 +57,7 @@ suite("partition_mv_rewrite_dimension_full_join_hive") {
         }
     }
 
-    String ctl = "mv_rewrite_dimension_full_join"
+    String ctl = "mv_rewrite_dimension_inner_join"
     String db = context.config.getDbNameByFile(context.file)
     for (String hivePrefix : ["hive2", "hive3"]) {
         try {
@@ -78,10 +78,10 @@ suite("partition_mv_rewrite_dimension_full_join_hive") {
             sql """use `${catalog_name}`.`${db}`"""
 
             sql """
-                drop table if exists orders_2_full_join
+                drop table if exists orders_2_inner_join
                 """
 
-            sql """CREATE TABLE `orders_2_full_join` (
+            sql """CREATE TABLE `orders_2_inner_join` (
                   `o_orderkey` BIGINT,
                   `o_custkey` int,
                   `o_orderstatus` VARCHAR(1),
@@ -99,9 +99,9 @@ suite("partition_mv_rewrite_dimension_full_join_hive") {
                 );"""
 
             sql """
-                drop table if exists lineitem_2_full_join
+                drop table if exists lineitem_2_inner_join
                 """
-            sql """CREATE TABLE `lineitem_2_full_join` (
+            sql """CREATE TABLE `lineitem_2_inner_join` (
                   `l_orderkey` BIGINT,
                   `l_linenumber` INT,
                   `l_partkey` INT,
@@ -126,7 +126,7 @@ suite("partition_mv_rewrite_dimension_full_join_hive") {
                 );"""
 
             sql """
-                insert into orders_2_full_join values 
+                insert into orders_2_inner_join values 
                 (null, 1, 'k', 99.5, 'a', 'b', 1, 'yy', '2023-10-17'),
                 (1, null, 'o', 109.2, 'c','d',2, 'mm', '2023-10-17'),
                 (3, 3, null, 99.5, 'a', 'b', 1, 'yy', '2023-10-19'),
@@ -139,7 +139,7 @@ suite("partition_mv_rewrite_dimension_full_join_hive") {
                 (4, 5, 'k', 99.5, 'a', 'b', 1, 'yy', '2023-10-19'); 
                 """
             sql """
-                insert into lineitem_2_full_join values 
+                insert into lineitem_2_inner_join values 
                 (null, 1, 2, 3, 5.5, 6.5, 7.5, 8.5, 'o', 'k', '2023-10-17', '2023-10-17', 'a', 'b', 'yyyyyyyyy', '2023-10-17'),
                 (1, null, 3, 1, 5.5, 6.5, 7.5, 8.5, 'o', 'k', '2023-10-18', '2023-10-18', 'a', 'b', 'yyyyyyyyy', '2023-10-17'),
                 (3, 3, null, 2, 7.5, 8.5, 9.5, 10.5, 'k', 'o', '2023-10-19', '2023-10-19', 'c', 'd', 'xxxxxxxxx', '2023-10-19'),
@@ -153,81 +153,80 @@ suite("partition_mv_rewrite_dimension_full_join_hive") {
             sql """create database if not exists ${db}"""
             sql """use ${db}"""
 
-            def mv_stmt_0 = """select t.l_shipdate, o_orderdate, t.l_partkey, t.l_suppkey, `${catalog_name}`.`${db}`.orders_2_full_join.o_orderkey 
-                from (select l_shipdate, l_partkey, l_suppkey, l_orderkey from `${catalog_name}`.`${db}`.lineitem_2_full_join where l_shipdate = '2023-10-17') t
-                full join `${catalog_name}`.`${db}`.orders_2_full_join 
-                on t.l_orderkey = `${catalog_name}`.`${db}`.orders_2_full_join.o_orderkey"""
+            def mv_stmt_0 = """select t.l_shipdate, o_orderdate, t.l_partkey, t.l_suppkey, `${catalog_name}`.`${db}`.orders_2_inner_join.o_orderkey 
+                from (select l_shipdate, l_partkey, l_suppkey, l_orderkey from `${catalog_name}`.`${db}`.lineitem_2_inner_join where l_shipdate = '2023-10-17') t
+                inner join `${catalog_name}`.`${db}`.orders_2_inner_join 
+                on t.l_orderkey = `${catalog_name}`.`${db}`.orders_2_inner_join.o_orderkey"""
 
             def mv_stmt_1 = """select l_shipdate, t.o_orderdate, l_partkey, l_suppkey, t.o_orderkey
-                from `${catalog_name}`.`${db}`.lineitem_2_full_join  
-                full join (select o_orderdate,o_orderkey from `${catalog_name}`.`${db}`.orders_2_full_join where o_orderdate = '2023-10-17' ) t 
-                on `${catalog_name}`.`${db}`.lineitem_2_full_join.l_orderkey = t.o_orderkey"""
+                from `${catalog_name}`.`${db}`.lineitem_2_inner_join  
+                inner join (select o_orderdate,o_orderkey from `${catalog_name}`.`${db}`.orders_2_inner_join where o_orderdate = '2023-10-17' ) t 
+                on `${catalog_name}`.`${db}`.lineitem_2_inner_join.l_orderkey = t.o_orderkey"""
 
-            def mv_stmt_2 = """select l_shipdate, o_orderdate, l_partkey, l_suppkey, `${catalog_name}`.`${db}`.orders_2_full_join.o_orderkey 
-                from `${catalog_name}`.`${db}`.lineitem_2_full_join  
-                full join `${catalog_name}`.`${db}`.orders_2_full_join 
-                on `${catalog_name}`.`${db}`.lineitem_2_full_join.l_orderkey = `${catalog_name}`.`${db}`.orders_2_full_join.o_orderkey 
+            def mv_stmt_2 = """select l_shipdate, o_orderdate, l_partkey, l_suppkey, `${catalog_name}`.`${db}`.orders_2_inner_join.o_orderkey 
+                from `${catalog_name}`.`${db}`.lineitem_2_inner_join  
+                inner join `${catalog_name}`.`${db}`.orders_2_inner_join 
+                on `${catalog_name}`.`${db}`.lineitem_2_inner_join.l_orderkey = `${catalog_name}`.`${db}`.orders_2_inner_join.o_orderkey 
                 where l_shipdate = '2023-10-17'"""
 
-            def mv_stmt_3 = """select l_shipdate, o_orderdate, l_partkey, l_suppkey, `${catalog_name}`.`${db}`.orders_2_full_join.o_orderkey 
-                from `${catalog_name}`.`${db}`.lineitem_2_full_join  
-                full join `${catalog_name}`.`${db}`.orders_2_full_join 
-                on `${catalog_name}`.`${db}`.lineitem_2_full_join.l_orderkey = `${catalog_name}`.`${db}`.orders_2_full_join.o_orderkey 
+            def mv_stmt_3 = """select l_shipdate, o_orderdate, l_partkey, l_suppkey, `${catalog_name}`.`${db}`.orders_2_inner_join.o_orderkey 
+                from `${catalog_name}`.`${db}`.lineitem_2_inner_join  
+                inner join `${catalog_name}`.`${db}`.orders_2_inner_join 
+                on `${catalog_name}`.`${db}`.lineitem_2_inner_join.l_orderkey = `${catalog_name}`.`${db}`.orders_2_inner_join.o_orderkey 
                 where o_orderdate = '2023-10-17'"""
 
-            def mv_stmt_4 = """select l_shipdate, o_orderdate, l_partkey, l_suppkey, `${catalog_name}`.`${db}`.orders_2_full_join.o_orderkey  
-                from `${catalog_name}`.`${db}`.lineitem_2_full_join  
-                full join `${catalog_name}`.`${db}`.orders_2_full_join 
-                on `${catalog_name}`.`${db}`.lineitem_2_full_join.l_orderkey = `${catalog_name}`.`${db}`.orders_2_full_join.o_orderkey 
+            def mv_stmt_4 = """select l_shipdate, o_orderdate, l_partkey, l_suppkey, `${catalog_name}`.`${db}`.orders_2_inner_join.o_orderkey  
+                from `${catalog_name}`.`${db}`.lineitem_2_inner_join  
+                inner join `${catalog_name}`.`${db}`.orders_2_inner_join 
+                on `${catalog_name}`.`${db}`.lineitem_2_inner_join.l_orderkey = `${catalog_name}`.`${db}`.orders_2_inner_join.o_orderkey 
                 where l_shipdate = '2023-10-17'  and o_orderdate = '2023-10-17'"""
 
-            def mv_stmt_5 = """select l_shipdate, o_orderdate, l_partkey, l_suppkey, `${catalog_name}`.`${db}`.orders_2_full_join.o_orderkey 
-                from `${catalog_name}`.`${db}`.lineitem_2_full_join  
-                full join `${catalog_name}`.`${db}`.orders_2_full_join 
-                on `${catalog_name}`.`${db}`.lineitem_2_full_join.l_orderkey = `${catalog_name}`.`${db}`.orders_2_full_join.o_orderkey 
+            def mv_stmt_5 = """select l_shipdate, o_orderdate, l_partkey, l_suppkey, `${catalog_name}`.`${db}`.orders_2_inner_join.o_orderkey 
+                from `${catalog_name}`.`${db}`.lineitem_2_inner_join  
+                inner join `${catalog_name}`.`${db}`.orders_2_inner_join 
+                on `${catalog_name}`.`${db}`.lineitem_2_inner_join.l_orderkey = `${catalog_name}`.`${db}`.orders_2_inner_join.o_orderkey 
                 where l_shipdate = '2023-10-17'  and o_orderdate = '2023-10-17'  
                 and o_orderkey = 1"""
 
-            def mv_stmt_6 = """select t.l_shipdate, o_orderdate, t.l_partkey, t.l_suppkey, `${catalog_name}`.`${db}`.orders_2_full_join.o_orderkey 
-                from `${catalog_name}`.`${db}`.orders_2_full_join 
-                full join  (select l_shipdate, l_orderkey, l_partkey, l_suppkey  from `${catalog_name}`.`${db}`.lineitem_2_full_join  where l_shipdate = '2023-10-17') t 
-                on t.l_orderkey = `${catalog_name}`.`${db}`.orders_2_full_join.o_orderkey"""
+            def mv_stmt_6 = """select t.l_shipdate, o_orderdate, t.l_partkey, t.l_suppkey, `${catalog_name}`.`${db}`.orders_2_inner_join.o_orderkey 
+                from `${catalog_name}`.`${db}`.orders_2_inner_join 
+                inner join  (select l_shipdate, l_orderkey, l_partkey, l_suppkey  from `${catalog_name}`.`${db}`.lineitem_2_inner_join  where l_shipdate = '2023-10-17') t 
+                on t.l_orderkey = `${catalog_name}`.`${db}`.orders_2_inner_join.o_orderkey"""
 
             def mv_stmt_7 = """select l_shipdate, t.o_orderdate, l_partkey, l_suppkey, t.o_orderkey 
-                from (select o_orderdate, o_orderkey from `${catalog_name}`.`${db}`.orders_2_full_join where o_orderdate = '2023-10-17' ) t 
-                full join `${catalog_name}`.`${db}`.lineitem_2_full_join   
-                on `${catalog_name}`.`${db}`.lineitem_2_full_join.l_orderkey = t.o_orderkey"""
+                from (select o_orderdate, o_orderkey from `${catalog_name}`.`${db}`.orders_2_inner_join where o_orderdate = '2023-10-17' ) t 
+                inner join `${catalog_name}`.`${db}`.lineitem_2_inner_join   
+                on `${catalog_name}`.`${db}`.lineitem_2_inner_join.l_orderkey = t.o_orderkey"""
 
-            def mv_stmt_8 = """select l_shipdate, o_orderdate, l_partkey, l_suppkey, `${catalog_name}`.`${db}`.orders_2_full_join.o_orderkey 
-                from `${catalog_name}`.`${db}`.orders_2_full_join  
-                full join `${catalog_name}`.`${db}`.lineitem_2_full_join  
-                on `${catalog_name}`.`${db}`.lineitem_2_full_join.l_orderkey = `${catalog_name}`.`${db}`.orders_2_full_join.o_orderkey 
+            def mv_stmt_8 = """select l_shipdate, o_orderdate, l_partkey, l_suppkey, `${catalog_name}`.`${db}`.orders_2_inner_join.o_orderkey 
+                from `${catalog_name}`.`${db}`.orders_2_inner_join  
+                inner join `${catalog_name}`.`${db}`.lineitem_2_inner_join  
+                on `${catalog_name}`.`${db}`.lineitem_2_inner_join.l_orderkey = `${catalog_name}`.`${db}`.orders_2_inner_join.o_orderkey 
                 where l_shipdate = '2023-10-17' """
 
-            def mv_stmt_9 = """select l_shipdate, o_orderdate, l_partkey, l_suppkey, `${catalog_name}`.`${db}`.orders_2_full_join.o_orderkey 
-                from `${catalog_name}`.`${db}`.orders_2_full_join 
-                full join `${catalog_name}`.`${db}`.lineitem_2_full_join  
-                on `${catalog_name}`.`${db}`.lineitem_2_full_join.l_orderkey = `${catalog_name}`.`${db}`.orders_2_full_join.o_orderkey 
+            def mv_stmt_9 = """select l_shipdate, o_orderdate, l_partkey, l_suppkey, `${catalog_name}`.`${db}`.orders_2_inner_join.o_orderkey 
+                from `${catalog_name}`.`${db}`.orders_2_inner_join 
+                inner join `${catalog_name}`.`${db}`.lineitem_2_inner_join  
+                on `${catalog_name}`.`${db}`.lineitem_2_inner_join.l_orderkey = `${catalog_name}`.`${db}`.orders_2_inner_join.o_orderkey 
                 where o_orderdate = '2023-10-17'  """
 
-            def mv_stmt_10 = """select l_shipdate, o_orderdate, l_partkey, l_suppkey, `${catalog_name}`.`${db}`.orders_2_full_join.o_orderkey  
-                from `${catalog_name}`.`${db}`.orders_2_full_join 
-                full join  `${catalog_name}`.`${db}`.lineitem_2_full_join  
-                on `${catalog_name}`.`${db}`.lineitem_2_full_join.l_orderkey = `${catalog_name}`.`${db}`.orders_2_full_join.o_orderkey 
+            def mv_stmt_10 = """select l_shipdate, o_orderdate, l_partkey, l_suppkey, `${catalog_name}`.`${db}`.orders_2_inner_join.o_orderkey  
+                from `${catalog_name}`.`${db}`.orders_2_inner_join 
+                inner join  `${catalog_name}`.`${db}`.lineitem_2_inner_join  
+                on `${catalog_name}`.`${db}`.lineitem_2_inner_join.l_orderkey = `${catalog_name}`.`${db}`.orders_2_inner_join.o_orderkey 
                 where l_shipdate = '2023-10-17'  and o_orderdate = '2023-10-17'  """
 
-            def mv_stmt_11 = """select l_shipdate, o_orderdate, l_partkey, l_suppkey, `${catalog_name}`.`${db}`.orders_2_full_join.o_orderkey 
-                from `${catalog_name}`.`${db}`.orders_2_full_join  
-                full join `${catalog_name}`.`${db}`.lineitem_2_full_join  
-                on `${catalog_name}`.`${db}`.lineitem_2_full_join.l_orderkey = `${catalog_name}`.`${db}`.orders_2_full_join.o_orderkey
+            def mv_stmt_11 = """select l_shipdate, o_orderdate, l_partkey, l_suppkey, `${catalog_name}`.`${db}`.orders_2_inner_join.o_orderkey 
+                from `${catalog_name}`.`${db}`.orders_2_inner_join  
+                inner join `${catalog_name}`.`${db}`.lineitem_2_inner_join  
+                on `${catalog_name}`.`${db}`.lineitem_2_inner_join.l_orderkey = `${catalog_name}`.`${db}`.orders_2_inner_join.o_orderkey
                 where l_shipdate = '2023-10-17'  and o_orderdate = '2023-10-17'   
                 and o_orderkey = 1"""
-
             def mv_list_1 = [mv_stmt_0, mv_stmt_1, mv_stmt_2, mv_stmt_3, mv_stmt_4, mv_stmt_5, mv_stmt_6,
                              mv_stmt_7, mv_stmt_8, mv_stmt_9, mv_stmt_10, mv_stmt_11]
             for (int i = 0; i < mv_list_1.size(); i++) {
                 logger.info("i:" + i)
-                def mv_name = """mv_name_2_full_join_${i}"""
+                def mv_name = """mv_name_2_inner_join_${i}"""
                 create_mv(mv_name, mv_list_1[i])
                 def job_name = getJobName(db, mv_name)
                 waitingMTMVTaskFinished(job_name)
@@ -266,7 +265,7 @@ suite("partition_mv_rewrite_dimension_full_join_hive") {
                 } else if (i == 2) {
                     for (int j = 0; j < mv_list_1.size(); j++) {
                         logger.info("j:" + j)
-                        if (j in [2, 4, 5, 8, 10, 11]) {
+                        if (j in [0, 2, 4, 5, 6, 8, 10, 11]) {
                             explain {
                                 sql("${mv_list_1[j]}")
                                 contains "${mv_name}(${mv_name})"
@@ -282,7 +281,7 @@ suite("partition_mv_rewrite_dimension_full_join_hive") {
                 } else if (i == 3) {
                     for (int j = 0; j < mv_list_1.size(); j++) {
                         logger.info("j:" + j)
-                        if (j in [3, 4, 5, 9, 10, 11]) {
+                        if (j in [1, 3, 4, 5, 7, 9, 10, 11]) {
                             explain {
                                 sql("${mv_list_1[j]}")
                                 contains "${mv_name}(${mv_name})"
@@ -362,7 +361,7 @@ suite("partition_mv_rewrite_dimension_full_join_hive") {
                 } else if (i == 8) {
                     for (int j = 0; j < mv_list_1.size(); j++) {
                         logger.info("j:" + j)
-                        if (j in [2, 4, 5, 8, 10, 11]) {
+                        if (j in [0, 2, 4, 5, 6, 8, 10, 11]) {
                             explain {
                                 sql("${mv_list_1[j]}")
                                 contains "${mv_name}(${mv_name})"
@@ -378,7 +377,7 @@ suite("partition_mv_rewrite_dimension_full_join_hive") {
                 } else if (i == 9) {
                     for (int j = 0; j < mv_list_1.size(); j++) {
                         logger.info("j:" + j)
-                        if (j in [3, 4, 5, 9, 10, 11]) {
+                        if (j in [1, 3, 4, 5, 7, 9, 10, 11]) {
                             explain {
                                 sql("${mv_list_1[j]}")
                                 contains "${mv_name}(${mv_name})"
