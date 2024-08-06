@@ -25,6 +25,8 @@ suite("partition_mv_rewrite_dimension_1_hive") {
         return
     }
 
+    sql """SET materialized_view_rewrite_enable_contain_external_table = true;"""
+
     def create_mv = { mv_name, mv_sql ->
         sql """DROP MATERIALIZED VIEW IF EXISTS ${mv_name};"""
         sql """DROP TABLE IF EXISTS ${mv_name}"""
@@ -39,10 +41,10 @@ suite("partition_mv_rewrite_dimension_1_hive") {
     }
 
     def compare_res = { def stmt ->
-        sql "SET enable_materialized_view_rewrite=false"
+        sql "SET materialized_view_rewrite_enable_contain_external_table=false"
         def origin_res = sql stmt
         logger.info("origin_res: " + origin_res)
-        sql "SET enable_materialized_view_rewrite=true"
+        sql "SET materialized_view_rewrite_enable_contain_external_table=true"
         def mv_origin_res = sql stmt
         logger.info("mv_origin_res: " + mv_origin_res)
         assertTrue((mv_origin_res == [] && origin_res == []) || (mv_origin_res.size() == origin_res.size()))
