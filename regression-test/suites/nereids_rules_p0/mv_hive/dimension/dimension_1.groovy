@@ -965,6 +965,110 @@ suite("partition_mv_rewrite_dimension_1_hive") {
             }
             compare_res(query_sql + " order by 1,2,3,4,5")
 
+            mtmv_sql = """
+                select o_orderdate, o_shippriority, o_comment, l_orderkey, o_orderkey 
+                from `${catalog_name}`.`${db}`.orders_1  
+                left join `${catalog_name}`.`${db}`.lineitem_1 on `${catalog_name}`.`${db}`.lineitem_1.l_orderkey = `${catalog_name}`.`${db}`.orders_1.o_orderkey
+                group by 
+                o_orderdate, 
+                o_shippriority, 
+                o_comment,
+                l_orderkey,
+                o_orderkey"""
+            create_mv(mv_name, mtmv_sql)
+            waitingMTMVTaskFinishedByMvName(mv_name)
+
+            query_sql = """select o_orderdate, o_shippriority, o_comment
+                from `${catalog_name}`.`${db}`.orders_1
+                left join `${catalog_name}`.`${db}`.lineitem_1 on `${catalog_name}`.`${db}`.lineitem_1.l_orderkey = `${catalog_name}`.`${db}`.orders_1.o_orderkey
+                left join partsupp_2_5 on partsupp_2_5.ps_partkey = `${catalog_name}`.`${db}`.lineitem_1.l_orderkey
+                group by
+                o_orderdate,
+                o_shippriority,
+                o_comment"""
+            explain {
+                sql("${query_sql}")
+                contains "${mv_name}(${mv_name})"
+            }
+            compare_res(query_sql + " order by 1,2,3")
+
+            query_sql = """select o_orderdate, o_shippriority, o_comment
+                from `${catalog_name}`.`${db}`.orders_1
+                left join `${catalog_name}`.`${db}`.lineitem_1 on `${catalog_name}`.`${db}`.lineitem_1.l_orderkey = `${catalog_name}`.`${db}`.orders_1.o_orderkey
+                left join partsupp_2_5 on partsupp_2_5.ps_partkey = `${catalog_name}`.`${db}`.orders_1.o_orderkey
+                group by
+                o_orderdate,
+                o_shippriority,
+                o_comment"""
+            explain {
+                sql("${query_sql}")
+                contains "${mv_name}(${mv_name})"
+            }
+            compare_res(query_sql + " order by 1,2,3")
+
+            mtmv_sql = """
+                select l_shipdate, l_partkey, l_orderkey 
+                from `${catalog_name}`.`${db}`.lineitem_1 
+                where l_shipdate >= "2023-10-17"
+                group by l_shipdate, l_partkey, l_orderkey"""
+            create_mv(mv_name, mtmv_sql)
+            waitingMTMVTaskFinishedByMvName(mv_name)
+
+            query_sql = """select t.l_shipdate, o_orderdate, t.l_partkey 
+                from (select l_shipdate, l_partkey, l_orderkey from `${catalog_name}`.`${db}`.lineitem_1 group by l_shipdate, l_partkey, l_orderkey) t 
+                left join `${catalog_name}`.`${db}`.orders_1   
+                on t.l_orderkey = `${catalog_name}`.`${db}`.orders_1.o_orderkey 
+                where l_shipdate >= "2023-10-17" and l_partkey  > 1 + 1 
+                group by t.l_shipdate, o_orderdate, t.l_partkey"""
+            explain {
+                sql("${query_sql}")
+                contains "${mv_name}(${mv_name})"
+            }
+            compare_res(query_sql + " order by 1,2,3")
+
+            mtmv_sql = """
+                select l_shipdate, l_partkey, l_orderkey
+                from `${catalog_name}`.`${db}`.lineitem_1
+                where l_partkey  > 1 + 1
+                group by l_shipdate, l_partkey, l_orderkey"""
+            create_mv(mv_name, mtmv_sql)
+            waitingMTMVTaskFinishedByMvName(mv_name)
+
+            query_sql = """select t.l_shipdate, o_orderdate, t.l_partkey * 2
+                from (select l_shipdate, l_partkey, l_orderkey from `${catalog_name}`.`${db}`.lineitem_1 group by l_shipdate, l_partkey, l_orderkey) t
+                left join `${catalog_name}`.`${db}`.orders_1
+                on t.l_orderkey = `${catalog_name}`.`${db}`.orders_1.o_orderkey
+                where  l_partkey  > (-3) + 5
+                group by t.l_shipdate, o_orderdate, t.l_partkey"""
+            explain {
+                sql("${query_sql}")
+                contains "${mv_name}(${mv_name})"
+            }
+            compare_res(query_sql + " order by 1,2,3")
+
+            mtmv_sql = """
+                select o_orderdate, o_shippriority, o_comment, o_custkey,
+                case when o_shippriority > 1 and o_orderkey IN (1, 3) then o_custkey else null end cnt_1,
+                case when o_shippriority > 2 and o_orderkey IN (2) then o_custkey else null end as cnt_2
+                from `${catalog_name}`.`${db}`.orders_1 
+                left join `${catalog_name}`.`${db}`.lineitem_1 
+                on `${catalog_name}`.`${db}`.lineitem_1.l_orderkey = `${catalog_name}`.`${db}`.orders_1.o_orderkey 
+                where  o_custkey > 1 + 1"""
+            create_mv(mv_name, mtmv_sql)
+            waitingMTMVTaskFinishedByMvName(mv_name)
+
+            query_sql = """select o_orderdate, o_shippriority, o_comment, o_shippriority + o_custkey,
+                case when o_shippriority > 1 and o_orderkey IN (1, 3) then o_custkey else null end cnt_1,
+                case when o_shippriority > 2 and o_orderkey IN (2) then o_custkey else null end as cnt_2
+                from `${catalog_name}`.`${db}`.orders_1 
+                left join `${catalog_name}`.`${db}`.lineitem_1 
+                on `${catalog_name}`.`${db}`.lineitem_1.l_orderkey = `${catalog_name}`.`${db}`.orders_1.o_orderkey 
+                where  o_custkey > (-3) + 5 and o_orderdate >= '2023-10-17'"""
+            explain {
+                sql("${query_sql}")
+                contains "${mv_name}(${mv_name})"
+            }
+            compare_res(query_sql + " order by 1,2,3,4,5,6")
 
             sql """drop catalog if exists ${catalog_name}"""
         } finally {
