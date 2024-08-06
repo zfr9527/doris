@@ -208,6 +208,7 @@ suite("partition_mv_rewrite_dimension_1_hive") {
                 contains "${mv_name}(${mv_name})"
             }
             compare_res(query_sql + " order by 1")
+            sql """DROP MATERIALIZED VIEW IF EXISTS ${mv_name};"""
 
             // join filter position
             def join_filter_stmt_1 = """
