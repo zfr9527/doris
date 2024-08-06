@@ -228,7 +228,7 @@ suite("partition_mv_rewrite_dimension_full_join_hive") {
             for (int i = 0; i < mv_list_1.size(); i++) {
                 logger.info("i:" + i)
                 def mv_name = """mv_name_2_full_join_${i}"""
-                create_mv_all(mv_name, mv_list_1[i])
+                create_mv(mv_name, mv_list_1[i])
                 def job_name = getJobName(db, mv_name)
                 waitingMTMVTaskFinished(job_name)
                 if (i == 0) {
