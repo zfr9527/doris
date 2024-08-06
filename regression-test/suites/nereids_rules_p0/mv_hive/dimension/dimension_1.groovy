@@ -25,34 +25,6 @@ suite("partition_mv_rewrite_dimension_1_hive") {
         return
     }
 
-    def create_mv_lineitem = { mv_name, mv_sql ->
-        sql """DROP MATERIALIZED VIEW IF EXISTS ${mv_name};"""
-        sql """DROP TABLE IF EXISTS ${mv_name}"""
-        sql"""
-        CREATE MATERIALIZED VIEW ${mv_name} 
-        BUILD IMMEDIATE REFRESH AUTO ON MANUAL 
-        partition by(l_shipdate) 
-        DISTRIBUTED BY RANDOM BUCKETS 2 
-        PROPERTIES ('replication_num' = '1')  
-        AS  
-        ${mv_sql}
-        """
-    }
-
-    def create_mv_orders = { mv_name, mv_sql ->
-        sql """DROP MATERIALIZED VIEW IF EXISTS ${mv_name};"""
-        sql """DROP TABLE IF EXISTS ${mv_name}"""
-        sql"""
-        CREATE MATERIALIZED VIEW ${mv_name} 
-        BUILD IMMEDIATE REFRESH AUTO ON MANUAL 
-        partition by(o_orderdate) 
-        DISTRIBUTED BY RANDOM BUCKETS 2 
-        PROPERTIES ('replication_num' = '1') 
-        AS  
-        ${mv_sql}
-        """
-    }
-
     def create_mv = { mv_name, mv_sql ->
         sql """DROP MATERIALIZED VIEW IF EXISTS ${mv_name};"""
         sql """DROP TABLE IF EXISTS ${mv_name}"""
@@ -180,7 +152,7 @@ suite("partition_mv_rewrite_dimension_1_hive") {
                 left join orders_1 
                 on lineitem_1.l_orderkey = orders_1.o_orderkey
                 """
-            create_mv_lineitem(mv_name, mtmv_sql)
+            create_mv(mv_name, mtmv_sql)
             def job_name = getJobName(db, mv_name)
             waitingMTMVTaskFinished(job_name)
 
@@ -208,7 +180,7 @@ suite("partition_mv_rewrite_dimension_1_hive") {
                 inner join orders_1 
                 on lineitem_1.l_orderkey = orders_1.o_orderkey
                 """
-            create_mv_lineitem(mv_name, mtmv_sql)
+            create_mv(mv_name, mtmv_sql)
             job_name = getJobName(db, mv_name)
             waitingMTMVTaskFinished(job_name)
 
@@ -283,7 +255,7 @@ suite("partition_mv_rewrite_dimension_1_hive") {
             for (int i =0; i < mv_list.size(); i++) {
                 logger.info("i:" + i)
                 def join_filter_mv = """join_filter_mv_${i}"""
-                create_mv_lineitem(join_filter_mv, mv_list[i])
+                create_mv(join_filter_mv, mv_list[i])
                 job_name = getJobName(db, join_filter_mv)
                 waitingMTMVTaskFinished(job_name)
                 def res_1 = sql """show partitions from ${join_filter_mv};"""
@@ -454,13 +426,7 @@ suite("partition_mv_rewrite_dimension_1_hive") {
             for (int i = 0; i < join_type_stmt_list.size(); i++) {
                 logger.info("i:" + i)
                 String join_type_mv = """join_type_mv_${i}"""
-                if (i in [2, 5, 7]) {
-                    create_mv_orders(join_type_mv, join_type_stmt_list[i])
-                } else if (i == 3) {
-                    create_mv(join_type_mv, join_type_stmt_list[i])
-                } else {
-                    create_mv_lineitem(join_type_mv, join_type_stmt_list[i])
-                }
+                create_mv(join_type_mv, join_type_stmt_list[i])
                 job_name = getJobName(db, join_type_mv)
                 waitingMTMVTaskFinished(job_name)
                 for (int j = 0; j < join_type_stmt_list.size(); j++) {
@@ -520,7 +486,7 @@ suite("partition_mv_rewrite_dimension_1_hive") {
                 o_shippriority, 
                 o_comment  
                 """
-            create_mv_orders(mv_name, mtmv_sql)
+            create_mv(mv_name, mtmv_sql)
             job_name = getJobName(db, mv_name)
             waitingMTMVTaskFinished(job_name)
 
@@ -550,7 +516,7 @@ suite("partition_mv_rewrite_dimension_1_hive") {
                 o_shippriority, 
                 o_comment
                 """
-            create_mv_orders(mv_name, mtmv_sql)
+            create_mv(mv_name, mtmv_sql)
             job_name = getJobName(db, mv_name)
             waitingMTMVTaskFinished(job_name)
 
@@ -575,7 +541,7 @@ suite("partition_mv_rewrite_dimension_1_hive") {
             mtmv_sql = """
                 select l_shipdatE, l_partkey, l_orderkey from lineitem_1 group by l_shipdate, l_partkey, l_orderkeY
                 """
-            create_mv_lineitem(mv_name, mtmv_sql)
+            create_mv(mv_name, mtmv_sql)
             job_name = getJobName(db, mv_name)
             waitingMTMVTaskFinished(job_name)
 
@@ -597,7 +563,7 @@ suite("partition_mv_rewrite_dimension_1_hive") {
                 on lineitem_1.l_orderkey = orders_1.o_orderkey
                 where l_shipdate >= "2023-10-17"
                 """
-            create_mv_lineitem(mv_name, mtmv_sql)
+            create_mv(mv_name, mtmv_sql)
             job_name = getJobName(db, mv_name)
             waitingMTMVTaskFinished(job_name)
 
