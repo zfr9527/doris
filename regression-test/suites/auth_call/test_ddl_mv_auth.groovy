@@ -45,7 +45,6 @@ suite("test_ddl_mv_auth","p0,auth") {
         (3, "333");
         """
 
-    sql """use ${dbName}"""
     // ddl create
     connect(user=user, password="${pwd}", url=context.config.jdbcUrl) {
         test {
@@ -56,8 +55,13 @@ suite("test_ddl_mv_auth","p0,auth") {
     sql """grant select_priv(username) on ${dbName}.${tableName} to ${user}"""
     connect(user=user, password="${pwd}", url=context.config.jdbcUrl) {
         sql """use ${dbName}"""
-        sql """create materialized view ${mvName} as select username from ${dbName}.${tableName};"""
+        test {
+            sql """create materialized view ${mvName} as select username from ${dbName}.${tableName};"""
+            exception "denied"
+        }
     }
+    sql """grant select_priv(username) on ${dbName}.${tableName} to ${user}"""
+    sql """grant Create_priv on ${dbName}.${mtmvName} to ${user}"""
     waitingMVTaskFinishedByMvName(dbName, tableName)
     connect(user=user, password="${pwd}", url=context.config.jdbcUrl) {
         sql """use ${dbName}"""

@@ -38,8 +38,8 @@ suite("test_ddl_catalog_auth","p0,auth_call") {
     connect(user=user, password="${pwd}", url=context.config.jdbcUrl) {
         try {
             sql """create catalog if not exists ${catalogName} properties (
-                'type'='hms'
-            );"""
+                    'type'='hms'
+                );"""
         } catch (Exception e) {
             log.info(e.getMessage())
             assertTrue(e.getMessage().contains("Access denied"))
