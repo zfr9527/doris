@@ -37,6 +37,17 @@ suite("test_show_create_table_auth","p0,auth") {
                 "replication_num" = "1"
             );"""
 
+    sql """use ${dbName}"""
+    connect(user=user, password="${pwd}", url=context.config.jdbcUrl) {
+        test {
+            sql """show create table ${tableName}"""
+            exception "denied"
+        }
+        test {
+            sql """SHOW DATA SKEW FROM ${tableName};"""
+            exception "denied"
+        }
+    }
     sql """grant select_priv on ${dbName}.${tableName} to ${user}"""
     connect(user=user, password="${pwd}", url=context.config.jdbcUrl) {
         sql """use ${dbName}"""
