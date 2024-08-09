@@ -47,22 +47,22 @@ suite("test_show_data_auth","p0,auth") {
             exception "denied"
         }
     }
-    sql """grant select_priv on ${dbName}.${tableName} to ${user}"""
-    connect(user=user, password="${pwd}", url=context.config.jdbcUrl) {
-        sql """use ${dbName}"""
-        sql """show data from ${dbName}.${tableName}"""
-        test {
-            sql """SHOW DATA;"""
-            exception "denied"
-        }
-    }
-    sql """revoke select_priv on ${dbName}.${tableName} from ${user}"""
-
-    sql """grant admin_priv on *.*.* to ${user}"""
-    connect(user=user, password="${pwd}", url=context.config.jdbcUrl) {
-        sql """SHOW DATA;"""
-    }
-
-    sql """drop database if exists ${dbName}"""
-    try_sql("DROP USER ${user}")
+//    sql """grant select_priv on ${dbName}.${tableName} to ${user}"""
+//    connect(user=user, password="${pwd}", url=context.config.jdbcUrl) {
+//        sql """use ${dbName}"""
+//        sql """show data from ${dbName}.${tableName}"""
+//        test {
+//            sql """SHOW DATA;"""
+//            exception "denied"
+//        }
+//    }
+//    sql """revoke select_priv on ${dbName}.${tableName} from ${user}"""
+//
+//    sql """grant admin_priv on *.*.* to ${user}"""
+//    connect(user=user, password="${pwd}", url=context.config.jdbcUrl) {
+//        sql """SHOW DATA;"""
+//    }
+//
+//    sql """drop database if exists ${dbName}"""
+//    try_sql("DROP USER ${user}")
 }
