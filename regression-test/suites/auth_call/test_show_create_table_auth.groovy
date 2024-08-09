@@ -41,6 +41,7 @@ suite("test_show_create_table_auth","p0,auth") {
     connect(user=user, password="${pwd}", url=context.config.jdbcUrl) {
         sql """use ${dbName}"""
         sql """show create table ${tableName}"""
+        sql """SHOW DATA SKEW FROM ${tableName};"""
     }
     sql """revoke select_priv on ${dbName}.${tableName} from ${user}"""
 
@@ -48,6 +49,7 @@ suite("test_show_create_table_auth","p0,auth") {
     connect(user=user, password="${pwd}", url=context.config.jdbcUrl) {
         sql """use ${dbName}"""
         sql """show create table ${tableName}"""
+        sql """SHOW DATA SKEW FROM ${tableName};"""
     }
     sql """revoke create_priv on ${dbName}.${tableName} from ${user}"""
 
@@ -55,6 +57,7 @@ suite("test_show_create_table_auth","p0,auth") {
     connect(user=user, password="${pwd}", url=context.config.jdbcUrl) {
         sql """use ${dbName}"""
         sql """show create table ${tableName}"""
+        sql """SHOW DATA SKEW FROM ${tableName};"""
     }
     sql """revoke drop_priv on ${dbName}.${tableName} from ${user}"""
 
@@ -62,6 +65,7 @@ suite("test_show_create_table_auth","p0,auth") {
     connect(user=user, password="${pwd}", url=context.config.jdbcUrl) {
         sql """use ${dbName}"""
         sql """show create table ${tableName}"""
+        sql """SHOW DATA SKEW FROM ${tableName};"""
     }
     sql """revoke alter_priv on ${dbName}.${tableName} from ${user}"""
 
