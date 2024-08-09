@@ -98,6 +98,7 @@ suite("test_ddl_table_auth","p0,auth") {
         logger.info("col_res: " + col_res)
     }
 
+
     // ddl alter
     // user alter
     connect(user=user, password="${pwd}", url=context.config.jdbcUrl) {
@@ -250,8 +251,8 @@ suite("test_ddl_table_auth","p0,auth") {
     }
 
 
-    sql """drop database if exists ${dbName}"""
-    sql """drop database if exists ${cteLikeDstDb}"""
-    sql """drop database if exists ${cteSelectDstDb}"""
-    try_sql("DROP USER ${user}")
+//    sql """drop database if exists ${dbName}"""
+//    sql """drop database if exists ${cteLikeDstDb}"""
+//    sql """drop database if exists ${cteSelectDstDb}"""
+//    try_sql("DROP USER ${user}")
 }
