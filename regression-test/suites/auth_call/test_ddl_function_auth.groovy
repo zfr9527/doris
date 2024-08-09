@@ -40,8 +40,6 @@ suite("test_ddl_function_auth","p0,auth") {
 
         sql """use ${dbName}"""
         sql """show functions"""
-        def res = sql """SHOW CREATE FUNCTION ${dbName}.${functionName}(INT)"""
-        logger.info("res: " + res)
 
         test {
             sql """DROP FUNCTION ${dbName}.${functionName}(INT)"""
