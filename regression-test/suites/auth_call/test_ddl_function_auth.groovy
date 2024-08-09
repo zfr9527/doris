@@ -61,6 +61,19 @@ suite("test_ddl_function_auth","p0,auth") {
         assertTrue(res.size() == 0)
     }
 
+    // show
+    connect(user=user, password="${pwd}", url=context.config.jdbcUrl) {
+        sql """CREATE ALIAS FUNCTION ${dbName}.${functionName}(INT) WITH PARAMETER(id)  AS CONCAT(LEFT(id, 3), '****', RIGHT(id, 4));"""
+        sql """use ${dbName}"""
+        def res = sql """show functions"""
+        assertTrue(res.size() == 1)
+    }
+    sql """revoke admin_priv on *.*.* from ${user}"""
+    connect(user=user, password="${pwd}", url=context.config.jdbcUrl) {
+        def res = sql """SHOW CREATE FUNCTION ${dbName}.${functionName}(INT)"""
+        logger.info("res: " + res)
+    }
+
     try_sql("""DROP FUNCTION ${dbName}.${functionName}(INT)""")
     sql """drop database if exists ${dbName}"""
     try_sql("DROP USER ${user}")
