@@ -45,9 +45,9 @@ suite("test_ddl_mv_auth","p0,auth") {
         (3, "333");
         """
 
+    sql """use ${dbName}"""
     // ddl create
     connect(user=user, password="${pwd}", url=context.config.jdbcUrl) {
-        sql """use ${dbName}"""
         test {
             sql """create materialized view ${mvName} as select username from ${dbName}.${tableName};"""
             exception "denied"
