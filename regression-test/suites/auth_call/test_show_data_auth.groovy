@@ -17,11 +17,13 @@
 
 import org.junit.Assert;
 
+// 有bug，等修复完再写case
 suite("test_show_data_auth","p0,auth") {
     String user = 'test_show_data_auth_user'
     String pwd = 'C123_567p'
     String dbName = 'test_show_data_auth_db'
     String tableName = 'test_show_data_auth_tb'
+    String tableName2 = 'test_show_data_auth_tb'
 
     try_sql("DROP USER ${user}")
     try_sql """drop database if exists ${dbName}"""
@@ -29,6 +31,15 @@ suite("test_show_data_auth","p0,auth") {
     sql """grant select_priv on regression_test to ${user}"""
     sql """create database ${dbName}"""
     sql """create table ${dbName}.${tableName} (
+                id BIGINT,
+                username VARCHAR(20)
+            )
+            DISTRIBUTED BY HASH(id) BUCKETS 2
+            PROPERTIES (
+                "replication_num" = "1"
+            );"""
+
+    sql """create table ${dbName}.${tableName2} (
                 id BIGINT,
                 username VARCHAR(20)
             )
@@ -47,22 +58,26 @@ suite("test_show_data_auth","p0,auth") {
             exception "denied"
         }
     }
-//    sql """grant select_priv on ${dbName}.${tableName} to ${user}"""
-//    connect(user=user, password="${pwd}", url=context.config.jdbcUrl) {
-//        sql """use ${dbName}"""
-//        sql """show data from ${dbName}.${tableName}"""
-//        test {
-//            sql """SHOW DATA;"""
-//            exception "denied"
-//        }
-//    }
-//    sql """revoke select_priv on ${dbName}.${tableName} from ${user}"""
-//
-//    sql """grant admin_priv on *.*.* to ${user}"""
-//    connect(user=user, password="${pwd}", url=context.config.jdbcUrl) {
-//        sql """SHOW DATA;"""
-//    }
-//
-//    sql """drop database if exists ${dbName}"""
-//    try_sql("DROP USER ${user}")
+    sql """grant select_priv on ${dbName}.${tableName} to ${user}"""
+    connect(user=user, password="${pwd}", url=context.config.jdbcUrl) {
+        sql """use ${dbName}"""
+        sql """show data from ${dbName}.${tableName}"""
+        test {
+            sql """show data from ${dbName}.${tableName2}"""
+            exception "denied"
+        }
+        test {
+            sql """SHOW DATA;"""
+            exception "denied"
+        }
+    }
+    sql """revoke select_priv on ${dbName}.${tableName} from ${user}"""
+
+    sql """grant admin_priv on *.*.* to ${user}"""
+    connect(user=user, password="${pwd}", url=context.config.jdbcUrl) {
+        sql """SHOW DATA;"""
+    }
+
+    sql """drop database if exists ${dbName}"""
+    try_sql("DROP USER ${user}")
 }

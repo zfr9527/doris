@@ -17,7 +17,7 @@
 
 import org.junit.Assert;
 
-suite("test_show_charset_auth","p0,auth") {
+suite("test_show_no_auth","p0,auth") {
     String user = 'test_show_charset_auth_user'
     String pwd = 'C123_567p'
 
@@ -27,6 +27,9 @@ suite("test_show_charset_auth","p0,auth") {
 
     connect(user=user, password="${pwd}", url=context.config.jdbcUrl) {
         sql """ SHOW CHARSET"""
+        sql """SHOW DATA TYPES"""
+        sql """SHOW ENGINES"""
+        sql """ show collation;"""
     }
 
     try_sql("DROP USER ${user}")
