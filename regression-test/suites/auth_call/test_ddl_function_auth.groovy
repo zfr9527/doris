@@ -66,6 +66,7 @@ suite("test_ddl_function_auth","p0,auth") {
     def func_res = sql """show functions"""
     assertTrue(func_res.size() == 1)
     connect(user=user, password="${pwd}", url=context.config.jdbcUrl) {
+        sql """use ${dbName}"""
         def res = sql """SHOW CREATE FUNCTION ${dbName}.${functionName}(INT)"""
         logger.info("res: " + res)
         assertTrue(res.size() == 1)
