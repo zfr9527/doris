@@ -26,7 +26,7 @@ suite("test_show_collation_auth","p0,auth") {
     sql """grant select_priv on regression_test to ${user}"""
 
     connect(user=user, password="${pwd}", url=context.config.jdbcUrl) {
-        sql """ SHOW show collation;"""
+        sql """ show collation;"""
     }
 
     try_sql("DROP USER ${user}")
