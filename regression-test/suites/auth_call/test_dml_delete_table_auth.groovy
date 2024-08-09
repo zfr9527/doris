@@ -68,6 +68,7 @@ suite("test_dml_delete_table_auth","p0,auth") {
     connect(user=user, password="${pwd}", url=context.config.jdbcUrl) {
         sql """DELETE FROM ${dbName}.${tableName} WHERE id = 3;"""
         def del_res = sql """show detele from ${dbName}"""
+        logger.info("del_res: " + del_res)
         assertTrue(del_res.size() == 1)
     }
 
