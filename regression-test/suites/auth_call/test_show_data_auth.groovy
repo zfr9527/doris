@@ -39,7 +39,7 @@ suite("test_show_data_auth","p0,auth") {
 
     connect(user=user, password="${pwd}", url=context.config.jdbcUrl) {
         test {
-            sql """show data from ${dbName}"""
+            sql """show data from ${dbName}.${tableName}"""
             exception "denied"
         }
         test {
@@ -50,7 +50,7 @@ suite("test_show_data_auth","p0,auth") {
     sql """grant select_priv on ${dbName}.${tableName} to ${user}"""
     connect(user=user, password="${pwd}", url=context.config.jdbcUrl) {
         sql """use ${dbName}"""
-        sql """show data from ${dbName}"""
+        sql """show data from ${dbName}.${tableName}"""
         test {
             sql """SHOW DATA;"""
             exception "denied"
