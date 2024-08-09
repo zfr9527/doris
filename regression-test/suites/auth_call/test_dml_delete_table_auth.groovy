@@ -51,6 +51,9 @@ suite("test_dml_delete_table_auth","p0,auth") {
             sql """DELETE FROM ${dbName}.${tableName} WHERE id = 3;"""
             exception "denied"
         }
+
+        def del_res = sql """show detele from ${dbName}"""
+        assertTrue(del_res.size() == 0)
     }
     sql """grant load_priv on ${dbName}.${tableName} to ${user}"""
     connect(user=user, password="${pwd}", url=context.config.jdbcUrl) {
@@ -58,10 +61,14 @@ suite("test_dml_delete_table_auth","p0,auth") {
             sql """DELETE FROM ${dbName}.${tableName} WHERE id = 3;"""
             exception "denied"
         }
+        def del_res = sql """show detele from ${dbName}"""
+        assertTrue(del_res.size() == 0)
     }
     sql """grant select_priv on ${dbName}.${tableName} to ${user}"""
     connect(user=user, password="${pwd}", url=context.config.jdbcUrl) {
         sql """DELETE FROM ${dbName}.${tableName} WHERE id = 3;"""
+        def del_res = sql """show detele from ${dbName}"""
+        assertTrue(del_res.size() == 1)
     }
 
     def res = sql """select count(*) from ${dbName}.${tableName};"""
