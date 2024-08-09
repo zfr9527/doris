@@ -40,11 +40,11 @@ suite("test_show_create_table_auth","p0,auth") {
     connect(user=user, password="${pwd}", url=context.config.jdbcUrl) {
         test {
             sql """show create table ${dbName}.${tableName}"""
-            exception "Unknown table"
+            exception "denied"
         }
         test {
             sql """SHOW DATA SKEW FROM ${dbName}.${tableName};"""
-            exception "Unknown table"
+            exception "denied"
         }
     }
     sql """grant select_priv on ${dbName}.${tableName} to ${user}"""
