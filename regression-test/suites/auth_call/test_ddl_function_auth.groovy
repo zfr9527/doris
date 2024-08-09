@@ -39,7 +39,8 @@ suite("test_ddl_function_auth","p0,auth") {
         }
 
         sql """use ${dbName}"""
-        sql """show functions"""
+        def res = sql """show functions"""
+        assertTrue(res.size() == 0)
 
         test {
             sql """DROP FUNCTION ${dbName}.${functionName}(INT)"""
