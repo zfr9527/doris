@@ -44,26 +44,16 @@ suite("test_show_dynamic_table_auth","p0,auth") {
                 "dynamic_partition.start_day_of_month" = "3"
             );"""
 
-//    connect(user=user, password="${pwd}", url=context.config.jdbcUrl) {
-//        test {
-//            sql """show create table ${dbName}.${tableName}"""
-//            exception "denied"
-//        }
-//        test {
-//            sql """SHOW DATA SKEW FROM ${dbName}.${tableName};"""
-//            exception "denied"
-//        }
-//    }
-//    sql """grant select_priv on ${dbName}.${tableName} to ${user}"""
-//    connect(user=user, password="${pwd}", url=context.config.jdbcUrl) {
-//        sql """use ${dbName}"""
-//        sql """show create table ${tableName}"""
-//        sql """SHOW DATA SKEW FROM ${tableName};"""
-//    }
-//    sql """revoke select_priv on ${dbName}.${tableName} from ${user}"""
+    connect(user=user, password="${pwd}", url=context.config.jdbcUrl) {
+        def res = sql """SHOW DYNAMIC PARTITION TABLES from ${dbName};"""
+        assertTrue(res.size() == 0)
+    }
+    sql """grant select_priv on ${dbName}.${tableName} to ${user}"""
+    connect(user=user, password="${pwd}", url=context.config.jdbcUrl) {
+        def res = sql """SHOW DYNAMIC PARTITION TABLES from ${dbName};"""
+        assertTrue(res.size() == 1)
+    }
 
-
-
-//    sql """drop database if exists ${dbName}"""
-//    try_sql("DROP USER ${user}")
+    sql """drop database if exists ${dbName}"""
+    try_sql("DROP USER ${user}")
 }
