@@ -47,12 +47,19 @@ suite("test_dml_analyze_auth","p0,auth") {
                 """
             exception "denied"
         }
+        test {
+            sql """show column stats ${dbName}.${tableName};"""
+            exception "denied"
+        }
     }
     sql """grant select_priv on ${dbName}.${tableName} to ${user}"""
     connect(user=user, password="${pwd}", url=context.config.jdbcUrl) {
         sql """
             analyze table ${dbName}.${tableName} with sync;
             """
+        def col_stats = sql """show column stats ${dbName}.${tableName};"""
+        logger.info("col_stats: " + col_stats)
+        assertTrue(col_stats.size() == 2)
     }
 
     def res = sql """show column stats ${dbName}.${tableName};"""
