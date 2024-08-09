@@ -74,6 +74,10 @@ suite("test_ddl_table_auth","p0,auth") {
             log.info(e.getMessage())
             assertTrue(e.getMessage().contains("Access denied"))
         }
+        test {
+            sql """SHOW FULL COLUMNS FROM ${dbName}.${tableName};"""
+            exception "denied"
+        }
     }
     sql """grant Create_priv on ${dbName}.${tableName} to ${user}"""
     connect(user=user, password="${pwd}", url=context.config.jdbcUrl) {
@@ -89,6 +93,9 @@ suite("test_ddl_table_auth","p0,auth") {
         sql """show create table ${tableName}"""
         def db_res = sql """show tables;"""
         assertTrue(db_res.size() == 1)
+
+        def col_res = sql """SHOW FULL COLUMNS FROM ${dbName}.${tableName};"""
+        logger.info("col_res: " + col_res)
     }
 
     // ddl alter
