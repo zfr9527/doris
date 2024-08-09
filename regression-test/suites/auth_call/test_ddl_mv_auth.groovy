@@ -46,22 +46,21 @@ suite("test_ddl_mv_auth","p0,auth") {
         """
 
     // ddl create
+    connect(user=user, password="${pwd}", url=context.config.jdbcUrl) {
+        sql """use ${dbName}"""
+        test {
+            sql """create materialized view ${mvName} as select username from ${dbName}.${tableName};"""
+            exception "denied"
+        }
+    }
     sql """grant select_priv(username) on ${dbName}.${tableName} to ${user}"""
     connect(user=user, password="${pwd}", url=context.config.jdbcUrl) {
         sql """use ${dbName}"""
-//        test {
-//            sql """create materialized view ${mvName} as select username from ${dbName}.${tableName};"""
-//            exception "denied"
-//        }
         sql """create materialized view ${mvName} as select username from ${dbName}.${tableName};"""
     }
     waitingMVTaskFinishedByMvName(dbName, tableName)
     connect(user=user, password="${pwd}", url=context.config.jdbcUrl) {
         sql """use ${dbName}"""
-//        test {
-//            sql """create materialized view ${mvName} as select username from ${dbName}.${tableName};"""
-//            exception "denied"
-//        }
         test {
             sql """alter table ${dbName}.${tableName} add rollup ${rollupName}(username)"""
             exception "denied"
@@ -70,8 +69,6 @@ suite("test_ddl_mv_auth","p0,auth") {
     sql """grant alter_priv on ${dbName}.${tableName} to ${user}"""
     connect(user=user, password="${pwd}", url=context.config.jdbcUrl) {
         sql """use ${dbName}"""
-//        sql """create materialized view ${mvName} as select username from ${dbName}.${tableName};"""
-//        waitingMVTaskFinishedByMvName(dbName, tableName)
         sql """alter table ${dbName}.${tableName} add rollup ${rollupName}(username)"""
         waitingMVTaskFinishedByMvName(dbName, tableName)
 //        def mv_res = sql """desc ${dbName}.${tableName} all;"""
