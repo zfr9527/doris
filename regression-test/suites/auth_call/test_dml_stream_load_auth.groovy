@@ -85,10 +85,10 @@ suite("test_dml_stream_load_auth","p0,auth") {
     logger.info("std out: " + sout + "std err: " + serr)
     assertTrue(sout.toString().indexOf("Success") != -1)
 
-    int pos1 = serr.indexOf("TxnId")
-    int pos2 = serr.indexOf(",", pos1)
-    int pos3 = serr.indexOf(":", pos1)
-    def tsc_id = serr.substring(pos3+2, pos2)
+    int pos1 = sout.indexOf("TxnId")
+    int pos2 = sout.indexOf(",", pos1)
+    int pos3 = sout.indexOf(":", pos1)
+    def tsc_id = sout.substring(pos3+2, pos2)
 
     test {
         sql """SHOW TRANSACTION FROM ${dbName} WHERE ID=${tsc_id};"""
