@@ -88,6 +88,9 @@ suite("test_dml_stream_load_auth","p0,auth") {
     def res = sql """select count() from ${dbName}.${tableName}"""
     assertTrue(res[0][0] == 3)
 
+    def stream_res = sql """SHOW STREAM LOAD FROM ${dbName};"""
+    logger.info("stream_res: " + stream_res)
+
     sql """drop database if exists ${dbName}"""
     try_sql("DROP USER ${user}")
 }
