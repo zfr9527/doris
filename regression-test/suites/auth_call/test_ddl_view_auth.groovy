@@ -55,6 +55,10 @@ suite("test_ddl_view_auth","p0,auth") {
             log.info(e.getMessage())
             assertTrue(e.getMessage().contains("denied"))
         }
+        test {
+            sql """SHOW VIEW from ${tableName} from ${dbName}"""
+            exception 'denied'
+        }
     }
     sql """grant select_priv(id) on ${dbName}.${tableName} to ${user}"""
     connect(user=user, password="${pwd}", url=context.config.jdbcUrl) {
@@ -67,6 +71,8 @@ suite("test_ddl_view_auth","p0,auth") {
             log.info(e.getMessage())
             assertTrue(e.getMessage().contains("denied"))
         }
+        def res = sql """SHOW VIEW from ${tableName} from ${dbName}"""
+        assertTrue(res.size() == 0)
     }
     sql """grant Create_priv on ${dbName}.${viewName} to ${user}"""
     connect(user=user, password="${pwd}", url=context.config.jdbcUrl) {
@@ -74,6 +80,9 @@ suite("test_ddl_view_auth","p0,auth") {
             AS
             SELECT id as k1, SUM(id) FROM ${dbName}.${tableName}
             WHERE id = 1 GROUP BY k1;"""
+
+        def res = sql """SHOW VIEW from ${tableName} from ${dbName}"""
+        assertTrue(res.size() == 1)
     }
     connect(user=user, password="${pwd}", url=context.config.jdbcUrl) {
         try {
