@@ -88,6 +88,11 @@ suite("test_ddl_backup_auth","p0,auth") {
             sql """SHOW BACKUP FROM ${dbName};"""
             exception "denied"
         }
+
+        test {
+            sql """SHOW SNAPSHOT ON ${repositoryName};"""
+            exception "denied"
+        }
     }
     sql """grant LOAD_PRIV on ${dbName}.* to ${user}"""
     connect(user=user, password="${pwd}", url=context.config.jdbcUrl) {
@@ -103,6 +108,9 @@ suite("test_ddl_backup_auth","p0,auth") {
         res = sql """SHOW BACKUP FROM ${dbName};"""
         logger.info("res: " + res)
         assertTrue(res[0][3] == "CANCELLED")
+
+        def show_snapshot_res = sql """SHOW SNAPSHOT ON ${repositoryName};"""
+        logger.info("show_snapshot_res: " + show_snapshot_res)
     }
 
     try_sql("""DROP REPOSITORY `${repositoryName}`;""")
