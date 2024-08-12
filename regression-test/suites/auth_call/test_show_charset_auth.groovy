@@ -42,6 +42,7 @@ suite("test_show_no_auth","p0,auth") {
             sql """show PROPERTY for ${user1}"""
             exception "denied"
         }
+        sql """SHOW TRASH;"""
     }
     sql """grant grant_priv on *.*.* to ${user}"""
     connect(user=user, password="${pwd}", url=context.config.jdbcUrl) {
@@ -51,6 +52,13 @@ suite("test_show_no_auth","p0,auth") {
 //        def res1 = sql """SHOW PROCESSLIST"""
 //        logger.info("res1: " + res1)
 //        assertTrue(res1.size() == 1)
+    }
+    sql """revoke grant_priv on *.*.* from ${user}"""
+    sql """grant admin_priv on *.*.* to ${user}"""
+    connect(user=user, password="${pwd}", url=context.config.jdbcUrl) {
+        def res = sql """SHOW TRASH;"""
+        logger.info("res: " + res)
+        assertTrue(res.size() == 1)
     }
 
     try_sql("DROP USER ${user}")
