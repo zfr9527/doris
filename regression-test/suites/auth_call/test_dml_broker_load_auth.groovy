@@ -145,6 +145,7 @@ suite("test_dml_broker_load_auth","p0,auth") {
         def show_warn_res = sql """SHOW LOAD WARNINGS FROM ${dbName} WHERE LABEL = '${loadLabelName}';"""
         logger.info("show_warn_res: " + show_warn_res)
     }
+    sql """revoke load_priv on ${dbName} from ${user}"""
 
 //    sql """grant load_priv on ${dbName} to ${user}"""
 //    connect(user=user, password="${pwd}", url=context.config.jdbcUrl) {

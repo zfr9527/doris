@@ -59,6 +59,11 @@ suite("test_ddl_index_auth","p0,auth") {
             log.info(e.getMessage())
             assertTrue(e.getMessage().contains("denied"))
         }
+
+        test {
+            sql """show index"""
+            exception "denied"
+        }
     }
     sql """grant ALTER_PRIV on ${dbName}.${tableName} to ${user}"""
     connect(user=user, password="${pwd}", url=context.config.jdbcUrl) {
@@ -71,6 +76,9 @@ suite("test_ddl_index_auth","p0,auth") {
         sql """DROP INDEX IF EXISTS ${indexName} ON ${dbName}.${tableName};"""
         index_res = sql """SHOW INDEX FROM ${tableName};"""
         assertTrue(index_res.size() == 0)
+
+        def show_index_res = sql """show index"""
+        logger.info("show_index_res: " + show_index_res)
     }
 
     sql """drop database if exists ${dbName}"""
