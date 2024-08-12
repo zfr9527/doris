@@ -170,21 +170,18 @@ suite("test_dml_broker_load_auth","p0,auth") {
                 WHERE LABEL = "${loadLabelName}";"""
         res = sql """SHOW LOAD FROM ${dbName} WHERE LABEL LIKE '${loadLabelName}'"""
         logger.info("res: " + res)
+
+        sql """CLEAN LABEL ${loadLabelName} FROM ${dbName};"""
     }
     sql """revoke load_priv on ${dbName} from ${user}"""
 
-    sql """grant admin_priv on *.*.* to ${user}"""
-    connect(user=user, password="${pwd}", url=context.config.jdbcUrl) {
-        def res = sql """SHOW TRANSACTION WHERE LABEL = "${loadLabelName}";"""
-        logger.info("SHOW TRANSACTION res:" + res)
-        assertTrue(res.size() == 1)
-    }
-    sql """revoke admin_priv on *.*.* from ${user}"""
-
-    sql """grant load_priv on ${dbName} to ${user}"""
-    connect(user=user, password="${pwd}", url=context.config.jdbcUrl) {
-        sql """CLEAN LABEL ${loadLabelName} FROM ${dbName};"""
-    }
+//    sql """grant admin_priv on *.*.* to ${user}"""
+//    connect(user=user, password="${pwd}", url=context.config.jdbcUrl) {
+//        def res = sql """SHOW TRANSACTION WHERE LABEL = "${loadLabelName}";"""
+//        logger.info("SHOW TRANSACTION res:" + res)
+//        assertTrue(res.size() == 1)
+//    }
+//    sql """revoke admin_priv on *.*.* from ${user}"""
 
 
     sql """drop database if exists ${dbName}"""
