@@ -42,10 +42,19 @@ suite("test_ddl_part_table_auth","p0,auth") {
     sql """alter table ${dbName}.${tableName} add partition p1 VALUES [("1"), ("2"));"""
     sql """insert into ${dbName}.${tableName} values (1, "111");"""
 
+    def partition_info = sql """show partitions from ${dbName}.${tableName}"""
+    connect(user=user, password="${pwd}", url=context.config.jdbcUrl) {
+        test {
+            sql """show partition ${partition_info[0][0]}"""
+            exception "denied"
+        }
+    }
+    sql """grant admin_priv on *.*.* to ${user}"""
+    connect(user=user, password="${pwd}", url=context.config.jdbcUrl) {
+        def res = sql """show partition ${partition_info[0][0]}"""
+        assertTrue(res.size() == 1)
+    }
 
-
-
-
-//    sql """drop database if exists ${dbName}"""
-//    try_sql("DROP USER ${user}")
+    sql """drop database if exists ${dbName}"""
+    try_sql("DROP USER ${user}")
 }
