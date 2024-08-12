@@ -49,6 +49,7 @@ suite("test_show_no_auth","p0,auth") {
         logger.info("res: " + res)
 
         def res1 = sql """SHOW PROCESSLIST"""
+        logger.info("res1: " + res1)
         assertTrue(res1.size() == 1)
     }
 
