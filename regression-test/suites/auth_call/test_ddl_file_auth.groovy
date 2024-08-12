@@ -53,6 +53,12 @@ suite("test_ddl_file_auth","p0,auth") {
             exception "denied"
         }
     }
+    sql """grant select_priv on ${dbName} to ${user}"""
+    connect(user=user, password="${pwd}", url=context.config.jdbcUrl) {
+        sql """SHOW FILE FROM ${dbName};"""
+    }
+    sql """revoke select_priv on ${dbName} from ${user}"""
+
     sql """grant admin_priv on *.*.* to ${user}"""
     connect(user=user, password="${pwd}", url=context.config.jdbcUrl) {
         sql """CREATE FILE "${fileName}" IN ${dbName}
