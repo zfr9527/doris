@@ -90,11 +90,12 @@ suite("test_dml_stream_load_auth","p0,auth") {
     int pos3 = sout.indexOf(":", pos1)
     def tsc_id = sout.substring(pos3+2, pos2)
 
-    test {
-        sql """SHOW TRANSACTION FROM ${dbName} WHERE ID=${tsc_id};"""
-        exception "denied"
+    connect(user=user, password="${pwd}", url=context.config.jdbcUrl) {
+        test {
+            sql """SHOW TRANSACTION FROM ${dbName} WHERE ID=${tsc_id};"""
+            exception "denied"
+        }
     }
-
 
     def res = sql """select count() from ${dbName}.${tableName}"""
     assertTrue(res[0][0] == 3)
@@ -103,8 +104,11 @@ suite("test_dml_stream_load_auth","p0,auth") {
     logger.info("stream_res: " + stream_res)
 
     sql """grant admin_priv on *.*.* to ${user}"""
-    def transaction_res = sql """SHOW TRANSACTION FROM ${dbName} WHERE ID=${tsc_id};"""
-    assertTrue(transaction_res.size() == 1)
+
+    connect(user=user, password="${pwd}", url=context.config.jdbcUrl) {
+        def transaction_res = sql """SHOW TRANSACTION FROM ${dbName} WHERE ID=${tsc_id};"""
+        assertTrue(transaction_res.size() == 1)
+    }
 
     sql """drop database if exists ${dbName}"""
     try_sql("DROP USER ${user}")
