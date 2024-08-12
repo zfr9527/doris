@@ -87,6 +87,9 @@ suite("test_dml_broker_load_auth","p0,auth") {
         def res = sql """SHOW LOAD FROM ${dbName} WHERE LABEL LIKE '${loadLabelName}'"""
         assertTrue(res.size() == 0)
 
+        res = sql """SHOW STREAM LOAD FROM ${dbName} WHERE LABEL = "${loadLabelName}";"""
+        assertTrue("SHOW STREAM LOAD res:" + res)
+
         test {
             sql """CLEAN LABEL ${loadLabelName} FROM ${dbName};"""
             exception "denied"
