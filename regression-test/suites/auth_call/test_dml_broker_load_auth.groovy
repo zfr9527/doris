@@ -119,6 +119,9 @@ suite("test_dml_broker_load_auth","p0,auth") {
         logger.info("res: " + res)
         assertTrue(res.size() == 0)
 
+        de warn_res = sql """SHOW LOAD WARNINGS FROM ${dbName} WHERE LABEL = '${loadLabelName}';"""
+        logger.info("warn_res: " + warn_res)
+
         test {
             sql """CANCEL LOAD
                 FROM ${dbName}
@@ -147,6 +150,6 @@ suite("test_dml_broker_load_auth","p0,auth") {
 //        sql """CLEAN LABEL ${loadLabelName} FROM ${dbName};"""
 //    }
 
-//    sql """drop database if exists ${dbName}"""
-//    try_sql("DROP USER ${user}")
+    sql """drop database if exists ${dbName}"""
+    try_sql("DROP USER ${user}")
 }
