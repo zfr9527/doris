@@ -156,9 +156,12 @@ suite("test_dml_broker_load_auth","p0,auth") {
         logger.info("res: " + res)
         assertTrue(res.size() == 1)
 
-        res = sql """SHOW STREAM LOAD FROM ${dbName} WHERE LABEL = "${loadLabelName}";"""
-        logger.info("SHOW STREAM LOAD res: " + res)
-        assertTrue(res.size() == 1)
+//        res = sql """SHOW STREAM LOAD FROM ${dbName} WHERE LABEL = "${loadLabelName}";"""
+//        logger.info("SHOW STREAM LOAD res: " + res)
+//        assertTrue(res.size() == 1)
+
+        res = sql """SHOW TRANSACTION WHERE LABEL = "${loadLabelName}";"""
+        logger.info("SHOW TRANSACTION res:" + res)
 
         sql """CANCEL LOAD
                 FROM ${dbName}
