@@ -52,10 +52,18 @@ suite("test_show_repository_auth","p0,auth") {
             sql """SHOW CREATE REPOSITORY for ${repositoryName};"""
             exception "denied"
         }
+        test {
+            sql """SHOW REPOSITORIES;"""
+            exception "denied"
+        }
+
     }
     sql """grant admin_priv on *.*.* to ${user}"""
     connect(user=user, password="${pwd}", url=context.config.jdbcUrl) {
         sql """SHOW CREATE REPOSITORY for ${repositoryName};"""
+
+        def res = sql """SHOW REPOSITORIES;"""
+        logger.info("res: " + res)
     }
 
     try_sql("DROP USER ${user}")
