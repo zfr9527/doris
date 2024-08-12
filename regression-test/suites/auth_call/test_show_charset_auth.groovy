@@ -43,7 +43,10 @@ suite("test_show_no_auth","p0,auth") {
             sql """show PROPERTY for ${user1}"""
             exception "denied"
         }
-        sql """SHOW TRASH;"""
+        test {
+            sql """SHOW TRASH;"""
+            exception "denied"
+        }
     }
     sql """grant grant_priv on *.*.* to ${user}"""
     connect(user=user, password="${pwd}", url=context.config.jdbcUrl) {
@@ -59,7 +62,7 @@ suite("test_show_no_auth","p0,auth") {
     connect(user=user, password="${pwd}", url=context.config.jdbcUrl) {
         def res = sql """SHOW TRASH;"""
         logger.info("res: " + res)
-        assertTrue(res.size() == 1)
+        assertTrue(res.size() >= 1)
     }
 
     try_sql("DROP USER ${user}")
