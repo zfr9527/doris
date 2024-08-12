@@ -35,6 +35,9 @@ suite("test_show_no_auth","p0,auth") {
         sql """show collation;"""
         sql """show variables;"""
         sql """SHOW PROPERTY;"""
+        def res1 = sql """SHOW PROCESSLIST"""
+        assertTrue(res1.size() == 1)
+
         test {
             sql """show PROPERTY for ${user1}"""
             exception "denied"
@@ -44,6 +47,9 @@ suite("test_show_no_auth","p0,auth") {
     connect(user=user, password="${pwd}", url=context.config.jdbcUrl) {
         def res = sql """show PROPERTY for ${user1}"""
         logger.info("res: " + res)
+
+        def res1 = sql """SHOW PROCESSLIST"""
+        assertTrue(res1.size() == 1)
     }
 
     try_sql("DROP USER ${user}")
