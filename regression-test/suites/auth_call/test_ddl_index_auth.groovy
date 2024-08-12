@@ -61,7 +61,7 @@ suite("test_ddl_index_auth","p0,auth") {
         }
 
         test {
-            sql """show index"""
+            sql """show index FROM ${dbName}.${tableName};"""
             exception "denied"
         }
     }
@@ -77,7 +77,7 @@ suite("test_ddl_index_auth","p0,auth") {
         index_res = sql """SHOW INDEX FROM ${tableName};"""
         assertTrue(index_res.size() == 0)
 
-        def show_index_res = sql """show index"""
+        def show_index_res = sql """show index FROM ${dbName}.${tableName};"""
         logger.info("show_index_res: " + show_index_res)
     }
 
