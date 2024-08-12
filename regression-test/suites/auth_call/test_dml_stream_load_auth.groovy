@@ -85,12 +85,27 @@ suite("test_dml_stream_load_auth","p0,auth") {
     logger.info("std out: " + sout + "std err: " + serr)
     assertTrue(sout.toString().indexOf("Success") != -1)
 
+    int pos1 = serr.indexOf("TxnId")
+    int pos2 = serr.indexOf(",", pos1)
+    int pos3 = serr.indexOf(":", pos1)
+    def tsc_id = serr.substring(pos3+2, pos2)
+
+    test {
+        sql """SHOW TRANSACTION FROM ${dbName} WHERE ID=${tsc_id};"""
+        exception "denied"
+    }
+
+
     def res = sql """select count() from ${dbName}.${tableName}"""
     assertTrue(res[0][0] == 3)
 
     def stream_res = sql """SHOW STREAM LOAD FROM ${dbName};"""
     logger.info("stream_res: " + stream_res)
 
-//    sql """drop database if exists ${dbName}"""
-//    try_sql("DROP USER ${user}")
+    sql """grant admin_priv on *.*.* to ${user}"""
+    def transaction_res = sql """SHOW TRANSACTION FROM ${dbName} WHERE ID=${tsc_id};"""
+    assertTrue(transaction_res.size() == 1)
+
+    sql """drop database if exists ${dbName}"""
+    try_sql("DROP USER ${user}")
 }
