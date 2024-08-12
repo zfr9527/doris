@@ -30,11 +30,17 @@ suite("test_show_frontend_auth","p0,auth") {
             sql """SHOW frontends"""
             exception "denied"
         }
+        test {
+            sql """show frontends disks"""
+            exception "denied"
+        }
     }
     sql """grant node_priv on *.*.* to ${user}"""
     connect(user=user, password="${pwd}", url=context.config.jdbcUrl) {
         def res = sql """SHOW frontends"""
         assertTrue(res.size() > 0)
+
+        sql """show frontends disks"""
     }
 
     try_sql("DROP USER ${user}")
