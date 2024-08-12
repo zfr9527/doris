@@ -160,8 +160,11 @@ suite("test_dml_broker_load_auth","p0,auth") {
 //        logger.info("SHOW STREAM LOAD res: " + res)
 //        assertTrue(res.size() == 1)
 
-        res = sql """SHOW TRANSACTION WHERE LABEL = "${loadLabelName}";"""
         logger.info("SHOW TRANSACTION res:" + res)
+        test {
+            sql """SHOW TRANSACTION WHERE LABEL = "${loadLabelName}";"""
+            exception "denied"
+        }
 
         sql """CANCEL LOAD
                 FROM ${dbName}
@@ -171,6 +174,14 @@ suite("test_dml_broker_load_auth","p0,auth") {
 
         sql """CLEAN LABEL ${loadLabelName} FROM ${dbName};"""
     }
+    sql """revoke load_priv on ${dbName} from ${user}"""
+
+    sql """grant admin_priv on *.*.* to ${user}"""
+    connect(user=user, password="${pwd}", url=context.config.jdbcUrl) {
+        def res = sql """SHOW TRANSACTION WHERE LABEL = "${loadLabelName}";"""
+        logger.info("SHOW TRANSACTION res:" + res)
+    }
+
 
     sql """drop database if exists ${dbName}"""
     try_sql("DROP USER ${user}")
