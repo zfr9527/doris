@@ -54,7 +54,7 @@ suite("test_ddl_part_table_auth","p0,auth") {
             exception "denied"
         }
         test {
-            sql """show query stats"""
+            sql """show query stats;"""
             exception "denied"
         }
     }
