@@ -53,6 +53,10 @@ suite("test_show_tablet_auth","p0,auth") {
             sql """SHOW TABLET 1000"""
             exception "denied"
         }
+        test {
+            sql """SHOW TABLETS BELONG 1000"""
+            exception "denied"
+        }
     }
     sql """revoke select_priv on ${dbName}.${tableName} from ${user}"""
 
@@ -61,6 +65,9 @@ suite("test_show_tablet_auth","p0,auth") {
         def res = sql """SHOW TABLETS FROM ${dbName}.${tableName}"""
 
         def tablet_res = sql """SHOW TABLET ${res[0][0]}"""
+        assertTrue(tablet_res.size() == 1)
+
+        tablet_res = sql """SHOW TABLETS BELONG ${res[0][0]}"""
         assertTrue(tablet_res.size() == 1)
     }
 
