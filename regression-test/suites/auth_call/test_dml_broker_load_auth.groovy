@@ -119,9 +119,6 @@ suite("test_dml_broker_load_auth","p0,auth") {
         logger.info("res: " + res)
         assertTrue(res.size() == 0)
 
-        def warn_res = sql """SHOW LOAD WARNINGS FROM ${dbName} WHERE LABEL = '${loadLabelName}';"""
-        logger.info("warn_res: " + warn_res)
-
         test {
             sql """CANCEL LOAD
                 FROM ${dbName}
@@ -133,6 +130,20 @@ suite("test_dml_broker_load_auth","p0,auth") {
             sql """CLEAN LABEL ${loadLabelName} FROM ${dbName};"""
             exception "denied"
         }
+    }
+    def warn_res = sql """SHOW LOAD WARNINGS FROM ${dbName} WHERE LABEL = '${loadLabelName}';"""
+    logger.info("warn_res: " + warn_res)
+
+    connect(user=user, password="${pwd}", url=context.config.jdbcUrl) {
+        test {
+            sql """SHOW LOAD WARNINGS FROM ${dbName} WHERE LABEL = '${loadLabelName}';"""
+            exception 'job is not exist'
+        }
+    }
+    sql """grant load_priv on ${dbName} to ${user}"""
+    connect(user=user, password="${pwd}", url=context.config.jdbcUrl) {
+        def show_warn_res = sql """SHOW LOAD WARNINGS FROM ${dbName} WHERE LABEL = '${loadLabelName}';"""
+        logger.info("show_warn_res: " + show_warn_res)
     }
 
 //    sql """grant load_priv on ${dbName} to ${user}"""
