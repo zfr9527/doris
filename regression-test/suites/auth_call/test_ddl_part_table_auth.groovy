@@ -53,6 +53,12 @@ suite("test_ddl_part_table_auth","p0,auth") {
             exception "denied"
         }
     }
+    sql """grant select_priv on ${dbName}.${tableName} to ${user}"""
+    connect(user=user, password="${pwd}", url=context.config.jdbcUrl) {
+        sql """show partitions from ${dbName}.${tableName}"""
+    }
+    sql """revoke select_priv on ${dbName}.${tableName} from ${user}"""
+
     sql """grant admin_priv on *.*.* to ${user}"""
     connect(user=user, password="${pwd}", url=context.config.jdbcUrl) {
         def res = sql """show partition ${partition_info[0][0]}"""

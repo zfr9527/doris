@@ -61,7 +61,7 @@ suite("test_ddl_mv_auth","p0,auth") {
         }
     }
     sql """grant select_priv(username) on ${dbName}.${tableName} to ${user}"""
-    sql """grant Create_priv on ${dbName}.${mtmvName} to ${user}"""
+//    sql """grant Create_priv on ${dbName}.${mtmvName} to ${user}"""
     waitingMVTaskFinishedByMvName(dbName, tableName)
     connect(user=user, password="${pwd}", url=context.config.jdbcUrl) {
         sql """use ${dbName}"""
