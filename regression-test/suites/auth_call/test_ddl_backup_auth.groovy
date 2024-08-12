@@ -109,8 +109,10 @@ suite("test_ddl_backup_auth","p0,auth") {
         logger.info("res: " + res)
         assertTrue(res[0][3] == "CANCELLED")
 
-        def show_snapshot_res = sql """SHOW SNAPSHOT ON ${repositoryName};"""
-        logger.info("show_snapshot_res: " + show_snapshot_res)
+        test {
+            sql """SHOW SNAPSHOT ON ${repositoryName};"""
+            exception "denied"
+        }
     }
 
     try_sql("""DROP REPOSITORY `${repositoryName}`;""")

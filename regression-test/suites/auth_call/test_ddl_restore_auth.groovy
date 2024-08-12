@@ -103,6 +103,13 @@ suite("test_ddl_restore_auth","p0,auth") {
 
     sql """truncate table ${dbName}.`${tableName}`"""
 
+    sql """grant admin_PRIV on *.*.* to ${user}"""
+    connect(user=user, password="${pwd}", url=context.config.jdbcUrl) {
+        def show_snapshot_res = sql """SHOW SNAPSHOT ON ${repositoryName};"""
+        logger.info("show_snapshot_res: " + show_snapshot_res)
+    }
+    sql """revoke admin_PRIV on *.*.* from ${user}"""
+
     // ddl create,show,drop
     connect(user=user, password="${pwd}", url=context.config.jdbcUrl) {
         test {
