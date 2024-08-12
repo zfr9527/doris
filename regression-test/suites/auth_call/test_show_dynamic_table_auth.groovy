@@ -43,6 +43,7 @@ suite("test_show_dynamic_table_auth","p0,auth") {
                 "dynamic_partition.buckets" = "8",
                 "dynamic_partition.start_day_of_month" = "3"
             );"""
+    sql """insert into ${dbName}.${tableName} values (1, "111");"""
 
     connect(user=user, password="${pwd}", url=context.config.jdbcUrl) {
         def res = sql """SHOW DYNAMIC PARTITION TABLES from ${dbName};"""
@@ -54,6 +55,6 @@ suite("test_show_dynamic_table_auth","p0,auth") {
         assertTrue(res.size() == 1)
     }
 
-    sql """drop database if exists ${dbName}"""
-    try_sql("DROP USER ${user}")
+//    sql """drop database if exists ${dbName}"""
+//    try_sql("DROP USER ${user}")
 }
