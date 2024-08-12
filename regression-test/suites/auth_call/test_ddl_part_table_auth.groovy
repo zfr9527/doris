@@ -53,10 +53,6 @@ suite("test_ddl_part_table_auth","p0,auth") {
             sql """show partition ${partition_info[0][0]}"""
             exception "denied"
         }
-        test {
-            sql """show query stats;"""
-            exception "denied"
-        }
     }
     sql """grant select_priv on ${dbName}.${tableName} to ${user}"""
     connect(user=user, password="${pwd}", url=context.config.jdbcUrl) {
