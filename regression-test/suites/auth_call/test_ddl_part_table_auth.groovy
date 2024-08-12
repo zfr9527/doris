@@ -40,7 +40,8 @@ suite("test_ddl_part_table_auth","p0,auth") {
             );"""
 
     sql """alter table ${dbName}.${tableName} add partition p1 VALUES [("1"), ("2"));"""
-    sql """insert into ${dbName}.${tableName} values (1, "111");"""
+    def insert_res = sql """insert into ${dbName}.${tableName} values (1, "111");"""
+    logger.info("insert_res: " + insert_res)
 
     def partition_info = sql """show partitions from ${dbName}.${tableName}"""
     connect(user=user, password="${pwd}", url=context.config.jdbcUrl) {
