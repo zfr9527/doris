@@ -57,6 +57,10 @@ suite("test_show_tablet_auth","p0,auth") {
             sql """SHOW TABLETS BELONG 1000"""
             exception "denied"
         }
+        test {
+            sql """SHOW PLUGINS"""
+            exception "denied"
+        }
     }
     sql """revoke select_priv on ${dbName}.${tableName} from ${user}"""
 
@@ -69,6 +73,8 @@ suite("test_show_tablet_auth","p0,auth") {
 
         tablet_res = sql """SHOW TABLETS BELONG ${res[0][0]}"""
         assertTrue(tablet_res.size() == 1)
+
+        sql """SHOW PLUGINS"""
     }
 
 
