@@ -56,6 +56,8 @@ suite("test_dml_insert_auth","p0,auth") {
             """
 
     connect(user=user, password="${pwd}", url=context.config.jdbcUrl) {
+        def insert_res = sql """SHOW LAST INSERT"""
+        logger.info("insert_res: " + insert_res)
         test {
             sql """
                 INSERT INTO ${dbName}.${tableName} (id, username)
