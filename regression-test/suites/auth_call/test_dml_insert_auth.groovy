@@ -82,6 +82,8 @@ suite("test_dml_insert_auth","p0,auth") {
                        (2, "222"),
                        (3, "333")
                 """
+        def insert_res = sql """SHOW LAST INSERT"""
+        logger.info("insert_res: " + insert_res)
         test {
             sql """select count() from ${dbName}.${tableName}"""
             exception "denied"
