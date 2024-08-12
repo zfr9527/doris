@@ -119,7 +119,7 @@ suite("test_dml_broker_load_auth","p0,auth") {
         logger.info("res: " + res)
         assertTrue(res.size() == 0)
 
-        de warn_res = sql """SHOW LOAD WARNINGS FROM ${dbName} WHERE LABEL = '${loadLabelName}';"""
+        def warn_res = sql """SHOW LOAD WARNINGS FROM ${dbName} WHERE LABEL = '${loadLabelName}';"""
         logger.info("warn_res: " + warn_res)
 
         test {
