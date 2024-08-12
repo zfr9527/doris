@@ -76,7 +76,7 @@ suite("test_ddl_table_auth","p0,auth") {
         }
         test {
             sql """show query stats;"""
-            exception "denied"
+            exception 'denied'
         }
     }
     sql """grant Create_priv on ${dbName}.${tableName} to ${user}"""
