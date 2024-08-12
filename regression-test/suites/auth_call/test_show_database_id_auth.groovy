@@ -34,10 +34,15 @@ suite("test_show_database_id_auth","p0,auth") {
             sql """show database 1001"""
             exception "denied"
         }
+        test {
+            sql """show table 1001"""
+            exception "denied"
+        }
     }
     sql """grant admin_priv on *.*.* to ${user}"""
     connect(user=user, password="${pwd}", url=context.config.jdbcUrl) {
         sql """show database 1001"""
+        sql """show table 1001"""
     }
 
     sql """drop database if exists ${dbName}"""
