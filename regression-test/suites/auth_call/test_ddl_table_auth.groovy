@@ -74,7 +74,8 @@ suite("test_ddl_table_auth","p0,auth") {
             log.info(e.getMessage())
             assertTrue(e.getMessage().contains("Access denied"))
         }
-        sql """show query stats;"""
+        def res = sql """show query stats;"""
+        logger.info("res:" + res)
 //        test {
 //            sql """show query stats;"""
 //            exception 'denied'
