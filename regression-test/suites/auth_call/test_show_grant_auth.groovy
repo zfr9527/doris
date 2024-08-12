@@ -31,11 +31,17 @@ suite("test_show_grant_auth","p0,auth") {
             sql """show all grants;"""
             exception "denied"
         }
+
+        test {
+            sql """show roles;"""
+            exception "denied"
+        }
     }
     sql """grant grant_priv on *.*.* to ${user}"""
     connect(user=user, password="${pwd}", url=context.config.jdbcUrl) {
         sql """show grants;"""
         sql """show all grants;"""
+        sql """show roles;"""
     }
 
     try_sql("DROP USER ${user}")
