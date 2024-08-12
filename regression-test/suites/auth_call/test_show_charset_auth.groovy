@@ -19,10 +19,13 @@ import org.junit.Assert;
 
 suite("test_show_no_auth","p0,auth") {
     String user = 'test_show_charset_auth_user'
+    String user1 = 'test_show_charset_auth_user1'
     String pwd = 'C123_567p'
 
     try_sql("DROP USER ${user}")
+    try_sql("DROP USER ${user1}")
     sql """CREATE USER '${user}' IDENTIFIED BY '${pwd}'"""
+    sql """CREATE USER '${user1}' IDENTIFIED BY '${pwd}'"""
     sql """grant select_priv on regression_test to ${user}"""
 
     connect(user=user, password="${pwd}", url=context.config.jdbcUrl) {
@@ -31,7 +34,18 @@ suite("test_show_no_auth","p0,auth") {
         sql """SHOW ENGINES"""
         sql """show collation;"""
         sql """show variables;"""
+        sql """SHOW PROPERTY;"""
+        test {
+            sql """show PROPERTY for ${user1}"""
+            exception "denied"
+        }
+    }
+    sql """grant grant_priv on *.*.* to ${user}"""
+    connect(user=user, password="${pwd}", url=context.config.jdbcUrl) {
+        def res = sql """show PROPERTY for ${user1}"""
+        logger.info("res: " + res)
     }
 
     try_sql("DROP USER ${user}")
+    try_sql("DROP USER ${user1}")
 }
