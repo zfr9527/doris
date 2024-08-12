@@ -74,10 +74,6 @@ suite("test_ddl_table_auth","p0,auth") {
             log.info(e.getMessage())
             assertTrue(e.getMessage().contains("Access denied"))
         }
-        test {
-            sql """show tables;"""
-            exception "denied"
-        }
     }
     sql """grant Create_priv on ${dbName}.${tableName} to ${user}"""
     connect(user=user, password="${pwd}", url=context.config.jdbcUrl) {

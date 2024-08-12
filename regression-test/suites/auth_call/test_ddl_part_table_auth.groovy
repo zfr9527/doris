@@ -45,6 +45,10 @@ suite("test_ddl_part_table_auth","p0,auth") {
     def partition_info = sql """show partitions from ${dbName}.${tableName}"""
     connect(user=user, password="${pwd}", url=context.config.jdbcUrl) {
         test {
+            sql """show partitions from ${dbName}.${tableName}"""
+            exception "denied"
+        }
+        test {
             sql """show partition ${partition_info[0][0]}"""
             exception "denied"
         }
