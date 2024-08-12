@@ -88,7 +88,7 @@ suite("test_dml_broker_load_auth","p0,auth") {
         assertTrue(res.size() == 0)
 
         res = sql """SHOW STREAM LOAD FROM ${dbName} WHERE LABEL = "${loadLabelName}";"""
-        assertTrue("SHOW STREAM LOAD res:" + res)
+        assertTrue(res.size() == 0)
 
         test {
             sql """CLEAN LABEL ${loadLabelName} FROM ${dbName};"""
@@ -150,20 +150,24 @@ suite("test_dml_broker_load_auth","p0,auth") {
     }
     sql """revoke load_priv on ${dbName} from ${user}"""
 
-//    sql """grant load_priv on ${dbName} to ${user}"""
-//    connect(user=user, password="${pwd}", url=context.config.jdbcUrl) {
-//        def res = sql """SHOW LOAD FROM ${dbName} WHERE LABEL LIKE '${loadLabelName}'"""
-//        logger.info("res: " + res)
-//        assertTrue(res.size() == 1)
-//
-//        sql """CANCEL LOAD
-//                FROM ${dbName}
-//                WHERE LABEL = "${loadLabelName}";"""
-//        res = sql """SHOW LOAD FROM ${dbName} WHERE LABEL LIKE '${loadLabelName}'"""
-//        logger.info("res: " + res)
-//
-//        sql """CLEAN LABEL ${loadLabelName} FROM ${dbName};"""
-//    }
+    sql """grant load_priv on ${dbName} to ${user}"""
+    connect(user=user, password="${pwd}", url=context.config.jdbcUrl) {
+        def res = sql """SHOW LOAD FROM ${dbName} WHERE LABEL LIKE '${loadLabelName}'"""
+        logger.info("res: " + res)
+        assertTrue(res.size() == 1)
+
+        res = sql """SHOW STREAM LOAD FROM ${dbName} WHERE LABEL = "${loadLabelName}";"""
+        logger.info("SHOW STREAM LOAD res: " + res)
+        assertTrue(res.size() == 1)
+
+        sql """CANCEL LOAD
+                FROM ${dbName}
+                WHERE LABEL = "${loadLabelName}";"""
+        res = sql """SHOW LOAD FROM ${dbName} WHERE LABEL LIKE '${loadLabelName}'"""
+        logger.info("res: " + res)
+
+        sql """CLEAN LABEL ${loadLabelName} FROM ${dbName};"""
+    }
 
     sql """drop database if exists ${dbName}"""
     try_sql("DROP USER ${user}")
