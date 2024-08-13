@@ -76,6 +76,7 @@ suite("test_ddl_table_auth","p0,auth") {
         }
         def res = sql """show query stats;"""
         logger.info("res:" + res)
+
 //        test {
 //            sql """show query stats;"""
 //            exception 'denied'
@@ -97,6 +98,7 @@ suite("test_ddl_table_auth","p0,auth") {
         assertTrue(db_res.size() == 1)
 
         sql """show query stats;"""
+        logger.info("res:" + res)
 
 //        def col_res = sql """SHOW FULL COLUMNS FROM ${dbName}.${tableName};"""
 //        logger.info("col_res: " + col_res)
