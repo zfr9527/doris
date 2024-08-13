@@ -25,6 +25,9 @@ suite("test_show_query_stats_auth","p0,auth") {
     sql """CREATE USER '${user}' IDENTIFIED BY '${pwd}'"""
     sql """grant select_priv on regression_test to ${user}"""
 
+    def res = sql """show query stats;"""
+    logger.info("res:" + res)
+
     connect(user=user, password="${pwd}", url=context.config.jdbcUrl) {
 //        test {
 //            sql """SHOW BACKENDS"""
