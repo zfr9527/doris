@@ -33,8 +33,8 @@ suite("test_show_query_stats_auth","p0,auth") {
 //            sql """SHOW BACKENDS"""
 //            exception "denied"
 //        }
-        def res = sql """show query stats;"""
-        logger.info("res:" + res)
+        def res1 = sql """show query stats;"""
+        logger.info("res:" + res1)
     }
 //    sql """grant node_priv on *.*.* to ${user}"""
 //    connect(user=user, password="${pwd}", url=context.config.jdbcUrl) {
