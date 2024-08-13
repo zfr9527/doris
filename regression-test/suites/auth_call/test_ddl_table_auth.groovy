@@ -92,10 +92,6 @@ suite("test_ddl_table_auth","p0,auth") {
         def db_res = sql """show tables;"""
         assertTrue(db_res.size() == 1)
 
-        def res = sql """show query stats;"""
-        logger.info("res:" + res)
-        logger.info(res.size() == 1)
-
 //        def col_res = sql """SHOW FULL COLUMNS FROM ${dbName}.${tableName};"""
 //        logger.info("col_res: " + col_res)
 //        assertTrue(col_res.size() == 2)
