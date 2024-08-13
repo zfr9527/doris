@@ -76,11 +76,7 @@ suite("test_ddl_table_auth","p0,auth") {
         }
         def res = sql """show query stats;"""
         logger.info("res:" + res)
-
-//        test {
-//            sql """show query stats;"""
-//            exception 'denied'
-//        }
+        logger.info(res.size() == 0)
     }
     sql """grant Create_priv on ${dbName}.${tableName} to ${user}"""
     connect(user=user, password="${pwd}", url=context.config.jdbcUrl) {
@@ -99,6 +95,7 @@ suite("test_ddl_table_auth","p0,auth") {
 
         def res = sql """show query stats;"""
         logger.info("res:" + res)
+        logger.info(res.size() == 1)
 
 //        def col_res = sql """SHOW FULL COLUMNS FROM ${dbName}.${tableName};"""
 //        logger.info("col_res: " + col_res)
