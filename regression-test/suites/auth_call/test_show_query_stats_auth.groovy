@@ -28,6 +28,8 @@ suite("test_show_query_stats_auth","p0,auth") {
     def res = sql """show query stats;"""
     logger.info("res:" + res)
 
+    logger.info("context.config.jdbcUrl: " + context.config.jdbcUrl)
+
     connect(user=user, password="${pwd}", url=context.config.jdbcUrl) {
 //        test {
 //            sql """SHOW BACKENDS"""
