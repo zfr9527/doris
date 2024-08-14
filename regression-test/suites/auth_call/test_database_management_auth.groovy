@@ -44,8 +44,10 @@ suite("test_database_management_auth","p0,auth") {
 
     sql """alter table ${dbName}.${tableName} add partition p1 VALUES [("1"), ("2"));"""
     sql """insert into ${dbName}.${tableName} values (1, "111");"""
-
-
+    def tablet_res = sql """show tablets from ${tableName};"""
+    assertTrue(tablet_res.size() >= 1)
+    def backend_res = sql """show backends;"""
+    assertTrue(backend_res.size() >= 1)
 
     connect(user=user, password="${pwd}", url=context.config.jdbcUrl) {
         test {
@@ -137,7 +139,13 @@ suite("test_database_management_auth","p0,auth") {
             exception "denied"
         }
     }
-    sql """grant admin_priv on *.*.* to '${user}'"""
+    sql """grant node_priv on *.*.* to '${user}'"""
+    connect(user=user, password="${pwd}", url=context.config.jdbcUrl) {
+        sql """ADMIN COPY TABLET ${tablet_res[0][0]} PROPERTIES("backend_id" = "${backend_res[0][0]}");"""
+    }
+    sql """revoke node_priv on *.*.* from '${user}'"""
+
+//    sql """grant admin_priv on *.*.* to '${user}'"""
 //    connect(user=user, password="${pwd}", url=context.config.jdbcUrl) {
 //
 //        sql """SHOW FRONTEND CONFIG"""
