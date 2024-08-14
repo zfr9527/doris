@@ -73,6 +73,45 @@ suite("test_ddl_mtmv_auth","p0,auth") {
         def tb_res = sql """show tables;"""
         assertTrue(tb_res.size() == 2)
     }
+    sql """revoke select_priv on ${dbName}.${tableName} from ${user}"""
+    connect(user=user, password="${pwd}", url=context.config.jdbcUrl) {
+        sql """use ${dbName}"""
+        sql """refresh MATERIALIZED VIEW ${mtmvName} auto;"""
+
+        // insert and refresh mtmv
+        def job_name = getJobName(dbName, mtmvName)
+
+        // cancel
+        def mv_tasks_res = sql """select * from tasks("type"="mv") where MvName="${mtmvName}";"""
+        assertTrue(mv_tasks_res.size() > 0)
+        try {
+            sql """CANCEL MATERIALIZED VIEW TASK ${mv_tasks_res[0][0]} on ${mtmvName};"""
+        } catch (Exception e) {
+            log.info(e.getMessage())
+            assertTrue(e.getMessage().contains("no running task"))
+        }
+
+        // pause
+        def job_status = sql """select * from jobs("type"="mv") where Name="${job_name}";"""
+        assertTrue(job_status[0][8] == "RUNNING")
+        sql """PAUSE MATERIALIZED VIEW JOB ON ${mtmvName};"""
+        job_status = sql """select * from jobs("type"="mv") where Name="${job_name}";"""
+        assertTrue(job_status[0][8] == "PAUSED")
+
+        // resume
+        sql """RESUME MATERIALIZED VIEW JOB ON ${mtmvName};"""
+        job_status = sql """select * from jobs("type"="mv") where Name="${job_name}";"""
+        assertTrue(job_status[0][8] == "RUNNING")
+
+        // drop
+        sql """DROP MATERIALIZED VIEW IF EXISTS ${mtmvName};"""
+        sql """DROP TABLE IF EXISTS ${mtmvName}"""
+        test {
+            sql """select count(*) from ${mtmvName}"""
+            exception "does not exist"
+        }
+    }
+    sql """grant select_priv on ${dbName}.${tableName} to ${user}"""
 
     // ddl alter
     // user alter
