@@ -25,24 +25,11 @@ suite("test_show_query_stats_auth","p0,auth") {
     sql """CREATE USER '${user}' IDENTIFIED BY '${pwd}'"""
     sql """grant select_priv on regression_test to ${user}"""
 
-    def res = sql """show query stats;"""
-    logger.info("res:" + res)
-
     logger.info("context.config.jdbcUrl: " + context.config.jdbcUrl)
-
     connect(user=user, password="${pwd}", url=context.config.jdbcUrl) {
-//        test {
-//            sql """SHOW BACKENDS"""
-//            exception "denied"
-//        }
-        def res1 = sql """show query stats;"""
-        logger.info("res:" + res1)
+        def res = sql """show query stats;"""
+        logger.info("res:" + res)
     }
-//    sql """grant node_priv on *.*.* to ${user}"""
-//    connect(user=user, password="${pwd}", url=context.config.jdbcUrl) {
-//        def res = sql """SHOW BACKENDS"""
-//        assertTrue(res.size() > 0)
-//    }
 
     try_sql("DROP USER ${user}")
 }
