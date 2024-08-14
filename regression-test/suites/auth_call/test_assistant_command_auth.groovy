@@ -51,12 +51,15 @@ suite("test_assistant_command_auth","p0,auth") {
             'type'='hms'
         );"""
 
-    sql """grant select_PRIV on ${dbName}.${tableName} to ${user}"""
+
     connect(user=user, password="${pwd}", url=context.config.jdbcUrl) {
         sql """help"""
         sql """use regression_test"""
 
-        sql """DESC ${dbName}.${tableName} ALL;"""
+        test {
+            sql """DESC ${dbName}.${tableName} ALL;"""
+            exception "denied"
+        }
 
         sql """switch internal;"""
         test {
@@ -65,6 +68,16 @@ suite("test_assistant_command_auth","p0,auth") {
         }
 
         sql """SYNC;"""
+    }
+
+    sql """grant select_PRIV on ${dbName}.${tableName} to ${user}"""
+    connect(user=user, password="${pwd}", url=context.config.jdbcUrl) {
+        sql """DESC ${dbName}.${tableName} ALL;"""
+    }
+
+    sql """grant select_PRIV on ${catalogName}.*.* to ${user}"""
+    connect(user=user, password="${pwd}", url=context.config.jdbcUrl) {
+        sql """REFRESH CATALOG ${catalogName};"""
     }
 
     sql """drop database if exists ${dbName}"""
