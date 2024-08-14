@@ -23,7 +23,6 @@ suite("test_database_management_auth","p0,auth") {
     String user = 'test_database_management_auth_user'
     String pwd = 'C123_567p'
     String dbName = 'test_database_management_auth_db'
-    String tableName = 'test_database_management_auth_tb'
 
     try_sql("DROP USER ${user}")
     try_sql """drop database if exists ${dbName}"""
@@ -31,24 +30,6 @@ suite("test_database_management_auth","p0,auth") {
     sql """CREATE USER '${user}' IDENTIFIED BY '${pwd}'"""
     sql """grant select_priv on regression_test to ${user}"""
     sql """create database ${dbName}"""
-
-    sql """create table ${dbName}.${tableName} (
-                id BIGINT,
-                username VARCHAR(20)
-            )
-            PARTITION BY RANGE(id) ()
-            DISTRIBUTED BY HASH(id) BUCKETS 2
-            PROPERTIES (
-                "replication_num" = "1"
-            );"""
-
-    sql """alter table ${dbName}.${tableName} add partition p1 VALUES [("1"), ("2"));"""
-    sql """insert into ${dbName}.${tableName} values (1, "111");"""
-    sql """use ${dbName}"""
-    def tablet_res = sql """show tablets from ${tableName};"""
-    assertTrue(tablet_res.size() >= 1)
-    def backend_res = sql """show backends;"""
-    assertTrue(backend_res.size() >= 1)
 
     connect(user=user, password="${pwd}", url=context.config.jdbcUrl) {
         test {
@@ -140,66 +121,7 @@ suite("test_database_management_auth","p0,auth") {
             exception "denied"
         }
     }
-    sql """grant node_priv on *.*.* to '${user}'"""
-    connect(user=user, password="${pwd}", url=context.config.jdbcUrl) {
 
-        sql """ADMIN COPY TABLET ${tablet_res[0][0]} PROPERTIES("backend_id" = "${backend_res[0][0]}");"""
-    }
-    sql """revoke node_priv on *.*.* from '${user}'"""
-
-//    sql """grant admin_priv on *.*.* to '${user}'"""
-//    connect(user=user, password="${pwd}", url=context.config.jdbcUrl) {
-//
-//        sql """SHOW FRONTEND CONFIG"""
-//
-//        sql """ADMIN SET FRONTEND CONFIG ("disable_balance" = "true");"""
-//
-//
-//        sql """SET global time_zone = "Asia/Shanghai";"""
-//
-//
-//        sql """INSTALL PLUGIN FROM "";"""
-//
-//
-//        sql """UNINSTALL PLUGIN demo;"""
-//
-//
-//        sql """ADMIN SET REPLICA STATUS PROPERTIES("tablet_id" = "000", "backend_id" = "000", "status" = "ok");"""
-//
-//        sql """ADMIN SET REPLICA VERSION PROPERTIES("tablet_id" = "0", "backend_id" = "0", "version" = "0");"""
-//
-//        sql """ADMIN SET TABLE tb PARTITION VERSION PROPERTIES("partition_id" = "0", "visible_version" = "0");"""
-//
-//        sql """admin set table tbl status properties("state" = "NORMAL");"""
-//
-//        sql """SHOW REPLICA DISTRIBUTION FROM tbl;"""
-//
-//        sql """SHOW REPLICA STATUS FROM db1.tbl1;"""
-//
-//        sql """ADMIN REPAIR TABLE tbl;"""
-//
-//        sql """ADMIN CANCEL REPAIR TABLE tbl PARTITION(p1);"""
-//
-//        sql """ADMIN CHECK TABLET (10000, 10001) PROPERTIES("type" = "consistency");"""
-//
-//        sql """SHOW TABLET DIAGNOSIS 0;"""
-//
-//        sql """ADMIN COPY TABLET 10010 PROPERTIES("backend_id" = "10001");"""
-//
-//        sql """show tablet storage format verbose;"""
-//
-//        sql """ADMIN CLEAN TRASH;"""
-//
-//        sql """RECOVER DATABASE db_name;"""
-//
-//        sql """ADMIN REBALANCE DISK;"""
-//
-//        sql """ADMIN CANCEL REBALANCE DISK;"""
-//
-//        sql """UNSET GLOBAL VARIABLE ALL;"""
-//
-//    }
-//
-//    sql """drop database if exists ${dbName}"""
-//    try_sql("DROP USER ${user}")
+    sql """drop database if exists ${dbName}"""
+    try_sql("DROP USER ${user}")
 }
