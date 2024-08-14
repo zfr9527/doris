@@ -120,6 +120,14 @@ suite("test_database_management_auth","p0,auth") {
             sql """UNSET GLOBAL VARIABLE ALL;"""
             exception "denied"
         }
+        test {
+            sql """clean all query stats;"""
+            exception "denied"
+        }
+        test {
+            sql """REFRESH LDAP ALL;"""
+            exception "denied"
+        }
     }
 
     sql """drop database if exists ${dbName}"""
