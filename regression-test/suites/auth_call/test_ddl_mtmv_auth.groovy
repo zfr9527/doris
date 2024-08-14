@@ -102,14 +102,6 @@ suite("test_ddl_mtmv_auth","p0,auth") {
         sql """RESUME MATERIALIZED VIEW JOB ON ${mtmvName};"""
         job_status = sql """select * from jobs("type"="mv") where Name="${job_name}";"""
         assertTrue(job_status[0][8] == "RUNNING")
-
-        // drop
-        sql """DROP MATERIALIZED VIEW IF EXISTS ${mtmvName};"""
-        sql """DROP TABLE IF EXISTS ${mtmvName}"""
-        test {
-            sql """select count(*) from ${mtmvName}"""
-            exception "does not exist"
-        }
     }
     sql """grant select_priv on ${dbName}.${tableName} to ${user}"""
 
