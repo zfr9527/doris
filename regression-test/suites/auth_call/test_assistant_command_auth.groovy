@@ -53,8 +53,10 @@ suite("test_assistant_command_auth","p0,auth") {
 
 
     connect(user=user, password="${pwd}", url=context.config.jdbcUrl) {
-        sql """help"""
-        sql """use regression_test"""
+        test {
+            sql """use ${dbName}"""
+            exception "denied"
+        }
 
         test {
             sql """DESC ${dbName}.${tableName} ALL;"""
@@ -72,6 +74,7 @@ suite("test_assistant_command_auth","p0,auth") {
 
     sql """grant select_PRIV on ${dbName}.${tableName} to ${user}"""
     connect(user=user, password="${pwd}", url=context.config.jdbcUrl) {
+        sql """use ${dbName}"""
         sql """DESC ${dbName}.${tableName} ALL;"""
     }
 
