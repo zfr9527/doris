@@ -21,6 +21,7 @@ import org.apache.doris.analysis.AlterClause;
 import org.apache.doris.analysis.AlterTableStmt;
 import org.apache.doris.analysis.CreateDbStmt;
 import org.apache.doris.analysis.CreateTableStmt;
+import org.apache.doris.analysis.CreateWorkloadGroupStmt;
 import org.apache.doris.analysis.DbName;
 import org.apache.doris.analysis.DistributionDesc;
 import org.apache.doris.analysis.DropTableStmt;
@@ -39,6 +40,8 @@ import org.apache.doris.common.util.PropertyAnalyzer;
 import org.apache.doris.datasource.InternalCatalog;
 import org.apache.doris.ha.FrontendNodeType;
 import org.apache.doris.plugin.audit.AuditLoaderPlugin;
+import org.apache.doris.resource.workloadgroup.WorkloadGroup;
+import org.apache.doris.resource.workloadgroup.WorkloadGroupMgr;
 import org.apache.doris.statistics.StatisticConstants;
 import org.apache.doris.statistics.util.StatisticsUtil;
 
@@ -79,6 +82,7 @@ public class InternalSchemaInitializer extends Thread {
                         .join(TABLE_CREATION_RETRY_INTERVAL_IN_SECONDS * 1000L);
                 createDb();
                 createTbl();
+                createWorkloadGroup();
             } catch (Throwable e) {
                 LOG.warn("Statistics storage initiated failed, will try again later", e);
                 try {
@@ -175,6 +179,20 @@ public class InternalSchemaInitializer extends Thread {
     }
 
     @VisibleForTesting
+    public static void createWorkloadGroup() throws UserException {
+        HashMap<String, String> properties = new HashMap<>();
+        properties.put(WorkloadGroup.CPU_SHARE, Config.cpu_share);
+        properties.put(WorkloadGroup.CPU_HARD_LIMIT, Config.cpu_hard_limit);
+        properties.put(WorkloadGroup.MAX_CONCURRENCY, Config.max_concurrency);
+        properties.put(WorkloadGroup.SCAN_THREAD_NUM, Config.scan_thread_num);
+        properties.put(WorkloadGroup.READ_BYTES_PER_SECOND, Config.read_bytes_per_second);
+        WorkloadGroupMgr wgm = Env.getCurrentEnv().getWorkloadGroupMgr();
+        CreateWorkloadGroupStmt stmt = new CreateWorkloadGroupStmt(true,
+                StatisticConstants.STATISTICS_WORKLOAD_GROUP_NAME, properties, true);
+        wgm.createWorkloadGroup(stmt);
+    }
+
+    @VisibleForTesting
     public static void createDb() {
         CreateDbStmt createDbStmt = new CreateDbStmt(true,
                 new DbName("internal", FeConstants.INTERNAL_DB_NAME), null);
@@ -258,11 +276,13 @@ public class InternalSchemaInitializer extends Thread {
                 Env.getCurrentEnv().getInternalCatalog()
                         .getDb(FeConstants.INTERNAL_DB_NAME);
         if (!optionalDatabase.isPresent()) {
+            LOG.info("Database " + FeConstants.INTERNAL_DB_NAME + "  not exists.");
             return false;
         }
         Database db = optionalDatabase.get();
         Optional<Table> optionalStatsTbl = db.getTable(StatisticConstants.TABLE_STATISTIC_TBL_NAME);
         if (!optionalStatsTbl.isPresent()) {
+            LOG.info("Table " + StatisticConstants.TABLE_STATISTIC_TBL_NAME + "  not exists.");
             return false;
         }
 
@@ -282,12 +302,24 @@ public class InternalSchemaInitializer extends Thread {
         }
         optionalStatsTbl = db.getTable(StatisticConstants.PARTITION_STATISTIC_TBL_NAME);
         if (!optionalStatsTbl.isPresent()) {
+            LOG.info("Table " + StatisticConstants.PARTITION_STATISTIC_TBL_NAME + "  not exists.");
             return false;
         }
 
         // 3. check audit table
         optionalStatsTbl = db.getTable(AuditLoaderPlugin.AUDIT_LOG_TABLE);
-        return optionalStatsTbl.isPresent();
+        if (!optionalStatsTbl.isPresent()) {
+            LOG.info("Table " + AuditLoaderPlugin.AUDIT_LOG_TABLE + "  not exists.");
+            return false;
+        }
+
+        // 4. check statistics work load group
+        boolean isReady = Env.getCurrentEnv().getWorkloadGroupMgr()
+                .isWorkloadGroupExists(StatisticConstants.STATISTICS_WORKLOAD_GROUP_NAME);
+        if (!isReady) {
+            LOG.info("Workload group " + StatisticConstants.STATISTICS_WORKLOAD_GROUP_NAME + "  not exists.");
+        }
+        return isReady;
     }
 
 }

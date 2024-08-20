@@ -2373,9 +2373,6 @@ public class Config extends ConfigBase {
     @ConfField(mutable = false)
     public static boolean allow_analyze_statistics_info_polluting_file_cache = true;
 
-    @ConfField
-    public static int cpu_resource_limit_per_analyze_task = 1;
-
     @ConfField(mutable = true)
     public static boolean force_sample_analyze = false; // avoid full analyze for performance reason
 
@@ -2759,6 +2756,29 @@ public class Config extends ConfigBase {
                 + "0 means not trigger."
     })
     public static long auto_analyze_interval_seconds = 0;
+
+    //==========================================================================
+    //                    begin of statistics workload group config
+    //==========================================================================
+    @ConfField(mutable = true)
+    public static String cpu_share = "1024";
+
+    @ConfField(mutable = true)
+    public static String max_concurrency = "2147483647";
+
+    @ConfField(mutable = true)
+    public static String cpu_hard_limit = "-1";
+
+    @ConfField(mutable = true)
+    public static String scan_thread_num = "-1";
+
+    @ConfField(mutable = true)
+    public static String read_bytes_per_second = "-1";
+    //==========================================================================
+    //                    end of statistics workload group config
+    //==========================================================================
+
+
 
     //==========================================================================
     //                    begin of cloud config
