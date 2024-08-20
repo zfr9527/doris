@@ -40,6 +40,7 @@ import org.apache.doris.persist.DropWorkloadGroupOperationLog;
 import org.apache.doris.persist.gson.GsonPostProcessable;
 import org.apache.doris.persist.gson.GsonUtils;
 import org.apache.doris.qe.ConnectContext;
+import org.apache.doris.statistics.StatisticConstants;
 import org.apache.doris.thrift.TPipelineWorkloadGroup;
 import org.apache.doris.thrift.TUserIdentity;
 import org.apache.doris.thrift.TopicInfo;
@@ -336,7 +337,12 @@ public class WorkloadGroupMgr extends MasterDaemon implements Writable, GsonPost
                 }
                 throw new DdlException("workload group " + workloadGroupName + " already exist");
             }
-            if (idToWorkloadGroup.size() >= Config.workload_group_max_num) {
+            if (!stmt.isInternal() && workloadGroupName.equals(StatisticConstants.STATISTICS_WORKLOAD_GROUP_NAME)) {
+                throw new DdlException("workload group " + StatisticConstants.STATISTICS_WORKLOAD_GROUP_NAME
+                        + " is preserved for internal use, try another name.");
+            }
+            if (idToWorkloadGroup.size() >= Config.workload_group_max_num
+                    && !workloadGroupName.equals(StatisticConstants.STATISTICS_WORKLOAD_GROUP_NAME)) {
                 throw new DdlException(
                         "workload group number can not be exceed " + Config.workload_group_max_num);
             }

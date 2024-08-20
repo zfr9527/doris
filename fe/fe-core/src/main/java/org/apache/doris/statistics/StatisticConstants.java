@@ -34,6 +34,7 @@ public class StatisticConstants {
     public static final String TABLE_STATISTIC_TBL_NAME = "column_statistics";
     public static final String PARTITION_STATISTIC_TBL_NAME = "partition_statistics";
     public static final String HISTOGRAM_TBL_NAME = "histogram_statistics";
+    public static final String STATISTICS_WORKLOAD_GROUP_NAME = "doris_internal_statistics_workload_group";
 
     public static final int MAX_NAME_LEN = 64;
 
