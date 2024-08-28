@@ -22,6 +22,7 @@ suite("test_hive_base_case_auth", "p0,auth_call") {
     String catalogName = 'test_hive_base_case_auth_catalog'
     String dbName = 'test_hive_base_case_auth_db'
     String tableName = 'test_hive_base_case_auth_tb'
+    String tableNameNew = 'test_hive_base_case_auth_tb_new'
 
     String hms_port = context.config.otherConfigs.get(hivePrefix + "HmsPort")
     String hdfs_port2 = context.config.otherConfigs.get("hive2HdfsPort")
@@ -29,6 +30,7 @@ suite("test_hive_base_case_auth", "p0,auth_call") {
     String externalEnvIp = context.config.otherConfigs.get("externalEnvIp")
 
     try_sql("DROP USER ${user}")
+    try_sql """drop catalog if exists ${catalogName}"""
     try_sql """drop database if exists ${dbName}"""
     sql """CREATE USER '${user}' IDENTIFIED BY '${pwd}'"""
 
@@ -100,6 +102,18 @@ suite("test_hive_base_case_auth", "p0,auth_call") {
     }
     sql """revoke Create_priv on ${catalogName}.${dbName}.${tableName} from ${user}"""
 
+    connect(user=user, password="${pwd}", url=context.config.jdbcUrl) {
+        test {
+            sql """ALTER table ${catalogName}.${dbName}.${tableName} RENAME ${tableNameNew};"""
+            exception "denied"
+        }
+    }
+    sql """grant ALTER_PRIV on ${catalogName}.${dbName}.${tableName} to ${user}"""
+    connect(user=user, password="${pwd}", url=context.config.jdbcUrl) {
+        sql """ALTER table ${catalogName}.${dbName}.${tableName} RENAME ${tableNameNew};"""
+    }
+    sql """revoke ALTER_PRIV on ${catalogName}.${dbName}.${tableName} from ${user}"""
+    sql """ALTER table ${catalogName}.${dbName}.${tableNameNew} RENAME ${tableName};"""
 
     connect(user=user, password="${pwd}", url=context.config.jdbcUrl) {
         test {
@@ -122,5 +136,7 @@ suite("test_hive_base_case_auth", "p0,auth_call") {
         sql """drop catalog ${catalogName}"""
     }
 
+    sql """drop catalog if exists ${catalogName}"""
+    try_sql("DROP USER ${user}")
 
 }
