@@ -33,6 +33,7 @@ suite("test_hive_base_case_auth", "p0,auth_call") {
     try_sql """drop catalog if exists ${catalogName}"""
     try_sql """drop database if exists ${dbName}"""
     sql """CREATE USER '${user}' IDENTIFIED BY '${pwd}'"""
+    sql """grant select_priv on regression_test to ${user}"""
 
     connect(user=user, password="${pwd}", url=context.config.jdbcUrl) {
         test {
