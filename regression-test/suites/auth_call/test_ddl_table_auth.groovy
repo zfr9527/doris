@@ -214,7 +214,9 @@ suite("test_ddl_table_auth","p0,auth") {
             assertTrue(e.getMessage().contains("denied"))
         }
     }
+    sql """create table ${cteSelectDstDb}.${cteSelectDstTb}(username) PROPERTIES("replication_num" = "1") as select username from ${dbName}.${tableName};"""
     sql """grant LOAD_PRIV on ${cteSelectDstDb}.${cteSelectDstTb} to ${user}"""
+    sql """drop table ${cteSelectDstDb}.${cteSelectDstTb}"""
     connect(user=user, password="${pwd}", url=context.config.jdbcUrl) {
         try {
             sql """create table ${cteSelectDstDb}.${cteSelectDstTb}(username) PROPERTIES("replication_num" = "1") as select username from ${dbName}.${tableName};"""
