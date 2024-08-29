@@ -162,7 +162,7 @@ suite("test_hive_base_case_auth", "p0,auth_call") {
             exception "denied"
         }
     }
-    sql """grant DROP_PRIV on ${catalogName} to ${user}"""
+    sql """grant DROP_PRIV on ${catalogName}.*.* to ${user}"""
     connect(user=user, password="${pwd}", url=context.config.jdbcUrl) {
         sql """drop table ${catalogName}.${dbName}.${tableName}"""
         sql """drop database ${catalogName}.${dbName}"""
