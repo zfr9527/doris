@@ -17,7 +17,6 @@
 
 import org.junit.Assert;
 
-// 有bug，等修复完再写case
 suite("test_show_data_auth","p0,auth") {
     String user = 'test_show_data_auth_user'
     String pwd = 'C123_567p'
