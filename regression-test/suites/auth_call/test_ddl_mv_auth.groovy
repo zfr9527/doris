@@ -78,18 +78,35 @@ suite("test_ddl_mv_auth","p0,auth") {
         waitingMVTaskFinishedByMvName(dbName, tableName)
         sql """alter table ${dbName}.${tableName} add rollup ${rollupName}(username)"""
         waitingMVTaskFinishedByMvName(dbName, tableName)
-    }
 
-    // ddl drop
-////    sql """grant DROP_PRIV on ${dbName}.${tableName} to ${user}"""
+
+        def mv_res = sql """desc ${dbName}.${tableName} all;"""
+        logger.info("mv_res: " + mv_res)
+    }
+//    sql """grant alter_priv on ${dbName}.${tableName} to ${user}"""
 //    connect(user=user, password="${pwd}", url=context.config.jdbcUrl) {
 //        sql """use ${dbName}"""
-//        sql """DROP MATERIALIZED VIEW IF EXISTS ${mvName} ON ${tableName};"""
-//
-//
-////        assertTrue(ctl_res.size() == 0)
+//        sql """alter table ${dbName}.${tableName} add rollup ${rollupName}(username)"""
+//        waitingMVTaskFinishedByMvName(dbName, tableName)
+////        def mv_res = sql """desc ${dbName}.${tableName} all;"""
+////        logger.info
+////        assertTrue(mv_res.size() == )
+////        sql """ALTER TABLE ${dbName}.${tableName} DROP ROLLUP ${rollupName};"""
+////        waitingMVTaskFinishedByMvName(dbName, tableName)
 //    }
 
-//    sql """drop database if exists ${dbName}"""
-//    try_sql("DROP USER ${user}")
+    // ddl drop
+//    sql """grant DROP_PRIV on ${dbName}.${tableName} to ${user}"""
+    connect(user=user, password="${pwd}", url=context.config.jdbcUrl) {
+        sql """use ${dbName}"""
+        sql """DROP MATERIALIZED VIEW IF EXISTS ${mvName} ON ${tableName};"""
+        sql """ALTER TABLE ${dbName}.${tableName} DROP ROLLUP ${rollupName};"""
+        def mv_res = sql """desc ${dbName}.${tableName} all;"""
+        logger.info("mv_res: " + mv_res)
+
+//        assertTrue(ctl_res.size() == 0)
+    }
+
+    sql """drop database if exists ${dbName}"""
+    try_sql("DROP USER ${user}")
 }
