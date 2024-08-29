@@ -38,11 +38,11 @@ suite("test_ddl_view_auth","p0,auth") {
                 "replication_num" = "1"
             );"""
     sql """
-                INSERT INTO ${dbName}.${tableName} (id, username)
-                VALUES (1, "111"),
-                       (2, "222"),
-                       (3, "333")
-                """
+        INSERT INTO ${dbName}.${tableName} (id, username)
+        VALUES (1, "111"),
+               (2, "222"),
+               (3, "333")
+        """
 
     // ddl create
     connect(user=user, password="${pwd}", url=context.config.jdbcUrl) {
@@ -74,7 +74,12 @@ suite("test_ddl_view_auth","p0,auth") {
         def res = sql """SHOW VIEW from ${tableName} from ${dbName}"""
         assertTrue(res.size() == 0)
     }
+    sql """CREATE VIEW ${dbName}.${viewName} (k1, v1)
+            AS
+            SELECT id as k1, SUM(id) FROM ${dbName}.${tableName}
+            WHERE id = 1 GROUP BY k1;"""
     sql """grant Create_priv on ${dbName}.${viewName} to ${user}"""
+    sql """drop view ${dbName}.${viewName}"""
     connect(user=user, password="${pwd}", url=context.config.jdbcUrl) {
         sql """CREATE VIEW ${dbName}.${viewName} (k1, v1)
             AS
