@@ -82,32 +82,29 @@ suite("test_hive_base_case_auth", "p0,auth_call") {
             sql """create table ${catalogName}.${dbName}.${tableName} (
                     id BIGINT,
                     username VARCHAR(20)
-                )
-                DISTRIBUTED BY HASH(id) BUCKETS 2
+                ) ENGINE=hive
                 PROPERTIES (
-                    "replication_num" = "1"
+                  'file_format'='parquet'
                 );"""
             exception "denied"
         }
     }
     sql """create table ${catalogName}.${dbName}.${tableName} (
-                id BIGINT,
-                username VARCHAR(20)
-            )
-            DISTRIBUTED BY HASH(id) BUCKETS 2
-            PROPERTIES (
-                "replication_num" = "1"
-            );"""
+            id BIGINT,
+            username VARCHAR(20)
+        ) ENGINE=hive
+        PROPERTIES (
+          'file_format'='parquet'
+        );"""
     sql """grant Create_priv on ${catalogName}.${dbName}.${tableName} to ${user}"""
     sql """drop table ${catalogName}.${dbName}.${tableName}"""
     connect(user=user, password="${pwd}", url=context.config.jdbcUrl) {
         sql """create table ${catalogName}.${dbName}.${tableName} (
                 id BIGINT,
                 username VARCHAR(20)
-            )
-            DISTRIBUTED BY HASH(id) BUCKETS 2
+            ) ENGINE=hive
             PROPERTIES (
-                "replication_num" = "1"
+              'file_format'='parquet'
             );"""
         sql """switch ${catalogName}"""
         sql """use ${dbName}"""
