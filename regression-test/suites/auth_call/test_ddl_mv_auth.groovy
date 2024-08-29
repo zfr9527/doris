@@ -68,10 +68,7 @@ suite("test_ddl_mv_auth","p0,auth") {
             exception "denied"
         }
     }
-//    sql """create materialized view ${mvName} as select username from ${dbName}.${tableName};"""
-//    waitingMVTaskFinishedByMvName(dbName, tableName)
     sql """grant alter_priv on ${dbName}.${tableName} to ${user}"""
-//    sql """DROP MATERIALIZED VIEW IF EXISTS ${mvName} ON ${dbName}.${tableName}"""
     connect(user=user, password="${pwd}", url=context.config.jdbcUrl) {
         sql """use ${dbName}"""
         sql """create materialized view ${mvName} as select username from ${dbName}.${tableName};"""
@@ -79,32 +76,32 @@ suite("test_ddl_mv_auth","p0,auth") {
         sql """alter table ${dbName}.${tableName} add rollup ${rollupName}(username)"""
         waitingMVTaskFinishedByMvName(dbName, tableName)
 
-
         def mv_res = sql """desc ${dbName}.${tableName} all;"""
         logger.info("mv_res: " + mv_res)
+        assertTrue(mv_res.size() == 5)
     }
-//    sql """grant alter_priv on ${dbName}.${tableName} to ${user}"""
-//    connect(user=user, password="${pwd}", url=context.config.jdbcUrl) {
-//        sql """use ${dbName}"""
-//        sql """alter table ${dbName}.${tableName} add rollup ${rollupName}(username)"""
-//        waitingMVTaskFinishedByMvName(dbName, tableName)
-////        def mv_res = sql """desc ${dbName}.${tableName} all;"""
-////        logger.info
-////        assertTrue(mv_res.size() == )
-////        sql """ALTER TABLE ${dbName}.${tableName} DROP ROLLUP ${rollupName};"""
-////        waitingMVTaskFinishedByMvName(dbName, tableName)
-//    }
+    sql """revoke alter_priv on ${dbName}.${tableName} from ${user}"""
+    sql """revoke select_priv(username) on ${dbName}.${tableName} from ${user}"""
 
     // ddl drop
-//    sql """grant DROP_PRIV on ${dbName}.${tableName} to ${user}"""
+    connect(user=user, password="${pwd}", url=context.config.jdbcUrl) {
+        test {
+            sql """DROP MATERIALIZED VIEW IF EXISTS ${mvName} ON ${dbName}.${tableName};"""
+            exception "denied"
+        }
+        test {
+            sql """ALTER TABLE ${dbName}.${tableName} DROP ROLLUP ${rollupName};"""
+            exception "denied"
+        }
+    }
+    sql """grant alter_priv on ${dbName}.${tableName} to ${user}"""
     connect(user=user, password="${pwd}", url=context.config.jdbcUrl) {
         sql """use ${dbName}"""
         sql """DROP MATERIALIZED VIEW IF EXISTS ${mvName} ON ${tableName};"""
         sql """ALTER TABLE ${dbName}.${tableName} DROP ROLLUP ${rollupName};"""
         def mv_res = sql """desc ${dbName}.${tableName} all;"""
         logger.info("mv_res: " + mv_res)
-
-//        assertTrue(ctl_res.size() == 0)
+        assertTrue(mv_res.size() == 2)
     }
 
     sql """drop database if exists ${dbName}"""
