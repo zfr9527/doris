@@ -56,6 +56,7 @@ suite("test_show_data_auth","p0,auth") {
             sql """show data from ${dbName}.${tableName2}"""
             exception "denied"
         }
+        sql """SHOW DATA;"""
         test {
             sql """SHOW DATA;"""
             exception "denied"
