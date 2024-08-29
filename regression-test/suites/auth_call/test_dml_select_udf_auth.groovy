@@ -15,9 +15,6 @@
 // specific language governing permissions and limitations
 // under the License.
 
-import org.junit.Assert;
-import org.codehaus.groovy.runtime.IOGroovyMethods
-
 suite("test_dml_select_udf_auth","p0,auth") {
 
     String user = 'test_dml_select_udf_auth_user'
