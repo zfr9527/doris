@@ -46,14 +46,6 @@ suite("test_dml_stream_load_auth","p0,auth") {
     def jdbcUrl = context.config.jdbcUrl
     def urlWithoutSchema = jdbcUrl.substring(jdbcUrl.indexOf("://") + 3)
     def sql_ip = urlWithoutSchema.substring(0, urlWithoutSchema.indexOf(":"))
-    def sql_port
-    if (urlWithoutSchema.indexOf("/") >= 0) {
-        // e.g: jdbc:mysql://locahost:8080/?a=b
-        sql_port = urlWithoutSchema.substring(urlWithoutSchema.indexOf(":") + 1, urlWithoutSchema.indexOf("/"))
-    } else {
-        // e.g: jdbc:mysql://locahost:8080
-        sql_port = urlWithoutSchema.substring(urlWithoutSchema.indexOf(":") + 1)
-    }
     String feHttpAddress = context.config.feHttpAddress
     def http_port = feHttpAddress.substring(feHttpAddress.indexOf(":") + 1)
 
