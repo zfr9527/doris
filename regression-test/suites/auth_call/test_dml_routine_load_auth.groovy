@@ -118,7 +118,7 @@ suite("test_dml_routine_load_auth","p0,auth") {
             }
             test {
                 sql """show routine load for ${dbName}.${labelName}"""
-                exception "denied"
+                exception "no job"
             }
         }
         sql """grant load_priv on ${dbName}.${tableName} to ${user}"""
