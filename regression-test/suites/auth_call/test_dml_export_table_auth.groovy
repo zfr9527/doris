@@ -114,7 +114,7 @@ suite("test_dml_export_table_auth","p0,auth") {
             WHERE STATE = "EXPORTING";"""
         } catch (Exception e) {
             log.info(e.getMessage())
-            assertTrue(e.getMessage().indexOf("not exist") == -1)
+            assertTrue(e.getMessage().indexOf("not exist") != -1)
         }
 
     }
