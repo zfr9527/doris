@@ -70,8 +70,8 @@ suite("test_ddl_mv_auth","p0,auth") {
     }
     sql """create materialized view ${mvName} as select username from ${dbName}.${tableName};"""
     waitingMVTaskFinishedByMvName(dbName, tableName)
-    sql """grant Create_priv on ${dbName}.${mvName} to ${user}"""
-    sql """DROP MATERIALIZED VIEW IF EXISTS ${mvName} ON ${tableName}"""
+    sql """grant Create_priv on ${dbName}.${tableName} to ${user}"""
+    sql """DROP MATERIALIZED VIEW IF EXISTS ${mvName} ON ${dbName}.${tableName}"""
     connect(user=user, password="${pwd}", url=context.config.jdbcUrl) {
         sql """use ${dbName}"""
         sql """create materialized view ${mvName} as select username from ${dbName}.${tableName};"""
