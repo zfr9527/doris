@@ -52,10 +52,11 @@ suite("test_show_no_auth","p0,auth") {
     connect(user=user, password="${pwd}", url=context.config.jdbcUrl) {
         def res = sql """show PROPERTY for ${user1}"""
         logger.info("res: " + res)
+        assertTrue(res.size() > 0)
 
-//        def res1 = sql """SHOW PROCESSLIST"""
-//        logger.info("res1: " + res1)
-//        assertTrue(res1.size() == 1)
+        def res1 = sql """SHOW PROCESSLIST"""
+        logger.info("res1: " + res1)
+        assertTrue(res1.size() == 1)
     }
     sql """revoke grant_priv on *.*.* from ${user}"""
     sql """grant admin_priv on *.*.* to ${user}"""
