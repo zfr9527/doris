@@ -42,7 +42,9 @@ suite("test_ddl_database_auth","p0,auth") {
         def db_res = sql """show databases;"""
         assertTrue(db_res.size() == 3)
     }
+    sql """create database ${dbName};"""
     sql """grant Create_priv on ${dbName}.* to ${user}"""
+    sql """drop database ${dbName};"""
     connect(user=user, password="${pwd}", url=context.config.jdbcUrl) {
         sql """create database ${dbName};"""
         sql """show create database ${dbName}"""
