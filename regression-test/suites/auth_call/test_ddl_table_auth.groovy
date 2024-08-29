@@ -76,6 +76,11 @@ suite("test_ddl_table_auth","p0,auth") {
         }
         def res = sql """show query stats;"""
         logger.info("res:" + res)
+
+        test {
+            sql """SHOW FULL COLUMNS FROM ${dbName}.${tableName};"""
+            exception "denied"
+        }
     }
     sql """create table ${dbName}.${tableName} (
             id BIGINT,
