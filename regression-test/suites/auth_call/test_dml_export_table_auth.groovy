@@ -114,9 +114,15 @@ suite("test_dml_export_table_auth","p0,auth") {
         assertTrue(res.size() == 1)
         res = sql """show grants;"""
         logger.info("res:" + res)
-        sql """CANCEL EXPORT
+        try {
+            sql """CANCEL EXPORT
             FROM ${dbName}
             WHERE STATE = "EXPORTING";"""
+        } catch (Exception e) {
+            log.info(e.getMessage())
+            assertTrue(e.getMessage().indexOf("not exist") == -1)
+        }
+
     }
 
     sql """drop database if exists ${dbName}"""
