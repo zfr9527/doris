@@ -65,6 +65,7 @@ suite ("test_cluster_management_auth","nonConcurrent,p0,auth") {
     sql """CREATE USER '${user}' IDENTIFIED BY '${pwd}'"""
     sql """grant select_priv on regression_test to ${user}"""
 
+    // pipeline can't support delete node, it can affect other case
     if (is_exists_follower()) {
         connect(user=user, password="${pwd}", url=context.config.jdbcUrl) {
             test {
@@ -80,11 +81,6 @@ suite ("test_cluster_management_auth","nonConcurrent,p0,auth") {
                 exception "denied"
             }
         }
-        sql """grant NODE_PRIV on *.*.* to ${user}"""
-        connect(user=user, password="${pwd}", url=context.config.jdbcUrl) {
-            sql """show frontends"""
-        }
-        sql """revoke NODE_PRIV on *.*.* from ${user}"""
     }
 
     if (is_exists_observer()) {
@@ -102,11 +98,6 @@ suite ("test_cluster_management_auth","nonConcurrent,p0,auth") {
                 exception "denied"
             }
         }
-        sql """grant NODE_PRIV on *.*.* to ${user}"""
-        connect(user=user, password="${pwd}", url=context.config.jdbcUrl) {
-            sql """show frontends"""
-        }
-        sql """revoke NODE_PRIV on *.*.* from ${user}"""
     }
 
     if (is_exists_backends()) {
@@ -132,17 +123,6 @@ suite ("test_cluster_management_auth","nonConcurrent,p0,auth") {
                 exception "denied"
             }
         }
-        sql """grant NODE_PRIV on *.*.* to ${user}"""
-        connect(user=user, password="${pwd}", url=context.config.jdbcUrl) {
-            sql """show backends"""
-            sql """ALTER SYSTEM DROP backend '${backend_ip}:${backend_host}'"""
-            sql """ALTER SYSTEM MODIFY BACKEND "${backend_id}" SET ("tag.location" = "default");"""
-            sql """ALTER SYSTEM add backend '${backend_ip}:${backend_host}'"""
-
-            sql """ALTER SYSTEM DECOMMISSION BACKEND '${backend_id}'"""
-            sql """ALTER SYSTEM add backend '${backend_ip}:${backend_host}'"""
-        }
-        sql """revoke NODE_PRIV on *.*.* from ${user}"""
     }
 
     try_sql("DROP USER ${user}")
