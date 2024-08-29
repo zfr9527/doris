@@ -24,152 +24,170 @@ suite("test_hive_base_case_auth", "p0,auth_call") {
     String tableName = 'test_hive_base_case_auth_tb'
     String tableNameNew = 'test_hive_base_case_auth_tb_new'
 
-    String hms_port = context.config.otherConfigs.get("hive2" + "HmsPort")
-    String hdfs_port2 = context.config.otherConfigs.get("hive2HdfsPort")
-    String hdfs_port3 = context.config.otherConfigs.get("hive3HdfsPort")
-    String externalEnvIp = context.config.otherConfigs.get("externalEnvIp")
+    String enabled = context.config.otherConfigs.get("enableHiveTest")
+    if (enabled == null || !enabled.equalsIgnoreCase("true")) {
+        logger.info("diable Hive test.")
+        return;
+    }
 
-    try_sql("DROP USER ${user}")
-    try_sql """drop catalog if exists ${catalogName}"""
-    try_sql """drop database if exists ${dbName}"""
-    sql """CREATE USER '${user}' IDENTIFIED BY '${pwd}'"""
-    sql """grant select_priv on regression_test to ${user}"""
+    for (String hivePrefix : ["hive2", "hive3"]) {
+        setHivePrefix(hivePrefix)
 
-    connect(user=user, password="${pwd}", url=context.config.jdbcUrl) {
-        test {
-            sql """create catalog if not exists ${catalogName} properties (
+        String hms_port = context.config.otherConfigs.get(hivePrefix + "HmsPort")
+        String hdfs_port = context.config.otherConfigs.get(hivePrefix + "HdfsPort")
+//        String hdfs_port3 = context.config.otherConfigs.get("hive3HdfsPort")
+        String externalEnvIp = context.config.otherConfigs.get("externalEnvIp")
+
+        try_sql("DROP USER ${user}")
+        try_sql """drop catalog if exists ${catalogName}"""
+        try_sql """drop database if exists ${dbName}"""
+        sql """CREATE USER '${user}' IDENTIFIED BY '${pwd}'"""
+        sql """grant select_priv on regression_test to ${user}"""
+
+        // create catalog
+        connect(user=user, password="${pwd}", url=context.config.jdbcUrl) {
+            test {
+                sql """create catalog if not exists ${catalogName} properties (
                     'type'='hms'
                 );"""
-            exception "denied"
+                exception "denied"
+            }
+            def ctl_res = sql """show catalogs;"""
+            assertTrue(ctl_res.size() == 1)
         }
-        def ctl_res = sql """show catalogs;"""
-        assertTrue(ctl_res.size() == 1)
-    }
-    sql """create catalog if not exists ${catalogName} properties (
+        sql """create catalog if not exists ${catalogName} properties (
             'type'='hms'
         );"""
-    sql """grant Create_priv on ${catalogName}.*.* to ${user}"""
-    try_sql """drop catalog if exists ${catalogName}"""
-    connect(user=user, password="${pwd}", url=context.config.jdbcUrl) {
-        sql """create catalog if not exists ${catalogName} properties (
+        sql """grant Create_priv on ${catalogName}.*.* to ${user}"""
+        try_sql """drop catalog if exists ${catalogName}"""
+        connect(user=user, password="${pwd}", url=context.config.jdbcUrl) {
+            sql """create catalog if not exists ${catalogName} properties (
                 'type'='hms',
                 'hive.metastore.uris' = 'thrift://${externalEnvIp}:${hms_port}',
-                'fs.defaultFS' = 'hdfs://${externalEnvIp}:${hdfs_port2}',
+                'fs.defaultFS' = 'hdfs://${externalEnvIp}:${hdfs_port}',
                 'use_meta_cache' = 'true'
             );"""
-        sql """show create catalog ${catalogName}"""
-        def ctl_res = sql """show catalogs;"""
-        assertTrue(ctl_res.size() == 2)
-    }
-    sql """revoke Create_priv on ${catalogName}.*.* from ${user}"""
-
-    connect(user=user, password="${pwd}", url=context.config.jdbcUrl) {
-        test {
-            sql """create database ${catalogName}.${dbName};"""
-            exception "denied"
+            sql """show create catalog ${catalogName}"""
+            def ctl_res = sql """show catalogs;"""
+            assertTrue(ctl_res.size() == 2)
         }
-    }
-    sql """create database ${catalogName}.${dbName};"""
-    sql """grant Create_priv on ${catalogName}.${dbName}.* to ${user}"""
-    sql """drop table if exists ${catalogName}.${dbName}.${tableName};"""
-    sql """drop database ${catalogName}.${dbName};"""
-    connect(user=user, password="${pwd}", url=context.config.jdbcUrl) {
-        sql """create database ${catalogName}.${dbName};"""
-    }
-    sql """revoke Create_priv on ${catalogName}.${dbName}.* from ${user}"""
+        sql """revoke Create_priv on ${catalogName}.*.* from ${user}"""
 
-    connect(user=user, password="${pwd}", url=context.config.jdbcUrl) {
-        test {
-            sql """create table ${catalogName}.${dbName}.${tableName} (
+        // create database
+        connect(user=user, password="${pwd}", url=context.config.jdbcUrl) {
+            test {
+                sql """create database ${catalogName}.${dbName};"""
+                exception "denied"
+            }
+        }
+        sql """create database ${catalogName}.${dbName};"""
+        sql """grant Create_priv on ${catalogName}.${dbName}.* to ${user}"""
+        sql """drop table if exists ${catalogName}.${dbName}.${tableName};"""
+        sql """drop database ${catalogName}.${dbName};"""
+        connect(user=user, password="${pwd}", url=context.config.jdbcUrl) {
+            sql """create database ${catalogName}.${dbName};"""
+        }
+        sql """revoke Create_priv on ${catalogName}.${dbName}.* from ${user}"""
+
+        // create table
+        connect(user=user, password="${pwd}", url=context.config.jdbcUrl) {
+            test {
+                sql """create table ${catalogName}.${dbName}.${tableName} (
                     id BIGINT,
                     username VARCHAR(20)
                 ) ENGINE=hive
                 PROPERTIES (
                   'file_format'='parquet'
                 );"""
-            exception "denied"
+                exception "denied"
+            }
         }
-    }
-    sql """create table ${catalogName}.${dbName}.${tableName} (
+        sql """create table ${catalogName}.${dbName}.${tableName} (
             id BIGINT,
             username VARCHAR(20)
         ) ENGINE=hive
         PROPERTIES (
           'file_format'='parquet'
         );"""
-    sql """grant Create_priv on ${catalogName}.${dbName}.${tableName} to ${user}"""
-    sql """drop table ${catalogName}.${dbName}.${tableName}"""
-    connect(user=user, password="${pwd}", url=context.config.jdbcUrl) {
-        sql """create table ${catalogName}.${dbName}.${tableName} (
+        sql """grant Create_priv on ${catalogName}.${dbName}.${tableName} to ${user}"""
+        sql """drop table ${catalogName}.${dbName}.${tableName}"""
+        connect(user=user, password="${pwd}", url=context.config.jdbcUrl) {
+            sql """create table ${catalogName}.${dbName}.${tableName} (
                 id BIGINT,
                 username VARCHAR(20)
             ) ENGINE=hive
             PROPERTIES (
               'file_format'='parquet'
             );"""
-        sql """switch ${catalogName}"""
-        sql """use ${dbName}"""
-        sql """show create table ${tableName}"""
-        def db_res = sql """show tables;"""
-        assertTrue(db_res.size() == 1)
-    }
-    sql """revoke Create_priv on ${catalogName}.${dbName}.${tableName} from ${user}"""
+            sql """switch ${catalogName}"""
+            sql """use ${dbName}"""
+            sql """show create table ${tableName}"""
+            def db_res = sql """show tables;"""
+            assertTrue(db_res.size() == 1)
+        }
+        sql """revoke Create_priv on ${catalogName}.${dbName}.${tableName} from ${user}"""
 
-    connect(user=user, password="${pwd}", url=context.config.jdbcUrl) {
-        test {
-            sql """
+        // load
+        connect(user=user, password="${pwd}", url=context.config.jdbcUrl) {
+            test {
+                sql """
                 insert into ${catalogName}.${dbName}.${tableName} values 
                 (1, "111"),
                 (2, "222");
                 """
-            exception "denied"
+                exception "denied"
+            }
         }
-    }
-    sql """grant LOAD_PRIV on ${catalogName}.${dbName}.${tableName} to ${user}"""
-    connect(user=user, password="${pwd}", url=context.config.jdbcUrl) {
-        sql """
+        sql """grant LOAD_PRIV on ${catalogName}.${dbName}.${tableName} to ${user}"""
+        connect(user=user, password="${pwd}", url=context.config.jdbcUrl) {
+            sql """
             insert into ${catalogName}.${dbName}.${tableName} values 
             (1, "111"),
             (2, "222");
             """
-    }
-    sql """revoke LOAD_PRIV on ${catalogName}.${dbName}.${tableName} from ${user}"""
+        }
+        sql """revoke LOAD_PRIV on ${catalogName}.${dbName}.${tableName} from ${user}"""
 
-//    connect(user=user, password="${pwd}", url=context.config.jdbcUrl) {
-//        test {
-//            sql """ALTER table ${catalogName}.${dbName}.${tableName} RENAME ${tableNameNew};"""
-//            exception "denied"
+        // alter
+//        connect(user=user, password="${pwd}", url=context.config.jdbcUrl) {
+//            test {
+//                sql """ALTER table ${catalogName}.${dbName}.${tableName} RENAME ${tableNameNew};"""
+//                exception "denied"
+//            }
 //        }
-//    }
-//    sql """grant ALTER_PRIV on ${catalogName}.${dbName}.${tableName} to ${user}"""
-//    connect(user=user, password="${pwd}", url=context.config.jdbcUrl) {
-//        sql """ALTER table ${catalogName}.${dbName}.${tableName} RENAME ${tableNameNew};"""
-//    }
-//    sql """revoke ALTER_PRIV on ${catalogName}.${dbName}.${tableName} from ${user}"""
-//    sql """ALTER table ${catalogName}.${dbName}.${tableNameNew} RENAME ${tableName};"""
+//        sql """grant ALTER_PRIV on ${catalogName}.${dbName}.${tableName} to ${user}"""
+//        connect(user=user, password="${pwd}", url=context.config.jdbcUrl) {
+//            sql """ALTER table ${catalogName}.${dbName}.${tableName} RENAME ${tableNameNew};"""
+//        }
+//        sql """revoke ALTER_PRIV on ${catalogName}.${dbName}.${tableName} from ${user}"""
+//        sql """ALTER table ${catalogName}.${dbName}.${tableNameNew} RENAME ${tableName};"""
 
-    connect(user=user, password="${pwd}", url=context.config.jdbcUrl) {
-        test {
-            sql """drop catalog ${catalogName}"""
-            exception "denied"
+        // drop
+        connect(user=user, password="${pwd}", url=context.config.jdbcUrl) {
+            test {
+                sql """drop catalog ${catalogName}"""
+                exception "denied"
+            }
+            test {
+                sql """drop database ${catalogName}.${dbName}"""
+                exception "denied"
+            }
+            test {
+                sql """drop table ${catalogName}.${dbName}.${tableName}"""
+                exception "denied"
+            }
         }
-        test {
-            sql """drop database ${catalogName}.${dbName}"""
-            exception "denied"
-        }
-        test {
+        sql """grant DROP_PRIV on ${catalogName}.*.* to ${user}"""
+        connect(user=user, password="${pwd}", url=context.config.jdbcUrl) {
             sql """drop table ${catalogName}.${dbName}.${tableName}"""
-            exception "denied"
+            sql """drop database ${catalogName}.${dbName}"""
+            sql """drop catalog ${catalogName}"""
         }
-    }
-    sql """grant DROP_PRIV on ${catalogName}.*.* to ${user}"""
-    connect(user=user, password="${pwd}", url=context.config.jdbcUrl) {
-        sql """drop table ${catalogName}.${dbName}.${tableName}"""
-        sql """drop database ${catalogName}.${dbName}"""
-        sql """drop catalog ${catalogName}"""
+
+        sql """drop catalog if exists ${catalogName}"""
+        try_sql("DROP USER ${user}")
     }
 
-    sql """drop catalog ${catalogName}"""
-    try_sql("DROP USER ${user}")
+
 
 }
