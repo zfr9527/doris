@@ -69,7 +69,7 @@ suite("test_hive_base_case_auth", "p0,auth_call") {
             exception "denied"
         }
     }
-    sql """create database if not exists ${catalogName}.${dbName};"""
+    sql """create database ${catalogName}.${dbName};"""
     sql """grant Create_priv on ${catalogName}.${dbName}.* to ${user}"""
     sql """drop table if exists ${catalogName}.${dbName}.${tableName};"""
     sql """drop database ${catalogName}.${dbName};"""
@@ -169,7 +169,7 @@ suite("test_hive_base_case_auth", "p0,auth_call") {
         sql """drop catalog ${catalogName}"""
     }
 
-    sql """drop catalog if exists ${catalogName}"""
+    sql """drop catalog ${catalogName}"""
     try_sql("DROP USER ${user}")
 
 }
