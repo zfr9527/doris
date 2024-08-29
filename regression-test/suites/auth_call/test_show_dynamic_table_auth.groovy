@@ -54,6 +54,6 @@ suite("test_show_dynamic_table_auth","p0,auth") {
         assertTrue(res.size() == 1)
     }
 
-//    sql """drop database if exists ${dbName}"""
-//    try_sql("DROP USER ${user}")
+    sql """drop database if exists ${dbName}"""
+    try_sql("DROP USER ${user}")
 }
