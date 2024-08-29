@@ -28,8 +28,8 @@ suite("test_ddl_function_auth","p0,auth") {
     try_sql("""DROP FUNCTION ${dbName}.${functionName}(INT)""")
     sql """CREATE USER '${user}' IDENTIFIED BY '${pwd}'"""
     sql """grant select_priv on regression_test to ${user}"""
-    sql """grant select_priv on ${dbName}.* to ${user}"""
     sql """create database ${dbName}"""
+    sql """grant select_priv on ${dbName}.* to ${user}"""
 
     // ddl create,show,drop
     connect(user=user, password="${pwd}", url=context.config.jdbcUrl) {
