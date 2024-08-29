@@ -74,7 +74,6 @@ suite("test_hive_base_case_auth", "p0,auth_call") {
     sql """drop database ${catalogName}.${dbName};"""
     connect(user=user, password="${pwd}", url=context.config.jdbcUrl) {
         sql """create database ${catalogName}.${dbName};"""
-        sql """show create database ${dbName}"""
     }
     sql """revoke Create_priv on ${catalogName}.${dbName}.* from ${user}"""
 
