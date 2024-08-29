@@ -47,7 +47,11 @@ suite("test_ddl_catalog_auth","p0,auth_call") {
         def ctl_res = sql """show catalogs;"""
         assertTrue(ctl_res.size() == 1)
     }
+    sql """create catalog if not exists ${catalogName} properties (
+            'type'='hms'
+        );"""
     sql """grant Create_priv on ${catalogName}.*.* to ${user}"""
+    sql """drop catalog ${catalogName}"""
     connect(user=user, password="${pwd}", url=context.config.jdbcUrl) {
         sql """create catalog if not exists ${catalogName} properties (
             'type'='hms'
