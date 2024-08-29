@@ -116,16 +116,36 @@ suite("test_hive_base_case_auth", "p0,auth_call") {
 
     connect(user=user, password="${pwd}", url=context.config.jdbcUrl) {
         test {
-            sql """ALTER table ${catalogName}.${dbName}.${tableName} RENAME ${tableNameNew};"""
+            sql """
+                insert into ${catalogName}.${dbName}.${tableName} values 
+                (1, "111"),
+                (2, "222");
+                """
             exception "denied"
         }
     }
-    sql """grant ALTER_PRIV on ${catalogName}.${dbName}.${tableName} to ${user}"""
+    sql """grant LOAD_PRIV on ${catalogName}.${dbName}.${tableName} to ${user}"""
     connect(user=user, password="${pwd}", url=context.config.jdbcUrl) {
-        sql """ALTER table ${catalogName}.${dbName}.${tableName} RENAME ${tableNameNew};"""
+        sql """
+            insert into ${catalogName}.${dbName}.${tableName} values 
+            (1, "111"),
+            (2, "222");
+            """
     }
-    sql """revoke ALTER_PRIV on ${catalogName}.${dbName}.${tableName} from ${user}"""
-    sql """ALTER table ${catalogName}.${dbName}.${tableNameNew} RENAME ${tableName};"""
+    sql """revoke LOAD_PRIV on ${catalogName}.${dbName}.${tableName} from ${user}"""
+
+//    connect(user=user, password="${pwd}", url=context.config.jdbcUrl) {
+//        test {
+//            sql """ALTER table ${catalogName}.${dbName}.${tableName} RENAME ${tableNameNew};"""
+//            exception "denied"
+//        }
+//    }
+//    sql """grant ALTER_PRIV on ${catalogName}.${dbName}.${tableName} to ${user}"""
+//    connect(user=user, password="${pwd}", url=context.config.jdbcUrl) {
+//        sql """ALTER table ${catalogName}.${dbName}.${tableName} RENAME ${tableNameNew};"""
+//    }
+//    sql """revoke ALTER_PRIV on ${catalogName}.${dbName}.${tableName} from ${user}"""
+//    sql """ALTER table ${catalogName}.${dbName}.${tableNameNew} RENAME ${tableName};"""
 
     connect(user=user, password="${pwd}", url=context.config.jdbcUrl) {
         test {
