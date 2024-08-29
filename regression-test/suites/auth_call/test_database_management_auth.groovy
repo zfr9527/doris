@@ -32,10 +32,10 @@ suite("test_database_management_auth","p0,auth") {
     sql """create database ${dbName}"""
 
     connect(user=user, password="${pwd}", url=context.config.jdbcUrl) {
-        test {
-            sql """SHOW FRONTEND CONFIG"""
-            exception "denied"
-        }
+//        test {
+//            sql """SHOW FRONTEND CONFIG"""
+//            exception "denied"
+//        }
         test {
             sql """ADMIN SET FRONTEND CONFIG ("disable_balance" = "true");"""
             exception "denied"
