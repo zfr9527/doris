@@ -77,7 +77,16 @@ suite("test_ddl_table_auth","p0,auth") {
         def res = sql """show query stats;"""
         logger.info("res:" + res)
     }
+    sql """create table ${dbName}.${tableName} (
+            id BIGINT,
+            username VARCHAR(20)
+        )
+        DISTRIBUTED BY HASH(id) BUCKETS 2
+        PROPERTIES (
+            "replication_num" = "1"
+        );"""
     sql """grant Create_priv on ${dbName}.${tableName} to ${user}"""
+    sql """drop table ${dbName}.${tableName};"""
     connect(user=user, password="${pwd}", url=context.config.jdbcUrl) {
         sql """create table ${dbName}.${tableName} (
                     id BIGINT,
@@ -92,11 +101,10 @@ suite("test_ddl_table_auth","p0,auth") {
         def db_res = sql """show tables;"""
         assertTrue(db_res.size() == 1)
 
-//        def col_res = sql """SHOW FULL COLUMNS FROM ${dbName}.${tableName};"""
-//        logger.info("col_res: " + col_res)
-//        assertTrue(col_res.size() == 2)
+        def col_res = sql """SHOW FULL COLUMNS FROM ${dbName}.${tableName};"""
+        logger.info("col_res: " + col_res)
+        assertTrue(col_res.size() == 2)
     }
-
 
     // ddl alter
     // user alter
@@ -160,28 +168,30 @@ suite("test_ddl_table_auth","p0,auth") {
     sql """revoke select_priv(id) on ${dbName}.${tableName} from ${user}"""
 
     // ddl create table like
-//    connect(user=user, password="${pwd}", url=context.config.jdbcUrl) {
-//        try {
-//            sql """create table ${cteLikeDstDb}.${cteLikeDstTb} like ${dbName}.${tableName};"""
-//        } catch (Exception e) {
-//            log.info(e.getMessage())
-//            assertTrue(e.getMessage().contains("Access denied"))
-//        }
-//    }
-//    sql """create database ${cteLikeDstDb}"""
-//    sql """grant Create_priv on ${cteLikeDstDb}.${cteLikeDstTb} to ${user}"""
-//    connect(user=user, password="${pwd}", url=context.config.jdbcUrl) {
-//        try {
-//            sql """create table ${cteLikeDstDb}.${cteLikeDstTb} like ${dbName}.${tableName};"""
-//        } catch (Exception e) {
-//            log.info(e.getMessage())
-//            assertTrue(e.getMessage().contains("Access denied"))
-//        }
-//    }
-//    sql """grant SELECT_PRIV on ${dbName}.${tableName} to ${user}"""
-//    connect(user=user, password="${pwd}", url=context.config.jdbcUrl) {
-//        sql """create table ${cteLikeDstDb}.${cteLikeDstTb} like ${dbName}.${tableName};"""
-//    }
+    connect(user=user, password="${pwd}", url=context.config.jdbcUrl) {
+        try {
+            sql """create table ${cteLikeDstDb}.${cteLikeDstTb} like ${dbName}.${tableName};"""
+        } catch (Exception e) {
+            log.info(e.getMessage())
+            assertTrue(e.getMessage().contains("Access denied"))
+        }
+    }
+    sql """create database ${cteLikeDstDb}"""
+    sql """create table ${cteLikeDstDb}.${cteLikeDstTb} like ${dbName}.${tableName};"""
+    sql """grant Create_priv on ${cteLikeDstDb}.${cteLikeDstTb} to ${user}"""
+    sql """drop table ${cteLikeDstDb}.${cteLikeDstTb};"""
+    connect(user=user, password="${pwd}", url=context.config.jdbcUrl) {
+        try {
+            sql """create table ${cteLikeDstDb}.${cteLikeDstTb} like ${dbName}.${tableName};"""
+        } catch (Exception e) {
+            log.info(e.getMessage())
+            assertTrue(e.getMessage().contains("Access denied"))
+        }
+    }
+    sql """grant SELECT_PRIV on ${dbName}.${tableName} to ${user}"""
+    connect(user=user, password="${pwd}", url=context.config.jdbcUrl) {
+        sql """create table ${cteLikeDstDb}.${cteLikeDstTb} like ${dbName}.${tableName};"""
+    }
 
     // ddl create table select
     sql """create database ${cteSelectDstDb}"""
@@ -193,7 +203,9 @@ suite("test_ddl_table_auth","p0,auth") {
             assertTrue(e.getMessage().contains("denied"))
         }
     }
+    sql """create table ${cteSelectDstDb}.${cteSelectDstTb}(username) PROPERTIES("replication_num" = "1") as select username from ${dbName}.${tableName};"""
     sql """grant Create_priv on ${cteSelectDstDb}.${cteSelectDstTb} to ${user}"""
+    sql """drop table ${cteSelectDstDb}.${cteSelectDstTb}"""
     connect(user=user, password="${pwd}", url=context.config.jdbcUrl) {
         try {
             sql """create table ${cteSelectDstDb}.${cteSelectDstTb}(username) PROPERTIES("replication_num" = "1") as select username from ${dbName}.${tableName};"""
