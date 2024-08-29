@@ -35,7 +35,6 @@ suite("test_hive_base_case_auth", "p0,auth_call") {
 
         String hms_port = context.config.otherConfigs.get(hivePrefix + "HmsPort")
         String hdfs_port = context.config.otherConfigs.get(hivePrefix + "HdfsPort")
-//        String hdfs_port3 = context.config.otherConfigs.get("hive3HdfsPort")
         String externalEnvIp = context.config.otherConfigs.get("externalEnvIp")
 
         try_sql("DROP USER ${user}")
