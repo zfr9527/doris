@@ -171,15 +171,6 @@ suite("test_dml_broker_load_auth","p0,auth") {
     }
     sql """revoke load_priv on ${dbName} from ${user}"""
 
-//    sql """grant admin_priv on *.*.* to ${user}"""
-//    connect(user=user, password="${pwd}", url=context.config.jdbcUrl) {
-//        def res = sql """SHOW TRANSACTION WHERE LABEL = "${loadLabelName}";"""
-//        logger.info("SHOW TRANSACTION res:" + res)
-//        assertTrue(res.size() == 1)
-//    }
-//    sql """revoke admin_priv on *.*.* from ${user}"""
-
-
     sql """drop database if exists ${dbName}"""
     try_sql("DROP USER ${user}")
 }
