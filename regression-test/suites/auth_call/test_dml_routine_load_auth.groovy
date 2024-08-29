@@ -134,7 +134,7 @@ suite("test_dml_routine_load_auth","p0,auth") {
             sql """RESUME ROUTINE LOAD FOR ${dbName}.${labelName};"""
             sql """STOP ROUTINE LOAD FOR ${dbName}.${labelName};"""
             sql """use ${dbName};"""
-            def res = sql """show routine load for ${labelName}"""
+            def res = sql """show all routine load"""
             assertTrue(res.size() == 1)
         }
         sql """revoke load_priv on ${dbName}.${tableName} from ${user}"""
