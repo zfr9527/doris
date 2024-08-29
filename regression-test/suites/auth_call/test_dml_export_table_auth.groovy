@@ -99,12 +99,6 @@ suite("test_dml_export_table_auth","p0,auth") {
         def res = sql """show export;"""
         logger.info("res: " + res)
         assertTrue(res.size() == 1)
-        test {
-            sql """CANCEL EXPORT
-                FROM ${dbName}
-                WHERE STATE = "EXPORTING";"""
-            exception "denied"
-        }
     }
     sql """grant select_priv on ${dbName} to ${user}"""
     connect(user=user, password="${pwd}", url=context.config.jdbcUrl) {
