@@ -40,7 +40,7 @@ suite("test_dml_routine_load_auth","p0,auth") {
     def kafka_broker = "${externalEnvIp}:${kafka_port}"
     if (enabled != null && enabled.equalsIgnoreCase("true")) {
         // define kafka
-        String topic = "test_dml_routine_load_auth_topic"
+        String topic = "zfr_test_dml_routine_load_auth_topic"
         def props = new Properties()
         props.put(ProducerConfig.BOOTSTRAP_SERVERS_CONFIG, "${kafka_broker}".toString())
         props.put(ProducerConfig.KEY_SERIALIZER_CLASS_CONFIG, "org.apache.kafka.common.serialization.StringSerializer")
