@@ -78,7 +78,7 @@ suite("test_ddl_mv_auth","p0,auth") {
 
         def mv_res = sql """desc ${dbName}.${tableName} all;"""
         logger.info("mv_res: " + mv_res)
-        assertTrue(mv_res.size() == 5)
+        assertTrue(mv_res.size() == 6)
     }
     sql """revoke alter_priv on ${dbName}.${tableName} from ${user}"""
     sql """revoke select_priv(username) on ${dbName}.${tableName} from ${user}"""
