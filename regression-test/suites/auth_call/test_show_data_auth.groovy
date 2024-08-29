@@ -57,11 +57,8 @@ suite("test_show_data_auth","p0,auth") {
             exception "denied"
         }
         sql """SHOW DATA;"""
-        test {
-            sql """SHOW DATA;"""
-            exception "denied"
-        }
     }
+
     sql """grant select_priv on ${dbName}.${tableName} to ${user}"""
     connect(user=user, password="${pwd}", url=context.config.jdbcUrl) {
         sql """use ${dbName}"""
@@ -70,10 +67,7 @@ suite("test_show_data_auth","p0,auth") {
             sql """show data from ${dbName}.${tableName2}"""
             exception "denied"
         }
-        test {
-            sql """SHOW DATA;"""
-            exception "denied"
-        }
+        sql """SHOW DATA;"""
     }
     sql """revoke select_priv on ${dbName}.${tableName} from ${user}"""
 
