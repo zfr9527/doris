@@ -24,7 +24,7 @@ suite("test_hive_base_case_auth", "p0,auth_call") {
     String tableName = 'test_hive_base_case_auth_tb'
     String tableNameNew = 'test_hive_base_case_auth_tb_new'
 
-    String hms_port = context.config.otherConfigs.get(hivePrefix + "HmsPort")
+    String hms_port = context.config.otherConfigs.get("hive2" + "HmsPort")
     String hdfs_port2 = context.config.otherConfigs.get("hive2HdfsPort")
     String hdfs_port3 = context.config.otherConfigs.get("hive3HdfsPort")
     String externalEnvIp = context.config.otherConfigs.get("externalEnvIp")
@@ -69,7 +69,7 @@ suite("test_hive_base_case_auth", "p0,auth_call") {
             exception "denied"
         }
     }
-    sql """create database ${catalogName}.${dbName};"""
+    sql """create database if not exists ${catalogName}.${dbName};"""
     sql """grant Create_priv on ${catalogName}.${dbName}.* to ${user}"""
     sql """drop database ${catalogName}.${dbName};"""
     connect(user=user, password="${pwd}", url=context.config.jdbcUrl) {
