@@ -79,6 +79,6 @@ suite("test_dml_export_table_auth_test","p0,auth") {
             WHERE STATE = "EXPORTING";"""
     }
 
-//    sql """drop database if exists ${dbName}"""
-//    try_sql("DROP USER ${user}")
+    sql """drop database if exists ${dbName}"""
+    try_sql("DROP USER ${user}")
 }
