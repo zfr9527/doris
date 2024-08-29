@@ -50,6 +50,11 @@ suite("test_ddl_mtmv_auth","p0,auth") {
             exception "denied"
         }
     }
+    sql """CREATE MATERIALIZED VIEW ${dbName}.${mtmvName} 
+                BUILD IMMEDIATE REFRESH AUTO ON MANUAL 
+                DISTRIBUTED BY RANDOM BUCKETS 1 
+                PROPERTIES ('replication_num' = '1') 
+                AS select username, sum(id) as sum_id from ${dbName}.${tableName} group by username"""
     sql """grant Create_priv on ${dbName}.${mtmvName} to ${user}"""
     connect(user=user, password="${pwd}", url=context.config.jdbcUrl) {
         test {
@@ -62,6 +67,7 @@ suite("test_ddl_mtmv_auth","p0,auth") {
         }
     }
     sql """grant select_priv on ${dbName}.${tableName} to ${user}"""
+    sql """drop MATERIALIZED VIEW ${dbName}.${mtmvName};"""
     connect(user=user, password="${pwd}", url=context.config.jdbcUrl) {
         sql """CREATE MATERIALIZED VIEW ${dbName}.${mtmvName} 
             BUILD IMMEDIATE REFRESH AUTO ON MANUAL 
