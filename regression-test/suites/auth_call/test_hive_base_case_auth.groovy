@@ -45,7 +45,11 @@ suite("test_hive_base_case_auth", "p0,auth_call") {
         def ctl_res = sql """show catalogs;"""
         assertTrue(ctl_res.size() == 1)
     }
+    sql """create catalog if not exists ${catalogName} properties (
+            'type'='hms'
+        );"""
     sql """grant Create_priv on ${catalogName}.*.* to ${user}"""
+    try_sql """drop catalog if exists ${catalogName}"""
     connect(user=user, password="${pwd}", url=context.config.jdbcUrl) {
         sql """create catalog if not exists ${catalogName} properties (
                 'type'='hms',
@@ -65,7 +69,9 @@ suite("test_hive_base_case_auth", "p0,auth_call") {
             exception "denied"
         }
     }
+    sql """create database ${catalogName}.${dbName};"""
     sql """grant Create_priv on ${catalogName}.${dbName}.* to ${user}"""
+    sql """drop database ${catalogName}.${dbName};"""
     connect(user=user, password="${pwd}", url=context.config.jdbcUrl) {
         sql """create database ${catalogName}.${dbName};"""
         sql """show create database ${dbName}"""
@@ -85,7 +91,16 @@ suite("test_hive_base_case_auth", "p0,auth_call") {
             exception "denied"
         }
     }
+    sql """create table ${catalogName}.${dbName}.${tableName} (
+                id BIGINT,
+                username VARCHAR(20)
+            )
+            DISTRIBUTED BY HASH(id) BUCKETS 2
+            PROPERTIES (
+                "replication_num" = "1"
+            );"""
     sql """grant Create_priv on ${catalogName}.${dbName}.${tableName} to ${user}"""
+    sql """drop table ${catalogName}.${dbName}.${tableName}"""
     connect(user=user, password="${pwd}", url=context.config.jdbcUrl) {
         sql """create table ${catalogName}.${dbName}.${tableName} (
                 id BIGINT,
