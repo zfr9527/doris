@@ -51,6 +51,10 @@ suite("test_ddl_mv_auth","p0,auth") {
             sql """create materialized view ${mvName} as select username from ${dbName}.${tableName};"""
             exception "denied"
         }
+        test {
+            sql """alter table ${dbName}.${tableName} add rollup ${rollupName}(username)"""
+            exception "denied"
+        }
     }
     sql """grant select_priv(username) on ${dbName}.${tableName} to ${user}"""
     connect(user=user, password="${pwd}", url=context.config.jdbcUrl) {
@@ -59,10 +63,15 @@ suite("test_ddl_mv_auth","p0,auth") {
             sql """create materialized view ${mvName} as select username from ${dbName}.${tableName};"""
             exception "denied"
         }
+        test {
+            sql """alter table ${dbName}.${tableName} add rollup ${rollupName}(username)"""
+            exception "denied"
+        }
     }
-//    sql """grant select_priv(username) on ${dbName}.${tableName} to ${user}"""
-    sql """grant Create_priv on ${dbName}.${mvName} to ${user}"""
+    sql """create materialized view ${mvName} as select username from ${dbName}.${tableName};"""
     waitingMVTaskFinishedByMvName(dbName, tableName)
+    sql """grant Create_priv on ${dbName}.${mvName} to ${user}"""
+    sql """DROP MATERIALIZED VIEW IF EXISTS ${mvName} ON ${tableName}"""
     connect(user=user, password="${pwd}", url=context.config.jdbcUrl) {
         sql """use ${dbName}"""
         sql """create materialized view ${mvName} as select username from ${dbName}.${tableName};"""
