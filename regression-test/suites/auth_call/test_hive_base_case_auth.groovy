@@ -71,6 +71,7 @@ suite("test_hive_base_case_auth", "p0,auth_call") {
     }
     sql """create database if not exists ${catalogName}.${dbName};"""
     sql """grant Create_priv on ${catalogName}.${dbName}.* to ${user}"""
+    sql """drop table if exists ${catalogName}.${dbName}.${tableName};"""
     sql """drop database ${catalogName}.${dbName};"""
     connect(user=user, password="${pwd}", url=context.config.jdbcUrl) {
         sql """create database ${catalogName}.${dbName};"""
