@@ -192,6 +192,7 @@ suite("test_ddl_table_auth","p0,auth") {
     connect(user=user, password="${pwd}", url=context.config.jdbcUrl) {
         sql """create table ${cteLikeDstDb}.${cteLikeDstTb} like ${dbName}.${tableName};"""
     }
+    sql """revoke SELECT_PRIV on ${dbName}.${tableName} from ${user}"""
 
     // ddl create table select
     sql """create database ${cteSelectDstDb}"""
@@ -218,11 +219,9 @@ suite("test_ddl_table_auth","p0,auth") {
     sql """grant LOAD_PRIV on ${cteSelectDstDb}.${cteSelectDstTb} to ${user}"""
     sql """drop table ${cteSelectDstDb}.${cteSelectDstTb}"""
     connect(user=user, password="${pwd}", url=context.config.jdbcUrl) {
-        try {
+        test {
             sql """create table ${cteSelectDstDb}.${cteSelectDstTb}(username) PROPERTIES("replication_num" = "1") as select username from ${dbName}.${tableName};"""
-        } catch (Exception e) {
-            log.info(e.getMessage())
-            assertTrue(e.getMessage().contains("denied"))
+            exception "denied"
         }
     }
     sql """grant select_priv(username) on ${dbName}.${tableName} to ${user}"""
