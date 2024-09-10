@@ -17,6 +17,15 @@
 
 import org.junit.Assert;
 
+/*
+curl http://10.16.10.6:8330/api/meta/namespaces/internal/databases
+curl http://10.16.10.6:8330/api/meta/namespaces/default_cluster/databases/test_ddl_table_api_auth_db/tables
+curl http://10.16.10.6:8330/api/meta/namespaces/default_cluster/databases/test_ddl_table_api_auth_db/tables/test_ddl_table_api_auth_tb/schema
+curl http://10.16.10.6:8330/api/test_ddl_table_api_auth_db/test_ddl_table_api_auth_tb/_count
+curl "http://10.16.10.6:8330/api/show_table_data?db=test_ddl_table_api_auth_db&table=test_ddl_table_api_auth_tb"
+
+
+ */
 suite("test_ddl_table_api_auth","p0,auth") {
     String user = 'test_ddl_table_api_auth_user'
     String pwd = 'C123_567p'
