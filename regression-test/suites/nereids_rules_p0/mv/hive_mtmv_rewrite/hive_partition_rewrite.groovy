@@ -183,6 +183,8 @@ suite ("hive_partition_rewrite") {
     }
     compare_res(partition_sql + order_by_stmt)
 
+
+
     /*
     // Part partition is invalid, test can not use partition 2023-10-17 to rewrite
     sql """
