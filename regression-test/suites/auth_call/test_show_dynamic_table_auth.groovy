@@ -17,7 +17,7 @@
 
 import org.junit.Assert;
 
-suite("test_show_dynamic_table_auth","p0,auth") {
+suite("test_show_dynamic_table_auth","p0,auth_call") {
     String user = 'test_show_dynamic_table_auth_user'
     String pwd = 'C123_567p'
     String dbName = 'test_show_dynamic_table_auth_db'

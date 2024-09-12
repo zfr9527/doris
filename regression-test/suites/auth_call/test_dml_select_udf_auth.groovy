@@ -15,7 +15,7 @@
 // specific language governing permissions and limitations
 // under the License.
 
-suite("test_dml_select_udf_auth","p0,auth") {
+suite("test_dml_select_udf_auth","p0,auth_call") {
 
     String user = 'test_dml_select_udf_auth_user'
     String pwd = 'C123_567p'

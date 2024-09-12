@@ -18,7 +18,7 @@
 import org.junit.Assert;
 import org.codehaus.groovy.runtime.IOGroovyMethods
 
-suite("test_dml_broker_load_auth","p0,auth") {
+suite("test_dml_broker_load_auth","p0,auth_call") {
 
     UUID uuid = UUID.randomUUID()
     String randomValue = uuid.toString()

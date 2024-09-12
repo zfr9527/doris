@@ -17,7 +17,7 @@
 
 import org.junit.Assert;
 
-suite ("test_cluster_management_auth","nonConcurrent,p0,auth") {
+suite ("test_cluster_management_auth","nonConcurrent,p0,auth_call") {
 
     def follower_ip = ""
     def follower_host = ""

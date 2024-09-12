@@ -18,7 +18,7 @@
 import org.junit.Assert;
 import org.codehaus.groovy.runtime.IOGroovyMethods
 
-suite("test_account_management_user_auth","p0,auth") {
+suite("test_account_management_user_auth","p0,auth_call") {
 
     String user = 'test_account_management_user_auth_user'
     String pwd = 'C123_567p'

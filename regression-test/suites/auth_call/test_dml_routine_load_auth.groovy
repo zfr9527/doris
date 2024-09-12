@@ -20,7 +20,7 @@ import org.apache.kafka.clients.producer.KafkaProducer
 import org.apache.kafka.clients.producer.ProducerRecord
 import org.apache.kafka.clients.producer.ProducerConfig
 
-suite("test_dml_routine_load_auth","p0,auth") {
+suite("test_dml_routine_load_auth","p0,auth_call") {
 
     String user = 'test_dml_routine_load_auth_user'
     String pwd = 'C123_567p'

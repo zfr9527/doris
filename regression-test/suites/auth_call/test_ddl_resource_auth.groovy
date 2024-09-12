@@ -17,7 +17,7 @@
 
 import org.junit.Assert;
 
-suite("test_ddl_resource_auth","p0,auth") {
+suite("test_ddl_resource_auth","p0,auth_call") {
     String user = 'test_ddl_resource_auth_user'
     String pwd = 'C123_567p'
     String dbName = 'test_ddl_resource_auth_db'

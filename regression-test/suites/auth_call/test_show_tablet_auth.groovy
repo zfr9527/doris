@@ -17,7 +17,7 @@
 
 import org.junit.Assert;
 
-suite("test_show_tablet_auth","p0,auth") {
+suite("test_show_tablet_auth","p0,auth_call") {
     String user = 'test_show_tablet_auth_user'
     String pwd = 'C123_567p'
     String dbName = 'test_show_tablet_auth_db'

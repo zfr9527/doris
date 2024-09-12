@@ -18,7 +18,7 @@
 import org.junit.Assert;
 import org.codehaus.groovy.runtime.IOGroovyMethods
 
-suite("test_account_management_role_auth","p0,auth") {
+suite("test_account_management_role_auth","p0,auth_call") {
 
     String user = 'test_account_management_role_auth_user'
     String role = 'test_account_management_role_auth_role'

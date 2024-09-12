@@ -17,7 +17,7 @@
 
 import org.junit.Assert;
 
-suite("test_ddl_sql_block_rule_auth","p0,auth") {
+suite("test_ddl_sql_block_rule_auth","p0,auth_call") {
     String user = 'test_ddl_sbr_auth_user'
     String pwd = 'C123_567p'
     String dbName = 'test_ddl_sbr_auth_db'

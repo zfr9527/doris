@@ -17,7 +17,7 @@
 
 import org.junit.Assert;
 
-suite("test_ddl_workload_group_auth","p0,auth") {
+suite("test_ddl_workload_group_auth","p0,auth_call") {
     String user = 'test_ddl_wg_auth_user'
     String pwd = 'C123_567p'
     String dbName = 'test_ddl_wg_auth_db'
