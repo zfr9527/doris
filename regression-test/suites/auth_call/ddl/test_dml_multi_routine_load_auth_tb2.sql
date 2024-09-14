@@ -1,4 +1,4 @@
-CREATE TABLE test_dml_multi_routine_load_auth_tb1
+CREATE TABLE test_dml_multi_routine_load_auth_tb2
 (
     k00 INT             NOT NULL,
     k01 DATE            NOT NULL,
