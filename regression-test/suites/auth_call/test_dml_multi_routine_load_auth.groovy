@@ -47,14 +47,14 @@ suite("test_dml_multi_routine_load_auth","p0,auth_call") {
         props.put(ProducerConfig.KEY_SERIALIZER_CLASS_CONFIG, "org.apache.kafka.common.serialization.StringSerializer")
         props.put(ProducerConfig.VALUE_SERIALIZER_CLASS_CONFIG, "org.apache.kafka.common.serialization.StringSerializer")
         def producer = new KafkaProducer<>(props)
-
         def txt = new File("""${context.file.parent}/data/multi_table_csv.csv""").text
         def lines = txt.readLines()
         lines.each { line ->
             logger.info("=====${line}========")
-            def record = new ProducerRecord<>(kafkaCsvTopic, null, line)
+            def record = new ProducerRecord<>(topic, null, line)
             producer.send(record)
         }
+
         sql """use ${dbName}"""
         sql "drop table if exists ${tableName1}"
         sql "drop table if exists ${tableName2}"
