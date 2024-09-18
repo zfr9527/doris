@@ -46,15 +46,22 @@ suite("test_ddl_view_auth","p0,auth_call") {
 
     // ddl create
     connect(user=user, password="${pwd}", url=context.config.jdbcUrl) {
-        try {
+        test {
             sql """CREATE VIEW ${dbName}.${viewName} (k1, v1)
                 AS
                 SELECT id as k1, SUM(id) FROM ${dbName}.${tableName}
                 WHERE id = 1 GROUP BY k1;"""
-        } catch (Exception e) {
-            log.info(e.getMessage())
-            assertTrue(e.getMessage().contains("denied"))
+            exception "denied"
         }
+//        try {
+//            sql """CREATE VIEW ${dbName}.${viewName} (k1, v1)
+//                AS
+//                SELECT id as k1, SUM(id) FROM ${dbName}.${tableName}
+//                WHERE id = 1 GROUP BY k1;"""
+//        } catch (Exception e) {
+//            log.info(e.getMessage())
+//            assertTrue(e.getMessage().contains("denied"))
+//        }
         test {
             sql """SHOW VIEW from ${tableName} from ${dbName}"""
             exception 'denied'
@@ -62,15 +69,22 @@ suite("test_ddl_view_auth","p0,auth_call") {
     }
     sql """grant select_priv(id) on ${dbName}.${tableName} to ${user}"""
     connect(user=user, password="${pwd}", url=context.config.jdbcUrl) {
-        try {
+        test {
             sql """CREATE VIEW ${dbName}.${viewName} (k1, v1)
                 AS
                 SELECT id as k1, SUM(id) FROM ${dbName}.${tableName}
                 WHERE id = 1 GROUP BY k1;"""
-        } catch (Exception e) {
-            log.info(e.getMessage())
-            assertTrue(e.getMessage().contains("denied"))
+            exception 'denied'
         }
+//        try {
+//            sql """CREATE VIEW ${dbName}.${viewName} (k1, v1)
+//                AS
+//                SELECT id as k1, SUM(id) FROM ${dbName}.${tableName}
+//                WHERE id = 1 GROUP BY k1;"""
+//        } catch (Exception e) {
+//            log.info(e.getMessage())
+//            assertTrue(e.getMessage().contains("denied"))
+//        }
         def res = sql """SHOW VIEW from ${tableName} from ${dbName}"""
         assertTrue(res.size() == 0)
     }
@@ -90,29 +104,43 @@ suite("test_ddl_view_auth","p0,auth_call") {
         assertTrue(res.size() == 1)
     }
     connect(user=user, password="${pwd}", url=context.config.jdbcUrl) {
-        try {
+        test {
             sql """CREATE VIEW ${dbName}.${viewName} (k1, v1)
                 AS
                 SELECT username as k1, SUM(id) FROM ${dbName}.${tableName}
                 WHERE id = 1 GROUP BY k1;"""
-        } catch (Exception e) {
-            log.info(e.getMessage())
-            assertTrue(e.getMessage().contains("denied"))
+            exception 'denied'
         }
+//        try {
+//            sql """CREATE VIEW ${dbName}.${viewName} (k1, v1)
+//                AS
+//                SELECT username as k1, SUM(id) FROM ${dbName}.${tableName}
+//                WHERE id = 1 GROUP BY k1;"""
+//        } catch (Exception e) {
+//            log.info(e.getMessage())
+//            assertTrue(e.getMessage().contains("denied"))
+//        }
     }
 
     // ddl alter
     // user alter
     connect(user=user, password="${pwd}", url=context.config.jdbcUrl) {
-        try {
+        test {
             sql """alter VIEW ${dbName}.${viewName} (k1, v1)
                 AS
                 SELECT id as k1, SUM(id) FROM ${dbName}.${tableName}
                 WHERE id = 1 GROUP BY k1;"""
-        } catch (Exception e) {
-            log.info(e.getMessage())
-            assertTrue(e.getMessage().contains("denied"))
+            exception 'denied'
         }
+//        try {
+//            sql """alter VIEW ${dbName}.${viewName} (k1, v1)
+//                AS
+//                SELECT id as k1, SUM(id) FROM ${dbName}.${tableName}
+//                WHERE id = 1 GROUP BY k1;"""
+//        } catch (Exception e) {
+//            log.info(e.getMessage())
+//            assertTrue(e.getMessage().contains("denied"))
+//        }
     }
     sql """grant ALTER_PRIV on ${dbName}.${viewName} to ${user}"""
     connect(user=user, password="${pwd}", url=context.config.jdbcUrl) {
@@ -136,12 +164,16 @@ suite("test_ddl_view_auth","p0,auth_call") {
 
     // ddl drop
     connect(user=user, password="${pwd}", url=context.config.jdbcUrl) {
-        try {
+        test {
             sql """drop table ${dbName}.${viewName};"""
-        } catch (Exception e) {
-            log.info(e.getMessage())
-            assertTrue(e.getMessage().contains("Access denied"))
+            exception 'denied'
         }
+//        try {
+//            sql """drop table ${dbName}.${viewName};"""
+//        } catch (Exception e) {
+//            log.info(e.getMessage())
+//            assertTrue(e.getMessage().contains("Access denied"))
+//        }
     }
     sql """grant DROP_PRIV on ${dbName}.${viewName} to ${user}"""
     connect(user=user, password="${pwd}", url=context.config.jdbcUrl) {
