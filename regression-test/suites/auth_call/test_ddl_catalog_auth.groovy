@@ -36,14 +36,20 @@ suite("test_ddl_catalog_auth","p0,auth_call") {
 
     // ddl create
     connect(user=user, password="${pwd}", url=context.config.jdbcUrl) {
-        try {
+        test {
             sql """create catalog if not exists ${catalogName} properties (
                     'type'='hms'
                 );"""
-        } catch (Exception e) {
-            log.info(e.getMessage())
-            assertTrue(e.getMessage().contains("Access denied"))
+            exception "denied"
         }
+//        try {
+//            sql """create catalog if not exists ${catalogName} properties (
+//                    'type'='hms'
+//                );"""
+//        } catch (Exception e) {
+//            log.info(e.getMessage())
+//            assertTrue(e.getMessage().contains("Access denied"))
+//        }
         def ctl_res = sql """show catalogs;"""
         assertTrue(ctl_res.size() == 1)
     }
@@ -64,22 +70,30 @@ suite("test_ddl_catalog_auth","p0,auth_call") {
     // ddl alter
     // user alter
     connect(user=user, password="${pwd}", url=context.config.jdbcUrl) {
-        try {
+        test {
             sql """ALTER CATALOG ${catalogName} RENAME ${catalogNameNew};"""
-        } catch (Exception e) {
-            log.info(e.getMessage())
-            assertTrue(e.getMessage().contains("Access denied"))
+            exception "denied"
         }
+//        try {
+//            sql """ALTER CATALOG ${catalogName} RENAME ${catalogNameNew};"""
+//        } catch (Exception e) {
+//            log.info(e.getMessage())
+//            assertTrue(e.getMessage().contains("Access denied"))
+//        }
     }
     sql """grant ALTER_PRIV on ${catalogName}.*.* to ${user}"""
     connect(user=user, password="${pwd}", url=context.config.jdbcUrl) {
         sql """ALTER CATALOG ${catalogName} RENAME ${catalogNameNew};"""
-        try {
+        test {
             sql """show create catalog ${catalogNameNew}"""
-        } catch (Exception e) {
-            log.info(e.getMessage())
-            assertTrue(e.getMessage().contains("Access denied"))
+            exception "denied"
         }
+//        try {
+//            sql """show create catalog ${catalogNameNew}"""
+//        } catch (Exception e) {
+//            log.info(e.getMessage())
+//            assertTrue(e.getMessage().contains("Access denied"))
+//        }
         def ctl_res = sql """show catalogs;"""
         assertTrue(ctl_res.size() == 1)
     }
@@ -93,12 +107,16 @@ suite("test_ddl_catalog_auth","p0,auth_call") {
 
     // ddl drop
     connect(user=user, password="${pwd}", url=context.config.jdbcUrl) {
-        try {
+        test {
             sql """drop CATALOG ${catalogName};"""
-        } catch (Exception e) {
-            log.info(e.getMessage())
-            assertTrue(e.getMessage().contains("Access denied"))
+            exception "denied"
         }
+//        try {
+//            sql """drop CATALOG ${catalogName};"""
+//        } catch (Exception e) {
+//            log.info(e.getMessage())
+//            assertTrue(e.getMessage().contains("Access denied"))
+//        }
     }
     sql """grant DROP_PRIV on ${catalogName}.*.* to ${user}"""
     connect(user=user, password="${pwd}", url=context.config.jdbcUrl) {
