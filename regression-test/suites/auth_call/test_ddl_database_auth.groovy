@@ -37,12 +37,6 @@ suite("test_ddl_database_auth","p0,auth_call") {
             sql """create database ${dbName};"""
             exception "denied"
         }
-//        try {
-//            sql """create database ${dbName};"""
-//        } catch (Exception e) {
-//            log.info(e.getMessage())
-//            assertTrue(e.getMessage().contains("Access denied"))
-//        }
         def db_res = sql """show databases;"""
         assertTrue(db_res.size() == 3)
     }
@@ -63,12 +57,6 @@ suite("test_ddl_database_auth","p0,auth_call") {
             sql """ALTER database ${dbName} RENAME ${dbNameNew};"""
             exception "denied"
         }
-//        try {
-//            sql """ALTER database ${dbName} RENAME ${dbNameNew};"""
-//        } catch (Exception e) {
-//            log.info(e.getMessage())
-//            assertTrue(e.getMessage().contains("Access denied"))
-//        }
     }
     sql """grant ALTER_PRIV on ${dbName}.* to ${user}"""
     connect(user=user, password="${pwd}", url=context.config.jdbcUrl) {
@@ -77,12 +65,6 @@ suite("test_ddl_database_auth","p0,auth_call") {
             sql """show create database ${dbNameNew}"""
             exception "denied"
         }
-//        try {
-//            sql """show create database ${dbNameNew}"""
-//        } catch (Exception e) {
-//            log.info(e.getMessage())
-//            assertTrue(e.getMessage().contains("Access denied"))
-//        }
         def db_res = sql """show databases;"""
         assertTrue(db_res.size() == 3)
     }
@@ -100,12 +82,6 @@ suite("test_ddl_database_auth","p0,auth_call") {
             sql """drop database ${dbName};"""
             exception "denied"
         }
-//        try {
-//            sql """drop database ${dbName};"""
-//        } catch (Exception e) {
-//            log.info(e.getMessage())
-//            assertTrue(e.getMessage().contains("Access denied"))
-//        }
     }
     sql """grant DROP_PRIV on ${dbName}.* to ${user}"""
     connect(user=user, password="${pwd}", url=context.config.jdbcUrl) {

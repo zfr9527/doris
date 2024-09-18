@@ -50,23 +50,11 @@ suite("test_ddl_index_auth","p0,auth_call") {
             sql """CREATE INDEX IF NOT EXISTS ${indexName} ON ${dbName}.${tableName} (username3) USING INVERTED COMMENT 'balabala';"""
             exception "denied"
         }
-//        try {
-//            sql """CREATE INDEX IF NOT EXISTS ${indexName} ON ${dbName}.${tableName} (username3) USING INVERTED COMMENT 'balabala';"""
-//        } catch (Exception e) {
-//            log.info(e.getMessage())
-//            assertTrue(e.getMessage().contains("denied"))
-//        }
 
         test {
             sql """DROP INDEX IF EXISTS ${indexName} ON ${dbName}.${tableName};"""
             exception "denied"
         }
-//        try {
-//            sql """DROP INDEX IF EXISTS ${indexName} ON ${dbName}.${tableName};"""
-//        } catch (Exception e) {
-//            log.info(e.getMessage())
-//            assertTrue(e.getMessage().contains("denied"))
-//        }
 
         test {
             sql """show index FROM ${dbName}.${tableName};"""

@@ -72,19 +72,6 @@ suite("test_ddl_table_auth","p0,auth_call") {
                 );"""
             exception "denied"
         }
-//        try {
-//            sql """create table ${dbName}.${tableName} (
-//                    id BIGINT,
-//                    username VARCHAR(20)
-//                )
-//                DISTRIBUTED BY HASH(id) BUCKETS 2
-//                PROPERTIES (
-//                    "replication_num" = "1"
-//                );"""
-//        } catch (Exception e) {
-//            log.info(e.getMessage())
-//            assertTrue(e.getMessage().contains("Access denied"))
-//        }
         def res = sql """show query stats;"""
         logger.info("res:" + res)
 
@@ -129,12 +116,6 @@ suite("test_ddl_table_auth","p0,auth_call") {
             sql """ALTER table ${tableName} RENAME ${tableNameNew};"""
             exception "denied"
         }
-//        try {
-//            sql """ALTER table ${tableName} RENAME ${tableNameNew};"""
-//        } catch (Exception e) {
-//            log.info(e.getMessage())
-//            assertTrue(e.getMessage().contains("denied"))
-//        }
         test {
             sql """ALTER TABLE ${dbName}.${tableName} ADD COLUMN new_col INT KEY DEFAULT "0";"""
             exception "denied"
@@ -151,12 +132,6 @@ suite("test_ddl_table_auth","p0,auth_call") {
             sql """show create table ${tableNameNew}"""
             exception "denied"
         }
-//        try {
-//            sql """show create table ${tableNameNew}"""
-//        } catch (Exception e) {
-//            log.info(e.getMessage())
-//            assertTrue(e.getMessage().contains("denied"))
-//        }
         def tb_res = sql """show tables;"""
         assertTrue(tb_res.size() == 0)
     }
@@ -197,12 +172,6 @@ suite("test_ddl_table_auth","p0,auth_call") {
             sql """create table ${cteLikeDstDb}.${cteLikeDstTb} like ${dbName}.${tableName};"""
             exception "denied"
         }
-//        try {
-//            sql """create table ${cteLikeDstDb}.${cteLikeDstTb} like ${dbName}.${tableName};"""
-//        } catch (Exception e) {
-//            log.info(e.getMessage())
-//            assertTrue(e.getMessage().contains("Access denied"))
-//        }
     }
     sql """create database ${cteLikeDstDb}"""
     sql """create table ${cteLikeDstDb}.${cteLikeDstTb} like ${dbName}.${tableName};"""
@@ -213,12 +182,6 @@ suite("test_ddl_table_auth","p0,auth_call") {
             sql """create table ${cteLikeDstDb}.${cteLikeDstTb} like ${dbName}.${tableName};"""
             exception "denied"
         }
-//        try {
-//            sql """create table ${cteLikeDstDb}.${cteLikeDstTb} like ${dbName}.${tableName};"""
-//        } catch (Exception e) {
-//            log.info(e.getMessage())
-//            assertTrue(e.getMessage().contains("Access denied"))
-//        }
     }
     sql """grant SELECT_PRIV on ${dbName}.${tableName} to ${user}"""
     connect(user=user, password="${pwd}", url=context.config.jdbcUrl) {
@@ -233,12 +196,6 @@ suite("test_ddl_table_auth","p0,auth_call") {
             sql """create table ${cteSelectDstDb}.${cteSelectDstTb}(username) PROPERTIES("replication_num" = "1") as select username from ${dbName}.${tableName};"""
             exception "denied"
         }
-//        try {
-//            sql """create table ${cteSelectDstDb}.${cteSelectDstTb}(username) PROPERTIES("replication_num" = "1") as select username from ${dbName}.${tableName};"""
-//        } catch (Exception e) {
-//            log.info(e.getMessage())
-//            assertTrue(e.getMessage().contains("denied"))
-//        }
     }
     sql """create table ${cteSelectDstDb}.${cteSelectDstTb}(username) PROPERTIES("replication_num" = "1") as select username from ${dbName}.${tableName};"""
     sql """grant Create_priv on ${cteSelectDstDb}.${cteSelectDstTb} to ${user}"""
@@ -248,12 +205,6 @@ suite("test_ddl_table_auth","p0,auth_call") {
             sql """create table ${cteSelectDstDb}.${cteSelectDstTb}(username) PROPERTIES("replication_num" = "1") as select username from ${dbName}.${tableName};"""
             exception "denied"
         }
-//        try {
-//            sql """create table ${cteSelectDstDb}.${cteSelectDstTb}(username) PROPERTIES("replication_num" = "1") as select username from ${dbName}.${tableName};"""
-//        } catch (Exception e) {
-//            log.info(e.getMessage())
-//            assertTrue(e.getMessage().contains("denied"))
-//        }
     }
     sql """create table ${cteSelectDstDb}.${cteSelectDstTb}(username) PROPERTIES("replication_num" = "1") as select username from ${dbName}.${tableName};"""
     sql """grant LOAD_PRIV on ${cteSelectDstDb}.${cteSelectDstTb} to ${user}"""
@@ -291,13 +242,6 @@ suite("test_ddl_table_auth","p0,auth_call") {
             sql """drop table ${tableName};"""
             exception "denied"
         }
-//        try {
-//            sql """use ${dbName}"""
-//            sql """drop table ${tableName};"""
-//        } catch (Exception e) {
-//            log.info(e.getMessage())
-//            assertTrue(e.getMessage().contains("Access denied"))
-//        }
     }
     sql """grant DROP_PRIV on ${dbName}.${tableName} to ${user}"""
     connect(user=user, password="${pwd}", url=context.config.jdbcUrl) {
