@@ -46,19 +46,27 @@ suite("test_ddl_index_auth","p0,auth_call") {
 
     // ddl create
     connect(user=user, password="${pwd}", url=context.config.jdbcUrl) {
-        try {
+        test {
             sql """CREATE INDEX IF NOT EXISTS ${indexName} ON ${dbName}.${tableName} (username3) USING INVERTED COMMENT 'balabala';"""
-        } catch (Exception e) {
-            log.info(e.getMessage())
-            assertTrue(e.getMessage().contains("denied"))
+            exception "denied"
         }
+//        try {
+//            sql """CREATE INDEX IF NOT EXISTS ${indexName} ON ${dbName}.${tableName} (username3) USING INVERTED COMMENT 'balabala';"""
+//        } catch (Exception e) {
+//            log.info(e.getMessage())
+//            assertTrue(e.getMessage().contains("denied"))
+//        }
 
-        try {
+        test {
             sql """DROP INDEX IF EXISTS ${indexName} ON ${dbName}.${tableName};"""
-        } catch (Exception e) {
-            log.info(e.getMessage())
-            assertTrue(e.getMessage().contains("denied"))
+            exception "denied"
         }
+//        try {
+//            sql """DROP INDEX IF EXISTS ${indexName} ON ${dbName}.${tableName};"""
+//        } catch (Exception e) {
+//            log.info(e.getMessage())
+//            assertTrue(e.getMessage().contains("denied"))
+//        }
 
         test {
             sql """show index FROM ${dbName}.${tableName};"""
