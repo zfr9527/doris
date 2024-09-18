@@ -145,55 +145,8 @@ suite("test_dml_multi_routine_load_auth","p0,auth_call") {
                     "property.kafka_default_offsets" = "OFFSET_BEGINNING"
                 );"""
         }
-//        sql """revoke load_priv on ${dbName}.${tableName1} from ${user}"""
-//
-//        connect(user = user, password = "${pwd}", url = context.config.jdbcUrl) {
-//            test {
-//                sql """
-//                ALTER ROUTINE LOAD FOR ${dbName}.${labelName}
-//                    PROPERTIES
-//                    (
-//                        "desired_concurrent_number" = "1"
-//                    );
-//                """
-//                exception "denied"
-//            }
-//            test {
-//                sql """PAUSE ROUTINE LOAD FOR ${dbName}.${labelName};"""
-//                exception "denied"
-//            }
-//            test {
-//                sql """RESUME ROUTINE LOAD FOR ${dbName}.${labelName};"""
-//                exception "denied"
-//            }
-//            test {
-//                sql """STOP ROUTINE LOAD FOR ${dbName}.${labelName};"""
-//                exception "denied"
-//            }
-//            test {
-//                sql """show routine load for ${dbName}.${labelName}"""
-//                exception "no job"
-//            }
-//        }
-//        sql """grant load_priv on ${dbName}.${tableName1} to ${user}"""
-//        connect(user = user, password = "${pwd}", url = context.config.jdbcUrl) {
-//            sql """PAUSE ROUTINE LOAD FOR ${dbName}.${labelName};"""
-//            sql """
-//            ALTER ROUTINE LOAD FOR ${dbName}.${labelName}
-//                PROPERTIES
-//                (
-//                    "desired_concurrent_number" = "1"
-//                );
-//            """
-//            sql """RESUME ROUTINE LOAD FOR ${dbName}.${labelName};"""
-//            sql """STOP ROUTINE LOAD FOR ${dbName}.${labelName};"""
-//            sql """use ${dbName};"""
-//            def res = sql """show all routine load"""
-//            assertTrue(res.size() == 1)
-//        }
-//        sql """revoke load_priv on ${dbName}.${tableName1} from ${user}"""
     }
 
-//    sql """drop database if exists ${dbName}"""
-//    try_sql("DROP USER ${user}")
+    sql """drop database if exists ${dbName}"""
+    try_sql("DROP USER ${user}")
 }
