@@ -45,6 +45,7 @@ suite("test_ddl_restore_auth","p0,auth_call") {
             logger.info("status is not success")
         }
         assertTrue(status == "FINISHED")
+        return result[0][0]
     }
 
     String user = 'test_ddl_restore_auth_user'
@@ -97,9 +98,15 @@ suite("test_ddl_restore_auth","p0,auth_call") {
                     TO ${repositoryName}
                     ON (${tableName})
                     PROPERTIES ("type" = "full");"""
-    waitingBackupTaskFinished(dbName)
+    def real_label = waitingBackupTaskFinished(dbName)
     def backup_timestamp = sql """SHOW SNAPSHOT ON ${repositoryName};"""
     logger.info("backup_timestamp: " + backup_timestamp)
+    def real_timestamp
+    for (int i = 0; i < backup_timestamp.size(); i++) {
+        if (backup_timestamp[i][0] == real_label) {
+            real_timestamp = backup_timestamp[i][1]
+        }
+    }
 
     sql """truncate table ${dbName}.`${tableName}`"""
 
@@ -122,7 +129,7 @@ suite("test_ddl_restore_auth","p0,auth_call") {
                     ON ( `${tableName}` )
                     PROPERTIES
                     (
-                        "backup_timestamp"="${backup_timestamp[0][1]}",
+                        "backup_timestamp"="${real_timestamp}",
                         "replication_num" = "1"
                     );"""
             exception "denied"
@@ -147,7 +154,7 @@ suite("test_ddl_restore_auth","p0,auth_call") {
                 ON ( `${tableName}` )
                 PROPERTIES
                 (
-                    "backup_timestamp"="${backup_timestamp[0][1]}",
+                    "backup_timestamp"="${real_timestamp}",
                     "replication_num" = "1"
                 );"""
         def res = sql """SHOW RESTORE FROM ${dbName};"""
