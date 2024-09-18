@@ -107,6 +107,28 @@ suite("test_dml_multi_routine_load_auth","p0,auth_call") {
         }
         sql """grant load_priv on ${dbName}.${tableName2} to ${user}"""
         connect(user = user, password = "${pwd}", url = context.config.jdbcUrl) {
+            test {
+                sql """
+                CREATE ROUTINE LOAD ${dbName}.${labelName} 
+                COLUMNS TERMINATED BY "|"
+                PROPERTIES
+                (
+                    "max_batch_interval" = "5",
+                    "max_batch_rows" = "300000",
+                    "max_batch_size" = "209715200"
+                )
+                FROM KAFKA
+                (
+                    "kafka_broker_list" = "${externalEnvIp}:${kafka_port}",
+                    "kafka_topic" = "${topic}",
+                    "property.kafka_default_offsets" = "OFFSET_BEGINNING"
+                );
+                """
+                exception "denied"
+            }
+        }
+        sql """grant load_priv on ${dbName}.* to ${user}"""
+        connect(user = user, password = "${pwd}", url = context.config.jdbcUrl) {
             sql """
                 CREATE ROUTINE LOAD ${dbName}.${labelName} 
                 COLUMNS TERMINATED BY "|"
