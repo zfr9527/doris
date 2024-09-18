@@ -45,7 +45,7 @@ suite("test_ddl_restore_auth","p0,auth_call") {
             logger.info("status is not success")
         }
         assertTrue(status == "FINISHED")
-        return result[0][0]
+        return result[0][1]
     }
 
     String user = 'test_ddl_restore_auth_user'
@@ -105,6 +105,7 @@ suite("test_ddl_restore_auth","p0,auth_call") {
     for (int i = 0; i < backup_timestamp.size(); i++) {
         if (backup_timestamp[i][0] == real_label) {
             real_timestamp = backup_timestamp[i][1]
+            break
         }
     }
 
