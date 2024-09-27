@@ -300,32 +300,26 @@ suite("partition_mv_rewrite_dimension_2_agg_mv", "partition_mv_rewrite_dimension
 
     // agg function + group by + predicate compensate
     def mv_name_12 = "mv_name_2_4_12"
-    def mv_stmt_12 = """select o_orderdate, o_shippriority, o_comment , o_totalprice, 
-            sum(o_totalprice) as sum_total  
+    def mv_stmt_12 = """ 
+            select o_orderdate, o_orderkey, o_custkey, 
+            sum(o_custkey) as sum_total  
             from orders_2_agg 
             where o_orderdate >= "2023-10-17" 
-            group by 
-            o_orderdate, 
-            o_shippriority, 
-            o_comment,
-            o_totalprice """
+            group by o_orderdate, o_orderkey, o_custkey"""
     create_all_mv(mv_name_12, mv_stmt_12)
     waitingMVTaskFinished("orders_2_agg", mv_name_12)
 
     def sql_stmt_12 = """select t.o_orderdate, t.o_shippriority, t.o_comment, 
             t.sum_total, t.max_total, t.min_total, t.count_all 
             from  (
-            select o_orderdate, o_shippriority, o_comment , o_totalprice, 
-            sum(o_totalprice) as sum_total  
-            from orders_2_agg where o_orderdate >= "2023-10-17" 
-            group by 
-            o_orderdate, 
-            o_shippriority, 
-            o_comment,
-            o_totalprice 
+            select o_orderdate, o_orderkey, o_custkey, 
+            sum(o_custkey) as sum_total  
+            from orders_2_agg 
+            where o_orderdate >= "2023-10-17" 
+            group by o_orderdate, o_orderkey, o_custkey
             ) as t 
             where t.o_totalprice = 1 
-             """
+            """
     explain {
         sql("${sql_stmt_12}")
         contains "(${mv_name_12})"
