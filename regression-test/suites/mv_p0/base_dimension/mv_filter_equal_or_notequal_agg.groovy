@@ -170,7 +170,7 @@ suite("mv_filter_equal_or_notequal_case_agg", "partition_mv_rewrite_dimension") 
         left join orders_filter_agg 
         on lineitem_filter_agg.l_orderkey = orders_filter_agg.o_orderkey
         where l_shipdate = '2023-10-19'
-        group by l_shipdate, l_partkey, l_suppkey
+        group by l_shipdate, o_orderdate, l_partkey, l_suppkey 
         """
     explain {
         sql("${query_sql}")
