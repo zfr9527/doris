@@ -238,59 +238,65 @@ suite("partition_mv_rewrite_dimension_2_agg_mv", "partition_mv_rewrite_dimension
 
 
     // group by + predicate compensate
-
     def mv_name_11 = "mv_name_2_4_11"
-    def mv_stmt_11 = """select o_orderdate, o_shippriority, o_comment 
+    def mv_stmt_11 = """select o_orderdate, o_orderkey, o_custkey  
             from orders_2_agg 
             where o_orderdate >= "2023-10-17"
-            group by 
-            o_orderdate, 
-            o_shippriority, 
-            o_comment """
+            group by o_orderdate, o_orderkey, o_custkey;"""
     create_all_mv(mv_name_11, mv_stmt_11)
     waitingMVTaskFinished("orders_2_agg", mv_name_11)
 
-    def sql_stmt_11 = """select o_orderdate, o_shippriority, o_comment
+    def sql_stmt_11 = """select o_orderdate, o_orderkey, o_custkey
             from orders_2_agg
             where o_orderdate >= "2023-10-17" and o_totalprice = 1
             group by
-            o_orderdate,
-            o_shippriority,
-            o_comment """
+            o_orderdate, o_orderkey, o_custkey;"""
     explain {
         sql("${sql_stmt_11}")
         notContains "(${mv_name_11})"
     }
+
+    sql_stmt_11 = """select o_orderdate, o_orderkey, o_custkey
+            from orders_2_agg
+            where o_orderdate >= "2023-10-17" and o_custkey = 1
+            group by
+            o_orderdate, o_orderkey, o_custkey;"""
+    explain {
+        sql("${sql_stmt_11}")
+        contains "(${mv_name_11})"
+    }
     compare_res(sql_stmt_11 + " order by 1,2,3")
-    sql """DROP MATERIALIZED VIEW IF EXISTS ${mv_name_11} on orders_2_agg;"""
+//    sql """DROP MATERIALIZED VIEW IF EXISTS ${mv_name_11} on orders_2_agg;"""
 
-    def mv_name_16 = "mv_name_2_4_16"
-    def mv_stmt_16 = """select o_orderdate, o_shippriority, o_comment, o_totalprice 
-            from orders_2_agg 
-            where o_orderdate >= "2023-10-17"
-            group by 
-            o_orderdate, 
-            o_shippriority, 
-            o_comment,
-            o_totalprice """
-    create_all_mv(mv_name_16, mv_stmt_16)
-    waitingMVTaskFinished("orders_2_agg", mv_name_16)
+//    def mv_name_16 = "mv_name_2_4_16"
+//    def mv_stmt_16 = """select o_orderdate, o_shippriority, o_comment, o_totalprice
+//            from orders_2_agg
+//            where o_orderdate >= "2023-10-17"
+//            group by
+//            o_orderdate,
+//            o_shippriority,
+//            o_comment,
+//            o_totalprice """
+//    create_all_mv(mv_name_16, mv_stmt_16)
+//    waitingMVTaskFinished("orders_2_agg", mv_name_16)
 
-    def sql_stmt_16 = """select o_orderdate, o_shippriority, o_comment
+    def sql_stmt_16 = """select o_orderdate 
             from orders_2_agg
             where o_orderdate >= "2023-10-17" and o_totalprice = 1
             group by
-            o_orderdate,
-            o_shippriority,
-            o_comment """
-
-    def agg_sql_explain_1 = sql """explain ${sql_stmt_16};"""
-    def mv_index_1 = agg_sql_explain_1.toString().indexOf("MaterializedViewRewriteFail:")
-    assert(mv_index_1 != -1)
-    assert(agg_sql_explain_1.toString().substring(0, mv_index_1).indexOf(mv_name_16) != -1)
-
+            o_orderdate, o_orderkey;"""
+    explain {
+        sql("${sql_stmt_16}")
+        contains "(${mv_name_11})"
+    }
     compare_res(sql_stmt_16 + " order by 1,2,3")
-    sql """DROP MATERIALIZED VIEW IF EXISTS ${mv_name_16} on orders_2_agg;"""
+//    def agg_sql_explain_1 = sql """explain ${sql_stmt_16};"""
+//    def mv_index_1 = agg_sql_explain_1.toString().indexOf("MaterializedViewRewriteFail:")
+//    assert(mv_index_1 != -1)
+//    assert(agg_sql_explain_1.toString().substring(0, mv_index_1).indexOf(mv_name_11) != -1)
+//
+//    compare_res(sql_stmt_16 + " order by 1,2,3")
+    sql """DROP MATERIALIZED VIEW IF EXISTS ${mv_name_11} on orders_2_agg;"""
 
     // agg function + group by + predicate compensate
     def mv_name_12 = "mv_name_2_4_12"
