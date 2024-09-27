@@ -18,7 +18,7 @@
 /*
 This suite is a one dimensional test case file.
  */
-suite("partition_mv_rewrite_dimension_1_uniq_mv", "partition_mv_rewrite_dimension_1_uniq_mv") {
+suite("partition_mv_rewrite_dimension_1_uniq_mv", "partition_mv_rewrite_dimension") {
     String db = context.config.getDbNameByFile(context.file)
     String order_tb = "orders_uniq"
     String lineitem_tb = "lineitem_uniq"
@@ -214,31 +214,6 @@ suite("partition_mv_rewrite_dimension_1_uniq_mv", "partition_mv_rewrite_dimensio
     compare_res(view_partition_sql_1 + " order by 1,2,3")
     sql """DROP MATERIALIZED VIEW IF EXISTS ${view_partition_mv_name_1} ON lineitem_uniq;"""
 
-    // Todo: union rewrte
-//    def union_mv_name_1 = "union_mv_name_1"
-//    def union_mv_stmt_1 = """
-//        select l_shipdate, o_orderdate, l_partkey, count(*)
-//        from lineitem_uniq
-//        left join orders_uniq
-//        on lineitem_uniq.l_orderkey = orders_uniq.o_orderkey
-//        where l_shipdate >= "2023-12-04"
-//        """
-//    create_mv_orders(union_mv_name_1, union_mv_stmt_1)
-//    def union_job_name_1 = getJobName(db, union_mv_name_1)
-//    waitingMTMVTaskFinished(union_job_name_1)
-//
-//    def union_sql_1 = """select l_shipdate, o_orderdate, l_partkey, count(*)
-//        from lineitem_uniq
-//        left join orders_uniq
-//        on lineitem_uniq.l_orderkey = orders_uniq.o_orderkey
-//        where l_shipdate >= "2023-12-01"
-//        """
-//    explain {
-//        sql("${union_sql_1}")
-//        contains "${union_mv_name_1}(${union_mv_name_1})"
-//    }
-//    sql """DROP MATERIALIZED VIEW IF EXISTS ${union_mv_name_1};"""
-
     // predicate compensate
     def predicate_mv_name_1 = "predicate_mv_name_1"
     def predicate_mv_stmt_1 = """
@@ -317,112 +292,4 @@ suite("partition_mv_rewrite_dimension_1_uniq_mv", "partition_mv_rewrite_dimensio
         contains "(${mv_name_1})"
     }
     compare_res(single_table_query_stmt_2 + " order by 1,2,3")
-
-// not support currently
-//    single_table_mv_stmt_1 = """
-//        select o_orderkey,
-//            max(o_totalpricE) as max_total,
-//            min(o_totalprice) as min_total,
-//            count(*) as count_all,
-//            bitmap_union(to_bitmap(case when o_shippriority > 1 and o_orderkey IN (1, 3) then o_custkey else null end)) cnt_1,
-//            bitmap_union(to_bitmap(case when o_shippriority > 2 and o_orderkey IN (2) then o_custkey else null end)) as cnt_2
-//            from orders_uniq where o_orderdate >= '2022-10-17' + interval '1' year group by o_orderkey
-//        """
-//
-//    create_mv_orders(mv_name_1, single_table_mv_stmt_1)
-//    waitingMVTaskFinished(order_tb, mv_name_1)
-
-//    single_table_query_stmt_1 = """
-//        select sum(o_totalprice) as sum_total,
-//            max(o_totalpricE) as max_total,
-//            min(o_totalprice) as min_total,
-//            count(*) as count_all,
-//            bitmap_union(to_bitmap(case when o_shippriority > 1 and o_orderkey IN (1, 3) then o_custkey else null end)) cnt_1,
-//            bitmap_union(to_bitmap(case when o_shippriority > 2 and o_orderkey IN (2) then o_custkey else null end)) as cnt_2
-//            from orders_uniq where o_orderdate >= '2022-10-17' + interval '1' year
-//        """
-//    single_table_query_stmt_2 = """
-//        select sum(o_totalprice) as sum_total,
-//            max(o_totalpricE) as max_total,
-//            min(o_totalprice) as min_total,
-//            count(*) as count_all,
-//            bitmap_union(to_bitmap(case when o_shippriority > 1 and o_orderkey IN (1, 3) then o_custkey else null end)) cnt_1,
-//            bitmap_union(to_bitmap(case when o_shippriority > 2 and o_orderkey IN (2) then o_custkey else null end)) as cnt_2
-//            from orders_uniq where o_orderdate > '2022-10-17' + interval '1' year
-//        """
-//    explain {
-//        sql("${single_table_query_stmt_1}")
-//        contains "${mv_name_1}(${mv_name_1})"
-//    }
-//    compare_res(single_table_query_stmt_1 + " order by 1,2,3,4")
-//    explain {
-//        sql("${single_table_query_stmt_2}")
-//        contains "${mv_name_1}(${mv_name_1})"
-//    }
-//    compare_res(single_table_query_stmt_2 + " order by 1,2,3,4")
-
-    // mv do not support sub-query
-//    single_table_mv_stmt_1 = """
-//        select l_Shipdate, l_partkey, l_suppkey
-//        from lineitem_uniq
-//        where l_commitdate in (select l_commitdate from lineitem_uniq)
-//        """
-//
-//    create_mv_lineitem(mv_name_1, single_table_mv_stmt_1)
-//    waitingMVTaskFinished(lineitem_tb, mv_name_1)
-//
-//    single_table_query_stmt_1 = """
-//        select l_Shipdate, l_partkey, l_suppkey
-//        from lineitem_uniq
-//        where l_commitdate in (select l_commitdate from lineitem_uniq)
-//        """
-//    explain {
-//        sql("${single_table_query_stmt_1}")
-//        contains "(${mv_name_1})"
-//    }
-//    compare_res(single_table_query_stmt_1 + " order by 1,2,3")
-
-// not supported currently
-//    single_table_mv_stmt_1 = """
-//        select l_Shipdate, l_partkey, l_suppkey
-//        from lineitem_uniq
-//        where exists (select l_commitdate from lineitem_uniq where l_commitdate like "2023-10-17")
-//        """
-//
-//    create_mv_lineitem_without_partition(mv_name_1, single_table_mv_stmt_1)
-//    job_name_1 = getJobName(db, mv_name_1)
-//    waitingMTMVTaskFinished(job_name_1)
-//
-//    single_table_query_stmt_1 = """
-//        select l_Shipdate, l_partkey, l_suppkey
-//        from lineitem_uniq
-//        where exists (select l_commitdate from lineitem_uniq where l_commitdate like "2023-10-17")
-//        """
-//    explain {
-//        sql("${single_table_query_stmt_1}")
-//        contains "${mv_name_1}(${mv_name_1})"
-//    }
-//    compare_res(single_table_query_stmt_1 + " order by 1,2,3")
-//
-//
-//    single_table_mv_stmt_1 = """
-//        select t.l_Shipdate, t.l_partkey, t.l_suppkey
-//        from (select * from lineitem_uniq) as t
-//        where exists (select l_commitdate from lineitem_uniq where l_commitdate like "2023-10-17")
-//        """
-//
-//    create_mv_lineitem_without_partition(mv_name_1, single_table_mv_stmt_1)
-//    job_name_1 = getJobName(db, mv_name_1)
-//    waitingMTMVTaskFinished(job_name_1)
-//
-//    single_table_query_stmt_1 = """
-//        select t.l_Shipdate, t.l_partkey, t.l_suppkey
-//        from (select * from lineitem_uniq) as t
-//        where exists (select l_commitdate from lineitem_uniq where l_commitdate like "2023-10-17")
-//        """
-//    explain {
-//        sql("${single_table_query_stmt_1}")
-//        contains "${mv_name_1}(${mv_name_1})"
-//    }
-//    compare_res(single_table_query_stmt_1 + " order by 1,2,3")
 }

@@ -18,7 +18,7 @@
 /*
 This suite is a one dimensional test case file.
  */
-suite("partition_mv_rewrite_dimension_1_agg_mv", "partition_mv_rewrite_dimension_1_agg_mv") {
+suite("partition_mv_rewrite_dimension_1_agg_mv", "partition_mv_rewrite_dimension") {
     String db = context.config.getDbNameByFile(context.file)
     String order_tb = "orders_agg"
     String lineitem_tb = "lineitem_agg"
@@ -247,31 +247,6 @@ suite("partition_mv_rewrite_dimension_1_agg_mv", "partition_mv_rewrite_dimension
     }
     compare_res(view_partition_sql_1 + " order by 1,2,3")
     sql """DROP MATERIALIZED VIEW IF EXISTS ${view_partition_mv_name_1} ON lineitem_agg;"""
-
-    // Todo: union rewrte
-//    def union_mv_name_1 = "union_mv_name_1"
-//    def union_mv_stmt_1 = """
-//        select l_shipdate, o_orderdate, l_partkey, count(*)
-//        from lineitem_agg
-//        left join orders_agg
-//        on lineitem_agg.l_orderkey = orders_agg.o_orderkey
-//        where l_shipdate >= "2023-12-04"
-//        """
-//    create_mv_orders(union_mv_name_1, union_mv_stmt_1)
-//    def union_job_name_1 = getJobName(db, union_mv_name_1)
-//    waitingMTMVTaskFinished(union_job_name_1)
-//
-//    def union_sql_1 = """select l_shipdate, o_orderdate, l_partkey, count(*)
-//        from lineitem_agg
-//        left join orders_agg
-//        on lineitem_agg.l_orderkey = orders_agg.o_orderkey
-//        where l_shipdate >= "2023-12-01"
-//        """
-//    explain {
-//        sql("${union_sql_1}")
-//        contains "${union_mv_name_1}(${union_mv_name_1})"
-//    }
-//    sql """DROP MATERIALIZED VIEW IF EXISTS ${union_mv_name_1};"""
 
     // predicate compensate
     def predicate_mv_name_1 = "predicate_mv_name_1"

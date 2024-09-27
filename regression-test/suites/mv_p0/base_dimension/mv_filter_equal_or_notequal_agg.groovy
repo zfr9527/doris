@@ -15,7 +15,7 @@
 // specific language governing permissions and limitations
 // under the License.
 
-suite("mv_filter_equal_or_notequal_case_agg", "mv_filter_equal_or_notequal_case_agg") {
+suite("mv_filter_equal_or_notequal_case_agg", "partition_mv_rewrite_dimension") {
 
     String db = context.config.getDbNameByFile(context.file)
     sql "use ${db}"

@@ -15,7 +15,7 @@
 // specific language governing permissions and limitations
 // under the License.
 
-suite("anheng_poc_mv") {
+suite("anheng_poc_mv", "partition_mv_rewrite_dimension") {
     String db = context.config.getDbNameByFile(context.file)
     sql "use ${db}"
 
