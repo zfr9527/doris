@@ -339,13 +339,12 @@ suite("partition_mv_rewrite_dimension_2_agg_mv", "partition_mv_rewrite_dimension
     create_all_mv(mv_name_14, mv_stmt_14)
     waitingMVTaskFinished("orders_2_agg", mv_name_14)
 
-    def sql_stmt_14 = """select o_orderkey + o_custkey, o_orderdate  
+    def sql_stmt_14 = """select (o_orderkey + o_custkey) as col1, o_orderdate  
             from orders_2_agg 
             where o_orderkey > (-3) + 5 
-            group by 
+            group by col1,
             o_orderdate, 
-            o_shippriority, 
-            o_comment """
+            o_orderkey, o_orderkey """
     explain {
         sql("${sql_stmt_14}")
         contains "(${mv_name_14})"
