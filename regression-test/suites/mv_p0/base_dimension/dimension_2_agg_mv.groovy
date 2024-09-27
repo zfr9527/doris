@@ -312,13 +312,13 @@ suite("partition_mv_rewrite_dimension_2_agg_mv", "partition_mv_rewrite_dimension
     // project rewriting
     // agg function + group by + project rewriting
     def mv_name_13 = "mv_name_2_4_13"
-    def mv_stmt_13 = """select o_orderkey, sum(o_orderkey) as sum_total 
+    def mv_stmt_13 = """select o_orderkey, sum(o_totalprice) as sum_total 
             from orders_2_agg  
             where  o_orderkey > 1 + 1  group by o_orderkey"""
     create_all_mv(mv_name_13, mv_stmt_13)
     waitingMVTaskFinished("orders_2_agg", mv_name_13)
 
-    def sql_stmt_13 = """select sum(o_orderkey) + sum(o_orderkey) 
+    def sql_stmt_13 = """select sum(o_totalprice) + sum(o_totalprice) 
             from orders_2_agg  
             where o_orderkey > (-3) + 5 """
     explain {
