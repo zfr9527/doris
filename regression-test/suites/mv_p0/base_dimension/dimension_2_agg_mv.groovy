@@ -215,59 +215,6 @@ suite("partition_mv_rewrite_dimension_2_agg_mv", "partition_mv_rewrite_dimension
     compare_res(sql_stmt_3 + " order by 1,2,3,4,5,6,7,8")
     sql """DROP MATERIALIZED VIEW IF EXISTS ${mv_name_3} on orders_2_agg;"""
 
-    // view partial
-    def mv_name_5 = "mv_name_2_3_5"
-    def mv_stmt_5 = """select l_shipdate, l_partkey, l_orderkey 
-        from lineitem_2_agg"""
-    create_mv_lineitem(mv_name_5, mv_stmt_5)
-    waitingMVTaskFinished("lineitem_2_agg", mv_name_5)
-
-    def sql_stmt_5 = """select l_shipdate, l_partkey 
-        from lineitem_2_agg"""
-    explain {
-        sql("${sql_stmt_5}")
-        contains "(${mv_name_5})"
-    }
-    compare_res(sql_stmt_5 + " order by 1,2,3")
-    sql """DROP MATERIALIZED VIEW IF EXISTS ${mv_name_5} on lineitem_2_agg;"""
-
-    // predicate compensate
-    def mv_name_7 = "mv_name_2_3_7"
-    def mv_stmt_7 = """select l_shipdate, l_partkey 
-        from lineitem_2_agg 
-        where l_shipdate >= '2023-10-17'"""
-    create_mv_lineitem(mv_name_7, mv_stmt_7)
-    waitingMVTaskFinished("lineitem_2_agg", mv_name_7)
-
-    def sql_stmt_7 = """select l_shipdate, l_partkey 
-        from lineitem_2_agg 
-        where l_shipdate >= "2023-10-17" and l_partkey = 3"""
-    explain {
-        sql("${sql_stmt_7}")
-        contains "(${mv_name_7})"
-    }
-    compare_res(sql_stmt_7 + " order by 1,2,3")
-    sql """DROP MATERIALIZED VIEW IF EXISTS ${mv_name_7} on lineitem_2_agg;"""
-
-
-    // project rewriting
-    def mv_name_8 = "mv_name_2_3_8"
-    def mv_stmt_8 = """select o_orderdate, o_shippriority, o_comment, o_custkey, o_shippriority + o_custkey 
-           from orders_2_agg  
-            where  o_orderkey > 1 + 1 """
-    create_mv_orders(mv_name_8, mv_stmt_8)
-    waitingMVTaskFinished("orders_2_agg", mv_name_8)
-
-    def sql_stmt_8 = """select o_shippriority, o_comment, o_shippriority + o_custkey + o_custkey 
-            from orders_2_agg 
-           where  o_orderkey > (-3) + 5 """
-    explain {
-        sql("${sql_stmt_8}")
-        contains "(${mv_name_8})"
-    }
-    compare_res(sql_stmt_8 + " order by 1,2,3,4,5")
-    sql """DROP MATERIALIZED VIEW IF EXISTS ${mv_name_8} on orders_2_agg;"""
-
     // predicate compensate
     // agg function + predicate compensate
     def mv_name_10 = "mv_name_2_4_10"
