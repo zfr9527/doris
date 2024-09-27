@@ -242,7 +242,7 @@ suite("partition_mv_rewrite_dimension_2_agg_mv", "partition_mv_rewrite_dimension
     def mv_stmt_11 = """select o_orderdate, o_orderkey, o_custkey  
             from orders_2_agg 
             where o_orderdate >= "2023-10-17"
-            group by o_orderdate, o_orderkey, o_custkey;"""
+            group by o_orderdate, o_orderkey, o_custkey"""
     create_all_mv(mv_name_11, mv_stmt_11)
     waitingMVTaskFinished("orders_2_agg", mv_name_11)
 
@@ -250,7 +250,7 @@ suite("partition_mv_rewrite_dimension_2_agg_mv", "partition_mv_rewrite_dimension
             from orders_2_agg
             where o_orderdate >= "2023-10-17" and o_totalprice = 1
             group by
-            o_orderdate, o_orderkey, o_custkey;"""
+            o_orderdate, o_orderkey, o_custkey"""
     explain {
         sql("${sql_stmt_11}")
         notContains "(${mv_name_11})"
@@ -260,7 +260,7 @@ suite("partition_mv_rewrite_dimension_2_agg_mv", "partition_mv_rewrite_dimension
             from orders_2_agg
             where o_orderdate >= "2023-10-17" and o_custkey = 1
             group by
-            o_orderdate, o_orderkey, o_custkey;"""
+            o_orderdate, o_orderkey, o_custkey"""
     explain {
         sql("${sql_stmt_11}")
         contains "(${mv_name_11})"
@@ -284,7 +284,7 @@ suite("partition_mv_rewrite_dimension_2_agg_mv", "partition_mv_rewrite_dimension
             from orders_2_agg
             where o_orderdate >= "2023-10-17" and o_totalprice = 1
             group by
-            o_orderdate, o_orderkey;"""
+            o_orderdate, o_orderkey"""
     explain {
         sql("${sql_stmt_16}")
         contains "(${mv_name_11})"
