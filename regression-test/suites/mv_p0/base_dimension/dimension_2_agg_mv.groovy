@@ -266,19 +266,6 @@ suite("partition_mv_rewrite_dimension_2_agg_mv", "partition_mv_rewrite_dimension
         contains "(${mv_name_11})"
     }
     compare_res(sql_stmt_11 + " order by 1,2,3")
-//    sql """DROP MATERIALIZED VIEW IF EXISTS ${mv_name_11} on orders_2_agg;"""
-
-//    def mv_name_16 = "mv_name_2_4_16"
-//    def mv_stmt_16 = """select o_orderdate, o_shippriority, o_comment, o_totalprice
-//            from orders_2_agg
-//            where o_orderdate >= "2023-10-17"
-//            group by
-//            o_orderdate,
-//            o_shippriority,
-//            o_comment,
-//            o_totalprice """
-//    create_all_mv(mv_name_16, mv_stmt_16)
-//    waitingMVTaskFinished("orders_2_agg", mv_name_16)
 
     def sql_stmt_16 = """select o_orderdate 
             from orders_2_agg
@@ -290,19 +277,13 @@ suite("partition_mv_rewrite_dimension_2_agg_mv", "partition_mv_rewrite_dimension
         contains "(${mv_name_11})"
     }
     compare_res(sql_stmt_16 + " order by 1,2,3")
-//    def agg_sql_explain_1 = sql """explain ${sql_stmt_16};"""
-//    def mv_index_1 = agg_sql_explain_1.toString().indexOf("MaterializedViewRewriteFail:")
-//    assert(mv_index_1 != -1)
-//    assert(agg_sql_explain_1.toString().substring(0, mv_index_1).indexOf(mv_name_11) != -1)
-//
-//    compare_res(sql_stmt_16 + " order by 1,2,3")
     sql """DROP MATERIALIZED VIEW IF EXISTS ${mv_name_11} on orders_2_agg;"""
 
     // agg function + group by + predicate compensate
     def mv_name_12 = "mv_name_2_4_12"
     def mv_stmt_12 = """ 
             select o_orderdate, o_orderkey, o_custkey, 
-            sum(o_custkey) as sum_total  
+            sum(o_totalprice) as sum_total  
             from orders_2_agg 
             where o_orderdate >= "2023-10-17" 
             group by o_orderdate, o_orderkey, o_custkey"""
@@ -313,7 +294,7 @@ suite("partition_mv_rewrite_dimension_2_agg_mv", "partition_mv_rewrite_dimension
             t.sum_total, t.max_total, t.min_total, t.count_all 
             from  (
             select o_orderdate, o_orderkey, o_custkey, 
-            sum(o_custkey) as sum_total  
+            sum(o_totalprice) as sum_total  
             from orders_2_agg 
             where o_orderdate >= "2023-10-17" 
             group by o_orderdate, o_orderkey, o_custkey
