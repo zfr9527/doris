@@ -290,7 +290,7 @@ suite("partition_mv_rewrite_dimension_2_agg_mv", "partition_mv_rewrite_dimension
     create_all_mv(mv_name_12, mv_stmt_12)
     waitingMVTaskFinished("orders_2_agg", mv_name_12)
 
-    def sql_stmt_12 = """select t.o_orderdate, t.o_shippriority, t.o_comment, 
+    def sql_stmt_12 = """select t.o_orderdate, t.o_orderkey, t.o_custkey, 
             t.sum_total, t.max_total, t.min_total, t.count_all 
             from  (
             select o_orderdate, o_orderkey, o_custkey, 
