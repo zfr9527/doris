@@ -132,6 +132,7 @@ suite("mv_filter_equal_or_notequal_case_agg", "partition_mv_rewrite_dimension") 
         select l_shipdate, l_partkey, l_suppkey
         from lineitem_filter_agg 
         where l_shipdate = '2023-10-17'
+        group by l_shipdate, l_partkey, l_suppkey
         """
 
     create_mv_lineitem(mv_name, mv_sql)
@@ -142,6 +143,7 @@ suite("mv_filter_equal_or_notequal_case_agg", "partition_mv_rewrite_dimension") 
         select l_shipdate, l_partkey, l_suppkey  
         from lineitem_filter_agg 
         where l_shipdate = '2023-10-17'
+        group by l_shipdate, l_partkey, l_suppkey
         """
     explain {
         sql("${query_sql}")
@@ -154,6 +156,7 @@ suite("mv_filter_equal_or_notequal_case_agg", "partition_mv_rewrite_dimension") 
         select l_shipdate, l_partkey, l_suppkey 
         from lineitem_filter_agg 
         where l_shipdate != '2023-10-17'
+        group by l_shipdate, l_partkey, l_suppkey
         """
     explain {
         sql("${query_sql}")
@@ -167,6 +170,7 @@ suite("mv_filter_equal_or_notequal_case_agg", "partition_mv_rewrite_dimension") 
         left join orders_filter_agg 
         on lineitem_filter_agg.l_orderkey = orders_filter_agg.o_orderkey
         where l_shipdate = '2023-10-19'
+        group by l_shipdate, l_partkey, l_suppkey
         """
     explain {
         sql("${query_sql}")
@@ -179,6 +183,7 @@ suite("mv_filter_equal_or_notequal_case_agg", "partition_mv_rewrite_dimension") 
         select l_shipdate, l_partkey, l_suppkey  
         from lineitem_filter_agg 
         where l_shipdate != '2023-10-17'
+        group by l_shipdate, l_partkey, l_suppkey
         """
 
     create_mv_lineitem(mv_name, mv_sql)
@@ -189,6 +194,7 @@ suite("mv_filter_equal_or_notequal_case_agg", "partition_mv_rewrite_dimension") 
         select l_shipdate, l_partkey, l_suppkey 
         from lineitem_filter_agg 
         where l_shipdate = '2023-10-17'
+        group by l_shipdate, l_partkey, l_suppkey
         """
     explain {
         sql("${query_sql}")
@@ -200,6 +206,7 @@ suite("mv_filter_equal_or_notequal_case_agg", "partition_mv_rewrite_dimension") 
         select l_shipdate, l_partkey, l_suppkey 
         from lineitem_filter_agg 
         where l_shipdate != '2023-10-17'
+        group by l_shipdate, l_partkey, l_suppkey
         """
     explain {
         sql("${query_sql}")
@@ -213,6 +220,7 @@ suite("mv_filter_equal_or_notequal_case_agg", "partition_mv_rewrite_dimension") 
         select l_shipdate, l_partkey, l_suppkey   
         from lineitem_filter_agg 
         where l_shipdate > '2023-10-17'
+        group by l_shipdate, l_partkey, l_suppkey
         """
 
     create_mv_lineitem(mv_name, mv_sql)
@@ -223,6 +231,7 @@ suite("mv_filter_equal_or_notequal_case_agg", "partition_mv_rewrite_dimension") 
         select l_shipdate, l_partkey, l_suppkey 
         from lineitem_filter_agg 
         where l_shipdate = '2023-10-16'
+        group by l_shipdate, l_partkey, l_suppkey
         """
     explain {
         sql("${query_sql}")
@@ -234,6 +243,7 @@ suite("mv_filter_equal_or_notequal_case_agg", "partition_mv_rewrite_dimension") 
         select l_shipdate, l_partkey, l_suppkey 
         from lineitem_filter_agg 
         where l_shipdate = '2023-10-17'
+        group by l_shipdate, l_partkey, l_suppkey
         """
     explain {
         sql("${query_sql}")
@@ -245,6 +255,7 @@ suite("mv_filter_equal_or_notequal_case_agg", "partition_mv_rewrite_dimension") 
         select l_shipdate, l_partkey, l_suppkey
         from lineitem_filter_agg
         where l_shipdate = '2023-10-19'
+        group by l_shipdate, l_partkey, l_suppkey
         """
     explain {
         sql("${query_sql}")
@@ -257,6 +268,7 @@ suite("mv_filter_equal_or_notequal_case_agg", "partition_mv_rewrite_dimension") 
         select l_shipdate, l_partkey, l_suppkey 
         from lineitem_filter_agg 
         where l_shipdate > '2023-10-16'
+        group by l_shipdate, l_partkey, l_suppkey
         """
     explain {
         sql("${query_sql}")
@@ -268,6 +280,7 @@ suite("mv_filter_equal_or_notequal_case_agg", "partition_mv_rewrite_dimension") 
         select l_shipdate, l_partkey, l_suppkey 
         from lineitem_filter_agg 
         where l_shipdate < '2023-10-16'
+        group by l_shipdate, l_partkey, l_suppkey
         """
     explain {
         sql("${query_sql}")
@@ -279,6 +292,7 @@ suite("mv_filter_equal_or_notequal_case_agg", "partition_mv_rewrite_dimension") 
         select l_shipdate, l_partkey, l_suppkey 
         from lineitem_filter_agg 
         where l_shipdate > '2023-10-17'
+        group by l_shipdate, l_partkey, l_suppkey
         """
     explain {
         sql("${query_sql}")
@@ -291,6 +305,7 @@ suite("mv_filter_equal_or_notequal_case_agg", "partition_mv_rewrite_dimension") 
         select l_shipdate, l_partkey, l_suppkey 
         from lineitem_filter_agg 
         where l_shipdate < '2023-10-17'
+        group by l_shipdate, l_partkey, l_suppkey
         """
     explain {
         sql("${query_sql}")
@@ -302,6 +317,7 @@ suite("mv_filter_equal_or_notequal_case_agg", "partition_mv_rewrite_dimension") 
         select l_shipdate, l_partkey, l_suppkey
         from lineitem_filter_agg
         where l_shipdate > '2023-10-18'
+        group by l_shipdate, l_partkey, l_suppkey
         """
     explain {
         sql("${query_sql}")
@@ -314,6 +330,7 @@ suite("mv_filter_equal_or_notequal_case_agg", "partition_mv_rewrite_dimension") 
         select l_shipdate, l_partkey, l_suppkey 
         from lineitem_filter_agg 
         where l_shipdate < '2023-10-19'
+        group by l_shipdate, l_partkey, l_suppkey
         """
     explain {
         sql("${query_sql}")
@@ -325,6 +342,7 @@ suite("mv_filter_equal_or_notequal_case_agg", "partition_mv_rewrite_dimension") 
         select l_shipdate, l_partkey, l_suppkey  
         from lineitem_filter_agg 
         where l_shipdate > '2023-10-16' and l_shipdate < '2023-10-17'
+        group by l_shipdate, l_partkey, l_suppkey
         """
     explain {
         sql("${query_sql}")
@@ -336,6 +354,7 @@ suite("mv_filter_equal_or_notequal_case_agg", "partition_mv_rewrite_dimension") 
         select l_shipdate, l_partkey, l_suppkey 
         from lineitem_filter_agg 
         where l_shipdate > '2023-10-17' and l_shipdate < '2023-10-19'
+        group by l_shipdate, l_partkey, l_suppkey
         """
     explain {
         sql("${query_sql}")
@@ -348,6 +367,7 @@ suite("mv_filter_equal_or_notequal_case_agg", "partition_mv_rewrite_dimension") 
         select l_shipdate, l_partkey, l_suppkey 
         from lineitem_filter_agg 
         where l_shipdate in ('2023-10-17')
+        group by l_shipdate, l_partkey, l_suppkey
         """
     explain {
         sql("${query_sql}")
@@ -360,6 +380,7 @@ suite("mv_filter_equal_or_notequal_case_agg", "partition_mv_rewrite_dimension") 
         select l_shipdate, l_partkey, l_suppkey
         from lineitem_filter_agg
         where l_shipdate in ('2023-10-18')
+        group by l_shipdate, l_partkey, l_suppkey
         """
     explain {
         sql("${query_sql}")
@@ -372,6 +393,7 @@ suite("mv_filter_equal_or_notequal_case_agg", "partition_mv_rewrite_dimension") 
         select l_shipdate, l_partkey, l_suppkey
         from lineitem_filter_agg
         where l_shipdate in ('2023-10-18', '2023-11-18')
+        group by l_shipdate, l_partkey, l_suppkey
         """
     explain {
         sql("${query_sql}")
@@ -384,6 +406,7 @@ suite("mv_filter_equal_or_notequal_case_agg", "partition_mv_rewrite_dimension") 
         select l_shipdate, l_partkey, l_suppkey 
         from lineitem_filter_agg 
         where l_shipdate like "%2023-10-18%"
+        group by l_shipdate, l_partkey, l_suppkey
         """
     explain {
         sql("${query_sql}")
@@ -395,6 +418,7 @@ suite("mv_filter_equal_or_notequal_case_agg", "partition_mv_rewrite_dimension") 
         select l_shipdate, l_partkey, l_suppkey 
         from lineitem_filter_agg 
         where l_shipdate is null
+        group by l_shipdate, l_partkey, l_suppkey
         """
     explain {
         sql("${query_sql}")
@@ -406,6 +430,7 @@ suite("mv_filter_equal_or_notequal_case_agg", "partition_mv_rewrite_dimension") 
         select l_shipdate, l_partkey, l_suppkey  
         from lineitem_filter_agg 
         where l_shipdate is not null
+        group by l_shipdate, l_partkey, l_suppkey
         """
     explain {
         sql("${query_sql}")
@@ -418,6 +443,7 @@ suite("mv_filter_equal_or_notequal_case_agg", "partition_mv_rewrite_dimension") 
         select l_shipdate, l_partkey, l_suppkey  
         from lineitem_filter_agg 
         where l_shipdate > '2023-10-16' and l_shipdate < '2023-10-19'
+        group by l_shipdate, l_partkey, l_suppkey
         """
 
     create_mv_lineitem(mv_name, mv_sql)
@@ -428,6 +454,7 @@ suite("mv_filter_equal_or_notequal_case_agg", "partition_mv_rewrite_dimension") 
         select l_shipdate, l_partkey, l_suppkey
         from lineitem_filter_agg
         where l_shipdate > '2023-10-16' and l_shipdate < '2023-10-19'
+        group by l_shipdate, l_partkey, l_suppkey
         """
     explain {
         sql("${query_sql}")
@@ -440,6 +467,7 @@ suite("mv_filter_equal_or_notequal_case_agg", "partition_mv_rewrite_dimension") 
         select l_shipdate, l_partkey, l_suppkey
         from lineitem_filter_agg
         where l_shipdate > '2023-10-17' and l_shipdate < '2023-10-19'
+        group by l_shipdate, l_partkey, l_suppkey
         """
     explain {
         sql("${query_sql}")
@@ -453,6 +481,7 @@ suite("mv_filter_equal_or_notequal_case_agg", "partition_mv_rewrite_dimension") 
         select l_shipdate, l_partkey, l_suppkey   
         from lineitem_filter_agg 
         where l_shipdate in ('2023-10-17', '2023-10-18', '2023-10-19')
+        group by l_shipdate, l_partkey, l_suppkey
         """
 
     create_mv_lineitem(mv_name, mv_sql)
@@ -463,6 +492,7 @@ suite("mv_filter_equal_or_notequal_case_agg", "partition_mv_rewrite_dimension") 
         select l_shipdate, l_partkey, l_suppkey 
         from lineitem_filter_agg 
         where l_shipdate in ('2023-10-17', '2023-10-18', '2023-10-19')
+        group by l_shipdate, l_partkey, l_suppkey
         """
     explain {
         sql("${query_sql}")
@@ -475,6 +505,7 @@ suite("mv_filter_equal_or_notequal_case_agg", "partition_mv_rewrite_dimension") 
         select l_shipdate, l_partkey, l_suppkey 
         from lineitem_filter_agg 
         where l_shipdate not in ('2023-10-17', '2023-10-18', '2023-10-19')
+        group by l_shipdate, l_partkey, l_suppkey
         """
     explain {
         sql("${query_sql}")
@@ -487,6 +518,7 @@ suite("mv_filter_equal_or_notequal_case_agg", "partition_mv_rewrite_dimension") 
         select l_shipdate, l_partkey, l_suppkey   
         from lineitem_filter_agg 
         where l_shipdate like "%2023-10-17%"
+        group by l_shipdate, l_partkey, l_suppkey
         """
 
     create_mv_lineitem(mv_name, mv_sql)
@@ -497,6 +529,7 @@ suite("mv_filter_equal_or_notequal_case_agg", "partition_mv_rewrite_dimension") 
         select l_shipdate, l_partkey, l_suppkey 
         from lineitem_filter_agg 
         where l_shipdate like "%2023-10-17%"
+        group by l_shipdate, l_partkey, l_suppkey
         """
     explain {
         sql("${query_sql}")
@@ -509,6 +542,7 @@ suite("mv_filter_equal_or_notequal_case_agg", "partition_mv_rewrite_dimension") 
         select l_shipdate, l_partkey, l_suppkey 
         from lineitem_filter_agg 
         where l_shipdate like "%2023-10-17%"
+        group by l_shipdate, l_partkey, l_suppkey
         """
     explain {
         sql("${query_sql}")
@@ -523,6 +557,7 @@ suite("mv_filter_equal_or_notequal_case_agg", "partition_mv_rewrite_dimension") 
         select l_shipdate, l_partkey, l_suppkey
         from lineitem_filter_agg
         where l_shipdate between '2023-10-16' and '2023-10-19'
+        group by l_shipdate, l_partkey, l_suppkey
         """
 
     create_mv_lineitem(mv_name, mv_sql)
@@ -532,6 +567,7 @@ suite("mv_filter_equal_or_notequal_case_agg", "partition_mv_rewrite_dimension") 
         select l_shipdate, l_partkey, l_suppkey
         from lineitem_filter_agg
         where l_shipdate between '2023-10-17' and '2023-10-19'
+        group by l_shipdate, l_partkey, l_suppkey
         """
     explain {
         sql("${query_sql}")
