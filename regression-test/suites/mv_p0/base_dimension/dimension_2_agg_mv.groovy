@@ -101,7 +101,7 @@ suite("partition_mv_rewrite_dimension_2_agg_mv", "partition_mv_rewrite_dimension
     sql """analyze table lineitem_2_agg with sync;"""
 
     def create_mv_lineitem = { mv_name, mv_sql ->
-        sql """DROP MATERIALIZED VIEW IF EXISTS ${mv_name} on lineitem_1;"""
+        sql """DROP MATERIALIZED VIEW IF EXISTS ${mv_name} on lineitem_2_agg;"""
         sql """DROP TABLE IF EXISTS ${mv_name}"""
         sql"""
         CREATE MATERIALIZED VIEW ${mv_name} 
@@ -111,7 +111,7 @@ suite("partition_mv_rewrite_dimension_2_agg_mv", "partition_mv_rewrite_dimension
     }
 
     def create_mv_orders = { mv_name, mv_sql ->
-        sql """DROP MATERIALIZED VIEW IF EXISTS ${mv_name} on orders_1;"""
+        sql """DROP MATERIALIZED VIEW IF EXISTS ${mv_name} on orders_2_agg;"""
         sql """DROP TABLE IF EXISTS ${mv_name}"""
         sql"""
         CREATE MATERIALIZED VIEW ${mv_name} 
