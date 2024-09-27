@@ -228,7 +228,7 @@ suite("partition_mv_rewrite_dimension_2_agg_mv", "partition_mv_rewrite_dimension
     def sql_stmt_10 = """select t.sum_total from (select 
             sum(o_totalprice) as sum_total  
             from orders_2_agg where o_orderdate >= "2023-10-17" )  as t
-            where t.count_all = 3"""
+            where t.sum_total = 3"""
     explain {
         sql("${sql_stmt_10}")
         contains "(${mv_name_10})"
