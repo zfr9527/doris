@@ -291,7 +291,7 @@ suite("partition_mv_rewrite_dimension_2_agg_mv", "partition_mv_rewrite_dimension
     waitingMVTaskFinished("orders_2_agg", mv_name_12)
 
     def sql_stmt_12 = """select t.o_orderdate, t.o_orderkey, t.o_custkey, 
-            t.sum_total, t.max_total, t.min_total, t.count_all 
+            t.sum_total  
             from  (
             select o_orderdate, o_orderkey, o_custkey, 
             sum(o_totalprice) as sum_total  
