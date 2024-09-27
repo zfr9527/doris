@@ -299,7 +299,7 @@ suite("partition_mv_rewrite_dimension_2_agg_mv", "partition_mv_rewrite_dimension
             where o_orderdate >= "2023-10-17" 
             group by o_orderdate, o_orderkey, o_custkey
             ) as t 
-            where t.o_totalprice = 1 
+            where t.o_orderdate = "2023-10-17"
             """
     explain {
         sql("${sql_stmt_12}")
