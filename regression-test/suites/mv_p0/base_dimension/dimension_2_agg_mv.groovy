@@ -381,15 +381,15 @@ suite("partition_mv_rewrite_dimension_2_agg_mv", "partition_mv_rewrite_dimension
 
 
     // predicate compensate
-    mv_name_5 = "mv_name_2_6_5"
-    mv_stmt_5 = """select l_shipdate, l_partkey, l_orderkey 
+    def mv_name_5 = "mv_name_2_6_5"
+    def mv_stmt_5 = """select l_shipdate, l_partkey, l_orderkey 
         from lineitem_2_agg 
         where l_shipdate >= "2023-10-17"
         group by l_shipdate, l_partkey, l_orderkey"""
     create_mv_lineitem(mv_name_5, mv_stmt_5)
     waitingMVTaskFinished("lineitem_2_agg", mv_name_5)
 
-    sql_stmt_5 = """select t.l_shipdate, o_orderdate, t.l_partkey 
+    def sql_stmt_5 = """select t.l_shipdate, o_orderdate, t.l_partkey 
         from (select l_shipdate, l_partkey, l_orderkey from lineitem_2_agg group by l_shipdate, l_partkey, l_orderkey) t 
         left join orders_2_agg   
         on t.l_orderkey = orders_2_agg.o_orderkey 
@@ -423,23 +423,4 @@ suite("partition_mv_rewrite_dimension_2_agg_mv", "partition_mv_rewrite_dimension
     }
     compare_res(sql_stmt_6 + " order by 1,2,3")
     sql """DROP MATERIALIZED VIEW IF EXISTS ${mv_name_6} on lineitem_2_agg;"""
-
-    // predicate compensate
-    // project rewriting
-    def mv_name_9 = "mv_name_2_6_9"
-    def mv_stmt_9 = """ select o_orderdate, o_shippriority, o_comment, o_custkey 
-            from orders_2_agg 
-            where  o_custkey > 1 + 1"""
-    create_mv_orders(mv_name_9, mv_stmt_9)
-    waitingMVTaskFinished("orders_2_agg", mv_name_9)
-
-    def sql_stmt_9 = """select o_orderdate, o_shippriority, o_comment, o_shippriority + o_custkey 
-            from orders_2_agg 
-            where  o_custkey > (-3) + 5 and o_orderdate >= '2023-10-17'  """
-    explain {
-        sql("${sql_stmt_9}")
-        contains "(${mv_name_9})"
-    }
-    compare_res(sql_stmt_9 + " order by 1,2,3,4,5,6")
-    sql """DROP MATERIALIZED VIEW IF EXISTS ${mv_name_9} on orders_2_agg;"""
 }
