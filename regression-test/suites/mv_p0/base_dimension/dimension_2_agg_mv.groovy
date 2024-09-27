@@ -282,7 +282,7 @@ suite("partition_mv_rewrite_dimension_2_agg_mv", "partition_mv_rewrite_dimension
 
     def sql_stmt_16 = """select o_orderdate 
             from orders_2_agg
-            where o_orderdate >= "2023-10-17" and o_totalprice = 1
+            where o_orderdate >= "2023-10-17" and o_custkey = 1
             group by
             o_orderdate, o_orderkey"""
     explain {
