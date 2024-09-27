@@ -355,27 +355,23 @@ suite("partition_mv_rewrite_dimension_2_agg_mv", "partition_mv_rewrite_dimension
 
     // agg function + group by + project rewriting
     def mv_name_15 = "mv_name_2_4_15"
-    def mv_stmt_15 = """select o_orderdate, o_shippriority, o_comment, o_custkey 
+    def mv_stmt_15 = """select 
+            o_orderdate, o_orderkey, o_custkey   
             from orders_2_agg 
             where o_orderkey > 1 + 1 
             group by 
             o_orderdate, 
-            o_shippriority, 
-            o_comment,
-            o_shippriority,
-            o_custkey 
+            o_orderkey, o_custkey,
+            o_shippriority
             """
     create_all_mv(mv_name_15, mv_stmt_15)
     waitingMVTaskFinished("orders_2_agg", mv_name_15)
 
-    def sql_stmt_15 = """select o_shippriority, o_comment, o_shippriority + o_custkey 
+    def sql_stmt_15 = """select o_orderdate, o_orderkey + o_custkey 
             from orders_2_agg 
             where  o_orderkey > (-3) + 5 
             group by 
-            o_orderdate, 
-            o_shippriority, 
-            o_comment,
-            o_custkey,
+            o_orderdate, o_orderkey + o_custkey, o_shippriority
             """
     explain {
         sql("${sql_stmt_15}")
