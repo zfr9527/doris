@@ -166,12 +166,15 @@ suite("partition_mv_rewrite_dimension_hive") {
                 (3, 1, 1, 2, 7.5, 8.5, 9.5, 10.5, 'k', 'o', '2023-10-19', null, 'c', 'd', 'xxxxxxxxx', '2023-10-19'),
                 (1, 3, 2, 2, 5.5, 6.5, 7.5, 8.5, 'o', 'k', '2023-10-17', '2023-10-17', 'a', 'b', 'yyyyyyyyy', '2023-10-17');
                 """
-            sql"""
+            sql """
                 insert into partsupp_1 values 
                 (1, 1, 1, 99.5, 'yy'),
                 (null, 2, 2, 109.2, 'mm'),
                 (3, null, 1, 99.5, 'yy'); 
                 """
+            sql """analyze table ${catalog_name}.${db}.orders_1 with sync;"""
+            sql """analyze table ${catalog_name}.${db}.lineitem_1 with sync;"""
+            sql """analyze table ${catalog_name}.${db}.partsupp_1 with sync;"""
             sql """switch internal"""
             sql """create database if not exists ${db}"""
             sql """use ${db}"""
