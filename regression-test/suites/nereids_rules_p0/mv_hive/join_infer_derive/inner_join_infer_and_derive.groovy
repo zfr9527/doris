@@ -18,7 +18,7 @@
 /*
 mtmv include left,right,full join, and query is inner join
  */
-suite("inner_join_infer_and_derive_hive") {
+suite("inner_join_infer_and_derive_hive", "join_infer_derive") {
     String enabled = context.config.otherConfigs.get("enableHiveTest")
     if (enabled == null || !enabled.equalsIgnoreCase("true")) {
         logger.info("diable Hive test.")
