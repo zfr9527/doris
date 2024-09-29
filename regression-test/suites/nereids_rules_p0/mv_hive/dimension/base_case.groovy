@@ -782,10 +782,6 @@ suite("partition_mv_rewrite_dimension_hive") {
                 left join `${catalog_name}`.`${db}`.lineitem_1
                 on `${catalog_name}`.`${db}`.lineitem_1.l_orderkey = `${catalog_name}`.`${db}`.orders_1.o_orderkey
                 left join `${catalog_name}`.`${db}`.partsupp_1 on `${catalog_name}`.`${db}`.partsupp_1.ps_partkey = `${catalog_name}`.`${db}`.lineitem_1.l_orderkey"""
-//            explain {
-//                sql("${query_sql}")
-//                contains "${mv_name}(${mv_name})"
-//            }
             mv_rewrite_success_without_check_chosen(query_sql, mv_name)
             compare_res(query_sql + " order by 1,2,3,4,5")
 
