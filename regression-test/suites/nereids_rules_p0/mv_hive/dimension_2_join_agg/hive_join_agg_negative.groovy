@@ -18,7 +18,7 @@
 /*
 This suite is a one dimensional test case file.
  */
-suite("hive_join_agg_replenish_negative") {
+suite("hive_join_agg_replenish_negative", "dimension_2_join_agg") {
     String enabled = context.config.otherConfigs.get("enableHiveTest")
     if (enabled == null || !enabled.equalsIgnoreCase("true")) {
         logger.info("diable Hive test.")
