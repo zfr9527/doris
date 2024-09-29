@@ -58,7 +58,7 @@ suite("partition_mv_rewrite_dimension_hive") {
         }
     }
     def analyzeMtmvFunc = { def cur_mv_name ->
-        sql """analyze table ${db}.${cur_mv_name}"""
+        sql """analyze table ${db}.${cur_mv_name} with sync"""
     }
 
     def checkMtmvCount = { def cur_mv_name ->
@@ -617,32 +617,32 @@ suite("partition_mv_rewrite_dimension_hive") {
             compare_res(query_sql + " order by 1,2,3")
 
             // single table
-//            mtmv_sql = """
-//                select l_Shipdate, l_partkey, l_suppkey
-//                from `${catalog_name}`.`${db}`.lineitem_1
-//                where l_commitdate like '2023-10-%'
-//                """
-//            create_mv(mv_name, mtmv_sql)
-//            waitingMTMVTaskFinishedByMvName(mv_name)
-//            checkMtmvCount(mv_name)
-//
-//            query_sql = """select l_Shipdate, l_partkey, l_suppkey
-//                from `${catalog_name}`.`${db}`.lineitem_1
-//                where l_commitdate like '2023-10-%'"""
-//            explain {
-//                sql("${query_sql}")
-//                contains "${mv_name}(${mv_name})"
-//            }
-//            compare_res(query_sql + " order by 1,2,3")
-//
-//            query_sql = """select l_Shipdate, l_partkey, l_suppkey
-//                from `${catalog_name}`.`${db}`.lineitem_1
-//                where l_commitdate like '2023-10-%' and l_partkey > 0 + 1"""
-//            explain {
-//                sql("${query_sql}")
-//                contains "${mv_name}(${mv_name})"
-//            }
-//            compare_res(query_sql + " order by 1,2,3")
+            mtmv_sql = """
+                select l_Shipdate, l_partkey, l_suppkey
+                from `${catalog_name}`.`${db}`.lineitem_1
+                where l_commitdate like '2023-10-%'
+                """
+            create_mv(mv_name, mtmv_sql)
+            waitingMTMVTaskFinishedByMvName(mv_name)
+            checkMtmvCount(mv_name)
+
+            query_sql = """select l_Shipdate, l_partkey, l_suppkey
+                from `${catalog_name}`.`${db}`.lineitem_1
+                where l_commitdate like '2023-10-%'"""
+            explain {
+                sql("${query_sql}")
+                contains "${mv_name}(${mv_name})"
+            }
+            compare_res(query_sql + " order by 1,2,3")
+
+            query_sql = """select l_Shipdate, l_partkey, l_suppkey
+                from `${catalog_name}`.`${db}`.lineitem_1
+                where l_commitdate like '2023-10-%' and l_partkey > 0 + 1"""
+            explain {
+                sql("${query_sql}")
+                contains "${mv_name}(${mv_name})"
+            }
+            compare_res(query_sql + " order by 1,2,3")
 
             mtmv_sql = """
                 select l_Shipdate, l_partkey, l_suppkey 
