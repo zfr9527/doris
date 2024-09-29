@@ -87,6 +87,7 @@ suite("nested_mtmv_hive") {
     def checkMtmvCount = { def cur_mv_name ->
         def select_count = sql "select count(*) from ${cur_mv_name}"
         assertTrue(select_count[0][0] != 0)
+        sql """analyze table ${cur_mv_name} with sync"""
     }
 
     String ctl = "nested_mtmv_hive"
