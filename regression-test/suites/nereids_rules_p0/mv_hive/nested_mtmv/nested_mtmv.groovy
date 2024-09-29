@@ -249,10 +249,6 @@ suite("nested_mtmv_hive") {
                 FROM `${catalog_name}`.`${db}`.${lineitem_tb} INNER JOIN `${catalog_name}`.`${db}`.${order_tb}
                 ON l_orderkey = o_orderkey
                 GROUP BY l_orderkey"""
-//            explain {
-//                sql("${query_stmt_1}")
-//                contains "${mv_name_3}(${mv_name_3})"
-//            }
             mv_rewrite_success_without_check_chosen(query_stmt_1, mv_name_3)
             compare_res(query_stmt_1 + " order by 1,2,3")
 
@@ -331,6 +327,7 @@ suite("nested_mtmv_hive") {
                             || result.contains("${mv_level3_name}(${mv_level3_name})")
                 }
             }
+
             compare_res(query_stmt_2 + " order by 1,2,3,4,5,6,7")
 
             // five level
