@@ -87,6 +87,7 @@ suite("hive_filter_equal_or_notequal_case") {
     def checkMtmvCount = { def cur_mv_name ->
         def select_count = sql "select count(*) from ${cur_mv_name}"
         assertTrue(select_count[0][0] != 0)
+        sql """analyze table ${cur_mv_name} with sync"""
     }
 
     String ctl = "mv_rewrite_dimension_filter_hive"

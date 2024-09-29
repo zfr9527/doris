@@ -18,7 +18,7 @@
 /*
 It mainly tests the full join and filter positions.
  */
-suite("full_join_filter_hive") {
+suite("full_join_filter_hive", "dimension_predicate") {
     String enabled = context.config.otherConfigs.get("enableHiveTest")
     if (enabled == null || !enabled.equalsIgnoreCase("true")) {
         logger.info("diable Hive test.")

@@ -18,7 +18,7 @@
 /*
 It mainly tests the left join and filter positions.
  */
-suite("left_join_filter_hive", "join_filter_hive") {
+suite("left_join_filter_hive", "dimension_predicate") {
 
     String enabled = context.config.otherConfigs.get("enableHiveTest")
     if (enabled == null || !enabled.equalsIgnoreCase("true")) {

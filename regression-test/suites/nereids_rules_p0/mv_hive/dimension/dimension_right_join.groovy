@@ -19,7 +19,7 @@
 This suite is a two dimensional test case file.
 It mainly tests the full join and filter positions.
  */
-suite("partition_mv_rewrite_dimension_right_join_hive", "dimension") {
+suite("partition_mv_rewrite_dimension_right_join_hive") {
     String enabled = context.config.otherConfigs.get("enableHiveTest")
     if (enabled == null || !enabled.equalsIgnoreCase("true")) {
         logger.info("diable Hive test.")
