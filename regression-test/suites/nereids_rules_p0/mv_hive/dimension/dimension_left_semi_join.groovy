@@ -104,8 +104,8 @@ suite("partition_mv_rewrite_dimension_left_semi_join_hive", "dimension") {
             sql """switch ${catalog_name}"""
             sql """create database if not exists ${db}"""
             sql """use `${catalog_name}`.`${db}`"""
-            def order_tb = "orders_2_left_anti_join"
-            def lineitem_tb = "lineitem_2_left_anti_join"
+            def order_tb = "orders_2_left_semi_join"
+            def lineitem_tb = "lineitem_2_left_semi_join"
 
             sql """
                 drop table if exists ${order_tb}
