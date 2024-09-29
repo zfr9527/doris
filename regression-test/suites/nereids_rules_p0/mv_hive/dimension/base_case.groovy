@@ -25,6 +25,8 @@ suite("partition_mv_rewrite_dimension_hive") {
         return
     }
 
+    String db = context.config.getDbNameByFile(context.file)
+
     sql """SET materialized_view_rewrite_enable_contain_external_table = true;"""
 
     def create_mv = { mv_name, mv_sql ->
@@ -55,14 +57,17 @@ suite("partition_mv_rewrite_dimension_hive") {
             }
         }
     }
+    def analyzeMtmvFunc = { def cur_mv_name ->
+        sql """analyze table ${db}.${cur_mv_name}"""
+    }
 
     def checkMtmvCount = { def cur_mv_name ->
         def select_count = sql "select count(*) from ${cur_mv_name}"
         assertTrue(select_count[0][0] != 0)
+        analyzeMtmvFunc(cur_mv_name)
     }
 
     String ctl = "mv_rewrite_dimension_1"
-    String db = context.config.getDbNameByFile(context.file)
     for (String hivePrefix : ["hive2", "hive3"]) {
         try {
             String hms_port = context.config.otherConfigs.get(hivePrefix + "HmsPort")
@@ -188,6 +193,7 @@ suite("partition_mv_rewrite_dimension_hive") {
             create_mv(mv_name, mtmv_sql)
             waitingMTMVTaskFinishedByMvName(mv_name)
             checkMtmvCount(mv_name)
+
 
             def query_sql = """select L_SHIPDATE 
                 from `${catalog_name}`.`${db}`.lineitem_1 
