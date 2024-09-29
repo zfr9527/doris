@@ -223,7 +223,7 @@ suite("partition_mv_rewrite_dimension_right_anti_join_hive", "dimension") {
             def order_by_stmt = " order by 1,2,3"
             for (int i = 0; i < mv_list_1.size(); i++) {
                 logger.info("i:" + i)
-                def mv_name = """mv_name_2_right_semi_join_${i}"""
+                def mv_name = """mv_name_2_right_anti_join_${i}"""
                 if (i < 3) {
                     create_mv_orders(mv_name, mv_list_1[i])
                 } else {
