@@ -90,7 +90,7 @@ suite("partition_mv_rewrite_dimension_self_conn_hive", "dimension") {
         assertTrue(select_count[0][0] != 0)
     }
 
-    String ctl = "mv_rewrite_dimension_right_join"
+    String ctl = "mv_rewrite_dimension_self_conn_join"
     String db = context.config.getDbNameByFile(context.file)
     for (String hivePrefix : ["hive2", "hive3"]) {
         try {
