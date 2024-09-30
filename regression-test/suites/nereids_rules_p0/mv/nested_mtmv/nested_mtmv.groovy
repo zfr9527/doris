@@ -255,6 +255,18 @@ suite("nested_mtmv") {
     job_name_1 = getJobName(db, mv_level4_name)
     waitingMTMVTaskFinished(job_name_1)
 
+
+
+
+    select l_orderkey, l_linenumber, l_partkey, o_orderkey, o_custkey, l_suppkey
+    from lineitem_1
+    inner join orders_1 on lineitem_1.l_orderkey = orders_1.o_orderkey
+    inner join partsupp_1 on lineitem_1.l_partkey = partsupp_1.ps_partkey and lineitem_1.l_suppkey = partsupp_1.ps_suppkey
+
+
+
+
+
     def query_stmt_2 = """
         select t1.l_orderkey, t2.l_linenumber, t1.l_partkey, t2.o_orderkey, t1.o_custkey, t2.ps_partkey, t1.col1
         from (select l_orderkey, l_linenumber, l_partkey, o_orderkey, o_custkey, ps_partkey, col1 
