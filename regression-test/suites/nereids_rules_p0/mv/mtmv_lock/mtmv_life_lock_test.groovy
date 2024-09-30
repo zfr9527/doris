@@ -1537,6 +1537,8 @@ suite("mtmv_life_lock_test") {
         threadTimeout(mtmv_cancel_thread)
         threadTimeout(mtmv_select_thread)
         assertTrue(judge_table_res == true)
+
+        sleep(30 * 60 * 1000)
     }
 
 }
