@@ -309,8 +309,9 @@ suite("mtmv_life_lock_test") {
                     judge_table_res = false
                 }
             } catch (Exception e) {
-                judge_table_res = false
                 log.info(e.getMessage())
+                log.info("judge_table_res = false")
+                judge_table_res = false
             }
             i++
         }
@@ -323,6 +324,7 @@ suite("mtmv_life_lock_test") {
                 sql table_alter_del_partition
             } catch (Exception e) {
                 log.info(e.getMessage())
+                log.info("judge_table_res = false")
                 judge_table_res = false
             }
         }
@@ -337,6 +339,7 @@ suite("mtmv_life_lock_test") {
                 waitingMVTaskFinishedByMvName(db, lineitem_table)
             } catch (Exception e) {
                 log.info(e.getMessage())
+                log.info("judge_table_res = false")
                 judge_table_res = false
             }
             i++
@@ -352,6 +355,7 @@ suite("mtmv_life_lock_test") {
                 waitingMVTaskFinishedByMvName(db, lineitem_table)
             } catch (Exception e) {
                 log.info(e.getMessage())
+                log.info("judge_table_res = false")
                 judge_table_res = false
             }
             i++
@@ -368,6 +372,7 @@ suite("mtmv_life_lock_test") {
                 sql table_alter_del_index
             } catch (Exception e) {
                 log.info(e.getMessage())
+                log.info("judge_table_res = false")
                 judge_table_res = false
             }
 
@@ -383,6 +388,7 @@ suite("mtmv_life_lock_test") {
                 sql table_delete
             } catch (Exception e) {
                 log.info(e.getMessage())
+                log.info("judge_table_res = false")
                 judge_table_res = false
             }
             sleep(1000)
@@ -398,6 +404,7 @@ suite("mtmv_life_lock_test") {
                 sql sql2
             } catch (Exception e) {
                 log.info(e.getMessage())
+                log.info("judge_table_res = false")
                 judge_table_res = false
             }
             sleep(1000)
@@ -439,6 +446,7 @@ suite("mtmv_life_lock_test") {
         } catch (Exception e) {
             log.info(e.getMessage())
         } finally {
+            log.info("judge_mtmv_res = false")
             judge_mtmv_res = false
         }
         logger.info("mtmv_refresh_thread2 end")
@@ -455,6 +463,7 @@ suite("mtmv_life_lock_test") {
         } catch (Exception e) {
             log.info(e.getMessage())
         } finally {
+            log.info("judge_mtmv_res = false")
             judge_mtmv_res = false
         }
         logger.info("mtmv_rename_thread3 end")
@@ -470,6 +479,7 @@ suite("mtmv_life_lock_test") {
         } catch (Exception e) {
             log.info(e.getMessage())
         } finally {
+            log.info("judge_mtmv_res = false")
             judge_mtmv_res = false
         }
         logger.info("mtmv_alter_property_thread4 end")
@@ -486,6 +496,7 @@ suite("mtmv_life_lock_test") {
         } catch (Exception e) {
             log.info(e.getMessage())
         } finally {
+            log.info("judge_mtmv_res = false")
             judge_mtmv_res = false
         }
         logger.info("mtmv_pause_resume_thread6 end")
@@ -502,6 +513,7 @@ suite("mtmv_life_lock_test") {
         } catch (Exception e) {
             log.info(e.getMessage())
         } finally {
+            log.info("judge_mtmv_res = false")
             judge_mtmv_res = false
         }
         logger.info("mtmv_cancel_thread7 end")
@@ -516,6 +528,7 @@ suite("mtmv_life_lock_test") {
                 log.info(e.getMessage())
                 assertTrue(e.getMessage().contains("does not exist"))
                 if (!e.getMessage().contains("does not exist")) {
+                    log.info("judge_table_res = false")
                     judge_table_res = false
                 }
             }
