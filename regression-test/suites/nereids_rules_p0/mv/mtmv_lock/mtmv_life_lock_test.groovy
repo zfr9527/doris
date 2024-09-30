@@ -541,999 +541,1003 @@ suite("mtmv_life_lock_test") {
     }
 
 
-    logger.info("table alter column + mtmv create")
-    init_environment()
-    sql mtmv_drop1
-    sql mtmv_drop2
-    def table_alter_col_thread = Thread.start{
-        table_alter_col_func()
-    }
-    def table_select_thread = Thread.start{
-        table_select_func()
-    }
-    def mtmv_create_thread = Thread.start{
-        mtmv_create_func()
-    }
-    def mtmv_select_thread = Thread.start {
-        mtmv_select_func()
-    }
-    table_alter_col_thread.join(thread_timeout)
-    table_select_thread.join(thread_timeout)
-    mtmv_create_thread.join(thread_timeout)
-    mtmv_select_thread.join(thread_timeout)
-    threadTimeout(table_alter_col_thread)
-    threadTimeout(table_select_thread)
-    threadTimeout(mtmv_create_thread)
-    threadTimeout(mtmv_select_thread)
-    assertTrue(judge_table_res == true)
+    while (true) {
 
 
-    logger.info("table alter partition + mtmv create")
-    init_environment()
-    sql mtmv_drop1
-    sql mtmv_drop2
-    def table_part_thread = Thread.start{
-        table_part_func()
-    }
-    def table_data_change_thread = Thread.start{
-        table_data_change_func()
-    }
-    table_select_thread = Thread.start{
-        table_select_func()
-    }
-    mtmv_create_thread = Thread.start{
-        mtmv_create_func()
-    }
-    mtmv_select_thread = Thread.start {
-        mtmv_select_func()
-    }
-    table_part_thread.join(thread_timeout)
-    table_data_change_thread.join(thread_timeout)
-    table_select_thread.join(thread_timeout)
-    mtmv_create_thread.join(thread_timeout)
-    mtmv_select_thread.join(thread_timeout)
-    threadTimeout(table_part_thread)
-    threadTimeout(table_data_change_thread)
-    threadTimeout(table_select_thread)
-    threadTimeout(mtmv_create_thread)
-    threadTimeout(mtmv_select_thread)
-    assertTrue(judge_table_res == true)
-
-    logger.info("table alter rollup + mtmv create")
-    init_environment()
-    sql mtmv_drop1
-    sql mtmv_drop2
-    def table_rollup_thread = Thread.start{
-        table_rollup_func()
-    }
-    table_select_thread = Thread.start{
-        table_select_func()
-    }
-    mtmv_create_thread = Thread.start{
-        mtmv_create_func()
-    }
-    mtmv_select_thread = Thread.start {
-        mtmv_select_func()
-    }
-    table_rollup_thread.join(thread_timeout)
-    table_select_thread.join(thread_timeout)
-    mtmv_create_thread.join(thread_timeout)
-    mtmv_select_thread.join(thread_timeout)
-    threadTimeout(table_rollup_thread)
-    threadTimeout(table_select_thread)
-    threadTimeout(mtmv_create_thread)
-    threadTimeout(mtmv_select_thread)
-    assertTrue(judge_table_res == true)
-
-    logger.info("table alter mv + mtmv create")
-    init_environment()
-    sql mtmv_drop1
-    sql mtmv_drop2
-    def table_mv_thread = Thread.start{
-        table_mv_func()
-    }
-    table_select_thread = Thread.start{
-        table_select_func()
-    }
-    mtmv_create_thread = Thread.start{
-        mtmv_create_func()
-    }
-    mtmv_select_thread = Thread.start {
-        mtmv_select_func()
-    }
-    table_mv_thread.join(thread_timeout)
-    table_select_thread.join(thread_timeout)
-    mtmv_create_thread.join(thread_timeout)
-    mtmv_select_thread.join(thread_timeout)
-    threadTimeout(table_mv_thread)
-    threadTimeout(table_select_thread)
-    threadTimeout(mtmv_create_thread)
-    threadTimeout(mtmv_select_thread)
-    assertTrue(judge_table_res == true)
+        logger.info("table alter column + mtmv create")
+        init_environment()
+        sql mtmv_drop1
+        sql mtmv_drop2
+        def table_alter_col_thread = Thread.start {
+            table_alter_col_func()
+        }
+        def table_select_thread = Thread.start {
+            table_select_func()
+        }
+        def mtmv_create_thread = Thread.start {
+            mtmv_create_func()
+        }
+        def mtmv_select_thread = Thread.start {
+            mtmv_select_func()
+        }
+        table_alter_col_thread.join(thread_timeout)
+        table_select_thread.join(thread_timeout)
+        mtmv_create_thread.join(thread_timeout)
+        mtmv_select_thread.join(thread_timeout)
+        threadTimeout(table_alter_col_thread)
+        threadTimeout(table_select_thread)
+        threadTimeout(mtmv_create_thread)
+        threadTimeout(mtmv_select_thread)
+        assertTrue(judge_table_res == true)
 
 
-    logger.info("table alter index + mtmv create")
-    init_environment()
-    sql mtmv_drop1
-    sql mtmv_drop2
-    def table_index_thread = Thread.start{
-        table_index_func()
-    }
-    table_select_thread = Thread.start{
-        table_select_func()
-    }
-    mtmv_create_thread = Thread.start{
-        mtmv_create_func()
-    }
-    mtmv_select_thread = Thread.start {
-        mtmv_select_func()
-    }
-    table_index_thread.join(thread_timeout)
-    table_select_thread.join(thread_timeout)
-    mtmv_create_thread.join(thread_timeout)
-    mtmv_select_thread.join(thread_timeout)
-    threadTimeout(table_index_thread)
-    threadTimeout(table_select_thread)
-    threadTimeout(mtmv_create_thread)
-    threadTimeout(mtmv_select_thread)
-    assertTrue(judge_table_res == true)
+        logger.info("table alter partition + mtmv create")
+        init_environment()
+        sql mtmv_drop1
+        sql mtmv_drop2
+        def table_part_thread = Thread.start {
+            table_part_func()
+        }
+        def table_data_change_thread = Thread.start {
+            table_data_change_func()
+        }
+        table_select_thread = Thread.start {
+            table_select_func()
+        }
+        mtmv_create_thread = Thread.start {
+            mtmv_create_func()
+        }
+        mtmv_select_thread = Thread.start {
+            mtmv_select_func()
+        }
+        table_part_thread.join(thread_timeout)
+        table_data_change_thread.join(thread_timeout)
+        table_select_thread.join(thread_timeout)
+        mtmv_create_thread.join(thread_timeout)
+        mtmv_select_thread.join(thread_timeout)
+        threadTimeout(table_part_thread)
+        threadTimeout(table_data_change_thread)
+        threadTimeout(table_select_thread)
+        threadTimeout(mtmv_create_thread)
+        threadTimeout(mtmv_select_thread)
+        assertTrue(judge_table_res == true)
+
+        logger.info("table alter rollup + mtmv create")
+        init_environment()
+        sql mtmv_drop1
+        sql mtmv_drop2
+        def table_rollup_thread = Thread.start {
+            table_rollup_func()
+        }
+        table_select_thread = Thread.start {
+            table_select_func()
+        }
+        mtmv_create_thread = Thread.start {
+            mtmv_create_func()
+        }
+        mtmv_select_thread = Thread.start {
+            mtmv_select_func()
+        }
+        table_rollup_thread.join(thread_timeout)
+        table_select_thread.join(thread_timeout)
+        mtmv_create_thread.join(thread_timeout)
+        mtmv_select_thread.join(thread_timeout)
+        threadTimeout(table_rollup_thread)
+        threadTimeout(table_select_thread)
+        threadTimeout(mtmv_create_thread)
+        threadTimeout(mtmv_select_thread)
+        assertTrue(judge_table_res == true)
+
+        logger.info("table alter mv + mtmv create")
+        init_environment()
+        sql mtmv_drop1
+        sql mtmv_drop2
+        def table_mv_thread = Thread.start {
+            table_mv_func()
+        }
+        table_select_thread = Thread.start {
+            table_select_func()
+        }
+        mtmv_create_thread = Thread.start {
+            mtmv_create_func()
+        }
+        mtmv_select_thread = Thread.start {
+            mtmv_select_func()
+        }
+        table_mv_thread.join(thread_timeout)
+        table_select_thread.join(thread_timeout)
+        mtmv_create_thread.join(thread_timeout)
+        mtmv_select_thread.join(thread_timeout)
+        threadTimeout(table_mv_thread)
+        threadTimeout(table_select_thread)
+        threadTimeout(mtmv_create_thread)
+        threadTimeout(mtmv_select_thread)
+        assertTrue(judge_table_res == true)
 
 
-    logger.info("table date change + mtmv create")
-    init_environment()
-    sql mtmv_drop1
-    sql mtmv_drop2
-    table_data_change_thread = Thread.start{
-        table_data_change_func()
-    }
-    table_select_thread = Thread.start{
-        table_select_func()
-    }
-    mtmv_create_thread = Thread.start{
-        mtmv_create_func()
-    }
-    mtmv_select_thread = Thread.start {
-        mtmv_select_func()
-    }
-    table_data_change_thread.join(thread_timeout)
-    table_select_thread.join(thread_timeout)
-    mtmv_create_thread.join(thread_timeout)
-    mtmv_select_thread.join(thread_timeout)
-    threadTimeout(table_data_change_thread)
-    threadTimeout(table_select_thread)
-    threadTimeout(mtmv_create_thread)
-    threadTimeout(mtmv_select_thread)
-    assertTrue(judge_table_res == true)
+        logger.info("table alter index + mtmv create")
+        init_environment()
+        sql mtmv_drop1
+        sql mtmv_drop2
+        def table_index_thread = Thread.start {
+            table_index_func()
+        }
+        table_select_thread = Thread.start {
+            table_select_func()
+        }
+        mtmv_create_thread = Thread.start {
+            mtmv_create_func()
+        }
+        mtmv_select_thread = Thread.start {
+            mtmv_select_func()
+        }
+        table_index_thread.join(thread_timeout)
+        table_select_thread.join(thread_timeout)
+        mtmv_create_thread.join(thread_timeout)
+        mtmv_select_thread.join(thread_timeout)
+        threadTimeout(table_index_thread)
+        threadTimeout(table_select_thread)
+        threadTimeout(mtmv_create_thread)
+        threadTimeout(mtmv_select_thread)
+        assertTrue(judge_table_res == true)
+
+
+        logger.info("table date change + mtmv create")
+        init_environment()
+        sql mtmv_drop1
+        sql mtmv_drop2
+        table_data_change_thread = Thread.start {
+            table_data_change_func()
+        }
+        table_select_thread = Thread.start {
+            table_select_func()
+        }
+        mtmv_create_thread = Thread.start {
+            mtmv_create_func()
+        }
+        mtmv_select_thread = Thread.start {
+            mtmv_select_func()
+        }
+        table_data_change_thread.join(thread_timeout)
+        table_select_thread.join(thread_timeout)
+        mtmv_create_thread.join(thread_timeout)
+        mtmv_select_thread.join(thread_timeout)
+        threadTimeout(table_data_change_thread)
+        threadTimeout(table_select_thread)
+        threadTimeout(mtmv_create_thread)
+        threadTimeout(mtmv_select_thread)
+        assertTrue(judge_table_res == true)
 
 
 //
-    logger.info("table alter column + mtmv refresh")
-    init_environment()
-    sql mtmv_drop1
-    sql mtmv_drop2
-    table_alter_col_thread = Thread.start{
-        table_alter_col_func()
-    }
-    table_select_thread = Thread.start{
-        table_select_func()
-    }
-    def mtmv_refresh_thread = Thread.start{
-        mtmv_refresh_func()
-    }
-    mtmv_select_thread = Thread.start {
-        mtmv_select_func()
-    }
-    table_alter_col_thread.join(thread_timeout)
-    table_select_thread.join(thread_timeout)
-    mtmv_refresh_thread.join(thread_timeout)
-    mtmv_select_thread.join(thread_timeout)
-    threadTimeout(table_alter_col_thread)
-    threadTimeout(table_select_thread)
-    threadTimeout(mtmv_refresh_thread)
-    threadTimeout(mtmv_select_thread)
-    assertTrue(judge_table_res == true)
+        logger.info("table alter column + mtmv refresh")
+        init_environment()
+        sql mtmv_drop1
+        sql mtmv_drop2
+        table_alter_col_thread = Thread.start {
+            table_alter_col_func()
+        }
+        table_select_thread = Thread.start {
+            table_select_func()
+        }
+        def mtmv_refresh_thread = Thread.start {
+            mtmv_refresh_func()
+        }
+        mtmv_select_thread = Thread.start {
+            mtmv_select_func()
+        }
+        table_alter_col_thread.join(thread_timeout)
+        table_select_thread.join(thread_timeout)
+        mtmv_refresh_thread.join(thread_timeout)
+        mtmv_select_thread.join(thread_timeout)
+        threadTimeout(table_alter_col_thread)
+        threadTimeout(table_select_thread)
+        threadTimeout(mtmv_refresh_thread)
+        threadTimeout(mtmv_select_thread)
+        assertTrue(judge_table_res == true)
 
 
-    logger.info("table alter partition + mtmv refresh")
-    init_environment()
-    sql mtmv_drop1
-    sql mtmv_drop2
-    table_part_thread = Thread.start{
-        table_part_func()
-    }
-    table_data_change_thread = Thread.start{
-        table_data_change_func()
-    }
-    table_select_thread = Thread.start{
-        table_select_func()
-    }
-    mtmv_refresh_thread = Thread.start{
-        mtmv_refresh_func()
-    }
-    mtmv_select_thread = Thread.start {
-        mtmv_select_func()
-    }
-    table_part_thread.join(thread_timeout)
-    table_data_change_thread.join(thread_timeout)
-    table_select_thread.join(thread_timeout)
-    mtmv_refresh_thread.join(thread_timeout)
-    mtmv_select_thread.join(thread_timeout)
-    threadTimeout(table_part_thread)
-    threadTimeout(table_data_change_thread)
-    threadTimeout(table_select_thread)
-    threadTimeout(mtmv_refresh_thread)
-    threadTimeout(mtmv_select_thread)
-    assertTrue(judge_table_res == true)
+        logger.info("table alter partition + mtmv refresh")
+        init_environment()
+        sql mtmv_drop1
+        sql mtmv_drop2
+        table_part_thread = Thread.start {
+            table_part_func()
+        }
+        table_data_change_thread = Thread.start {
+            table_data_change_func()
+        }
+        table_select_thread = Thread.start {
+            table_select_func()
+        }
+        mtmv_refresh_thread = Thread.start {
+            mtmv_refresh_func()
+        }
+        mtmv_select_thread = Thread.start {
+            mtmv_select_func()
+        }
+        table_part_thread.join(thread_timeout)
+        table_data_change_thread.join(thread_timeout)
+        table_select_thread.join(thread_timeout)
+        mtmv_refresh_thread.join(thread_timeout)
+        mtmv_select_thread.join(thread_timeout)
+        threadTimeout(table_part_thread)
+        threadTimeout(table_data_change_thread)
+        threadTimeout(table_select_thread)
+        threadTimeout(mtmv_refresh_thread)
+        threadTimeout(mtmv_select_thread)
+        assertTrue(judge_table_res == true)
 
-    logger.info("table alter rollup + mtmv refresh")
-    init_environment()
-    sql mtmv_drop1
-    sql mtmv_drop2
-    table_rollup_thread = Thread.start{
-        table_rollup_func()
-    }
-    table_select_thread = Thread.start{
-        table_select_func()
-    }
-    mtmv_refresh_thread = Thread.start{
-        mtmv_refresh_func()
-    }
-    mtmv_select_thread = Thread.start {
-        mtmv_select_func()
-    }
-    table_rollup_thread.join(thread_timeout)
-    table_select_thread.join(thread_timeout)
-    mtmv_refresh_thread.join(thread_timeout)
-    mtmv_select_thread.join(thread_timeout)
-    threadTimeout(table_rollup_thread)
-    threadTimeout(table_select_thread)
-    threadTimeout(mtmv_refresh_thread)
-    threadTimeout(mtmv_select_thread)
-    assertTrue(judge_table_res == true)
+        logger.info("table alter rollup + mtmv refresh")
+        init_environment()
+        sql mtmv_drop1
+        sql mtmv_drop2
+        table_rollup_thread = Thread.start {
+            table_rollup_func()
+        }
+        table_select_thread = Thread.start {
+            table_select_func()
+        }
+        mtmv_refresh_thread = Thread.start {
+            mtmv_refresh_func()
+        }
+        mtmv_select_thread = Thread.start {
+            mtmv_select_func()
+        }
+        table_rollup_thread.join(thread_timeout)
+        table_select_thread.join(thread_timeout)
+        mtmv_refresh_thread.join(thread_timeout)
+        mtmv_select_thread.join(thread_timeout)
+        threadTimeout(table_rollup_thread)
+        threadTimeout(table_select_thread)
+        threadTimeout(mtmv_refresh_thread)
+        threadTimeout(mtmv_select_thread)
+        assertTrue(judge_table_res == true)
 
-    logger.info("table alter mv + mtmv refresh")
-    init_environment()
-    sql mtmv_drop1
-    sql mtmv_drop2
-    table_mv_thread = Thread.start{
-        table_mv_func()
-    }
-    table_select_thread = Thread.start{
-        table_select_func()
-    }
-    mtmv_refresh_thread = Thread.start{
-        mtmv_refresh_func()
-    }
-    mtmv_select_thread = Thread.start {
-        mtmv_select_func()
-    }
-    table_mv_thread.join(thread_timeout)
-    table_select_thread.join(thread_timeout)
-    mtmv_refresh_thread.join(thread_timeout)
-    mtmv_select_thread.join(thread_timeout)
-    threadTimeout(table_mv_thread)
-    threadTimeout(table_select_thread)
-    threadTimeout(mtmv_refresh_thread)
-    threadTimeout(mtmv_select_thread)
-    assertTrue(judge_table_res == true)
-
-
-    logger.info("table alter index + mtmv refresh")
-    init_environment()
-    sql mtmv_drop1
-    sql mtmv_drop2
-    table_index_thread = Thread.start{
-        table_index_func()
-    }
-    table_select_thread = Thread.start{
-        table_select_func()
-    }
-    mtmv_refresh_thread = Thread.start{
-        mtmv_refresh_func()
-    }
-    mtmv_select_thread = Thread.start {
-        mtmv_select_func()
-    }
-    table_index_thread.join(thread_timeout)
-    table_select_thread.join(thread_timeout)
-    mtmv_refresh_thread.join(thread_timeout)
-    mtmv_select_thread.join(thread_timeout)
-    threadTimeout(table_index_thread)
-    threadTimeout(table_select_thread)
-    threadTimeout(mtmv_refresh_thread)
-    threadTimeout(mtmv_select_thread)
-    assertTrue(judge_table_res == true)
+        logger.info("table alter mv + mtmv refresh")
+        init_environment()
+        sql mtmv_drop1
+        sql mtmv_drop2
+        table_mv_thread = Thread.start {
+            table_mv_func()
+        }
+        table_select_thread = Thread.start {
+            table_select_func()
+        }
+        mtmv_refresh_thread = Thread.start {
+            mtmv_refresh_func()
+        }
+        mtmv_select_thread = Thread.start {
+            mtmv_select_func()
+        }
+        table_mv_thread.join(thread_timeout)
+        table_select_thread.join(thread_timeout)
+        mtmv_refresh_thread.join(thread_timeout)
+        mtmv_select_thread.join(thread_timeout)
+        threadTimeout(table_mv_thread)
+        threadTimeout(table_select_thread)
+        threadTimeout(mtmv_refresh_thread)
+        threadTimeout(mtmv_select_thread)
+        assertTrue(judge_table_res == true)
 
 
-    logger.info("table date change + mtmv refresh")
-    init_environment()
-    sql mtmv_drop1
-    sql mtmv_drop2
-    table_data_change_thread = Thread.start{
-        table_data_change_func()
-    }
-    table_select_thread = Thread.start{
-        table_select_func()
-    }
-    mtmv_refresh_thread = Thread.start{
-        mtmv_refresh_func()
-    }
-    mtmv_select_thread = Thread.start {
-        mtmv_select_func()
-    }
-    table_data_change_thread.join(thread_timeout)
-    table_select_thread.join(thread_timeout)
-    mtmv_refresh_thread.join(thread_timeout)
-    mtmv_select_thread.join(thread_timeout)
-    threadTimeout(table_data_change_thread)
-    threadTimeout(table_select_thread)
-    threadTimeout(mtmv_refresh_thread)
-    threadTimeout(mtmv_select_thread)
-    assertTrue(judge_table_res == true)
+        logger.info("table alter index + mtmv refresh")
+        init_environment()
+        sql mtmv_drop1
+        sql mtmv_drop2
+        table_index_thread = Thread.start {
+            table_index_func()
+        }
+        table_select_thread = Thread.start {
+            table_select_func()
+        }
+        mtmv_refresh_thread = Thread.start {
+            mtmv_refresh_func()
+        }
+        mtmv_select_thread = Thread.start {
+            mtmv_select_func()
+        }
+        table_index_thread.join(thread_timeout)
+        table_select_thread.join(thread_timeout)
+        mtmv_refresh_thread.join(thread_timeout)
+        mtmv_select_thread.join(thread_timeout)
+        threadTimeout(table_index_thread)
+        threadTimeout(table_select_thread)
+        threadTimeout(mtmv_refresh_thread)
+        threadTimeout(mtmv_select_thread)
+        assertTrue(judge_table_res == true)
 
 
-    //
-    logger.info("table alter column + mtmv rename")
-    init_environment()
-    sql mtmv_drop1
-    sql mtmv_drop2
-    table_alter_col_thread = Thread.start{
-        table_alter_col_func()
-    }
-    table_select_thread = Thread.start{
-        table_select_func()
-    }
-    def mtmv_rename_thread = Thread.start{
-        mtmv_rename_func()
-    }
-    mtmv_select_thread = Thread.start {
-        mtmv_select_func()
-    }
-    table_alter_col_thread.join(thread_timeout)
-    table_select_thread.join(thread_timeout)
-    mtmv_rename_thread.join(thread_timeout)
-    mtmv_select_thread.join(thread_timeout)
-    threadTimeout(table_alter_col_thread)
-    threadTimeout(table_select_thread)
-    threadTimeout(mtmv_rename_thread)
-    threadTimeout(mtmv_select_thread)
-    assertTrue(judge_table_res == true)
+        logger.info("table date change + mtmv refresh")
+        init_environment()
+        sql mtmv_drop1
+        sql mtmv_drop2
+        table_data_change_thread = Thread.start {
+            table_data_change_func()
+        }
+        table_select_thread = Thread.start {
+            table_select_func()
+        }
+        mtmv_refresh_thread = Thread.start {
+            mtmv_refresh_func()
+        }
+        mtmv_select_thread = Thread.start {
+            mtmv_select_func()
+        }
+        table_data_change_thread.join(thread_timeout)
+        table_select_thread.join(thread_timeout)
+        mtmv_refresh_thread.join(thread_timeout)
+        mtmv_select_thread.join(thread_timeout)
+        threadTimeout(table_data_change_thread)
+        threadTimeout(table_select_thread)
+        threadTimeout(mtmv_refresh_thread)
+        threadTimeout(mtmv_select_thread)
+        assertTrue(judge_table_res == true)
 
 
-    logger.info("table alter partition + mtmv rename")
-    init_environment()
-    sql mtmv_drop1
-    sql mtmv_drop2
-    table_part_thread = Thread.start{
-        table_part_func()
-    }
-    table_data_change_thread = Thread.start{
-        table_data_change_func()
-    }
-    table_select_thread = Thread.start{
-        table_select_func()
-    }
-    mtmv_rename_thread = Thread.start{
-        mtmv_rename_func()
-    }
-    mtmv_select_thread = Thread.start {
-        mtmv_select_func()
-    }
-    table_part_thread.join(thread_timeout)
-    table_data_change_thread.join(thread_timeout)
-    table_select_thread.join(thread_timeout)
-    mtmv_rename_thread.join(thread_timeout)
-    mtmv_select_thread.join(thread_timeout)
-    threadTimeout(table_part_thread)
-    threadTimeout(table_data_change_thread)
-    threadTimeout(table_select_thread)
-    threadTimeout(mtmv_rename_thread)
-    threadTimeout(mtmv_select_thread)
-    assertTrue(judge_table_res == true)
-
-    logger.info("table alter rollup + mtmv rename")
-    init_environment()
-    sql mtmv_drop1
-    sql mtmv_drop2
-    table_rollup_thread = Thread.start{
-        table_rollup_func()
-    }
-    table_select_thread = Thread.start{
-        table_select_func()
-    }
-    mtmv_rename_thread = Thread.start{
-        mtmv_rename_func()
-    }
-    mtmv_select_thread = Thread.start {
-        mtmv_select_func()
-    }
-    table_rollup_thread.join(thread_timeout)
-    table_select_thread.join(thread_timeout)
-    mtmv_rename_thread.join(thread_timeout)
-    mtmv_select_thread.join(thread_timeout)
-    threadTimeout(table_rollup_thread)
-    threadTimeout(table_select_thread)
-    threadTimeout(mtmv_rename_thread)
-    threadTimeout(mtmv_select_thread)
-    assertTrue(judge_table_res == true)
-
-    logger.info("table alter mv + mtmv rename")
-    init_environment()
-    sql mtmv_drop1
-    sql mtmv_drop2
-    table_mv_thread = Thread.start{
-        table_mv_func()
-    }
-    table_select_thread = Thread.start{
-        table_select_func()
-    }
-    mtmv_rename_thread = Thread.start{
-        mtmv_rename_func()
-    }
-    mtmv_select_thread = Thread.start {
-        mtmv_select_func()
-    }
-    table_mv_thread.join(thread_timeout)
-    table_select_thread.join(thread_timeout)
-    mtmv_rename_thread.join(thread_timeout)
-    mtmv_select_thread.join(thread_timeout)
-    threadTimeout(table_mv_thread)
-    threadTimeout(table_select_thread)
-    threadTimeout(mtmv_rename_thread)
-    threadTimeout(mtmv_select_thread)
-    assertTrue(judge_table_res == true)
+        //
+        logger.info("table alter column + mtmv rename")
+        init_environment()
+        sql mtmv_drop1
+        sql mtmv_drop2
+        table_alter_col_thread = Thread.start {
+            table_alter_col_func()
+        }
+        table_select_thread = Thread.start {
+            table_select_func()
+        }
+        def mtmv_rename_thread = Thread.start {
+            mtmv_rename_func()
+        }
+        mtmv_select_thread = Thread.start {
+            mtmv_select_func()
+        }
+        table_alter_col_thread.join(thread_timeout)
+        table_select_thread.join(thread_timeout)
+        mtmv_rename_thread.join(thread_timeout)
+        mtmv_select_thread.join(thread_timeout)
+        threadTimeout(table_alter_col_thread)
+        threadTimeout(table_select_thread)
+        threadTimeout(mtmv_rename_thread)
+        threadTimeout(mtmv_select_thread)
+        assertTrue(judge_table_res == true)
 
 
-    logger.info("table alter index + mtmv rename")
-    init_environment()
-    sql mtmv_drop1
-    sql mtmv_drop2
-    table_index_thread = Thread.start{
-        table_index_func()
-    }
-    table_select_thread = Thread.start{
-        table_select_func()
-    }
-    mtmv_rename_thread = Thread.start{
-        mtmv_rename_func()
-    }
-    mtmv_select_thread = Thread.start {
-        mtmv_select_func()
-    }
-    table_index_thread.join(thread_timeout)
-    table_select_thread.join(thread_timeout)
-    mtmv_rename_thread.join(thread_timeout)
-    mtmv_select_thread.join(thread_timeout)
-    threadTimeout(table_index_thread)
-    threadTimeout(table_select_thread)
-    threadTimeout(mtmv_rename_thread)
-    threadTimeout(mtmv_select_thread)
-    assertTrue(judge_table_res == true)
+        logger.info("table alter partition + mtmv rename")
+        init_environment()
+        sql mtmv_drop1
+        sql mtmv_drop2
+        table_part_thread = Thread.start {
+            table_part_func()
+        }
+        table_data_change_thread = Thread.start {
+            table_data_change_func()
+        }
+        table_select_thread = Thread.start {
+            table_select_func()
+        }
+        mtmv_rename_thread = Thread.start {
+            mtmv_rename_func()
+        }
+        mtmv_select_thread = Thread.start {
+            mtmv_select_func()
+        }
+        table_part_thread.join(thread_timeout)
+        table_data_change_thread.join(thread_timeout)
+        table_select_thread.join(thread_timeout)
+        mtmv_rename_thread.join(thread_timeout)
+        mtmv_select_thread.join(thread_timeout)
+        threadTimeout(table_part_thread)
+        threadTimeout(table_data_change_thread)
+        threadTimeout(table_select_thread)
+        threadTimeout(mtmv_rename_thread)
+        threadTimeout(mtmv_select_thread)
+        assertTrue(judge_table_res == true)
+
+        logger.info("table alter rollup + mtmv rename")
+        init_environment()
+        sql mtmv_drop1
+        sql mtmv_drop2
+        table_rollup_thread = Thread.start {
+            table_rollup_func()
+        }
+        table_select_thread = Thread.start {
+            table_select_func()
+        }
+        mtmv_rename_thread = Thread.start {
+            mtmv_rename_func()
+        }
+        mtmv_select_thread = Thread.start {
+            mtmv_select_func()
+        }
+        table_rollup_thread.join(thread_timeout)
+        table_select_thread.join(thread_timeout)
+        mtmv_rename_thread.join(thread_timeout)
+        mtmv_select_thread.join(thread_timeout)
+        threadTimeout(table_rollup_thread)
+        threadTimeout(table_select_thread)
+        threadTimeout(mtmv_rename_thread)
+        threadTimeout(mtmv_select_thread)
+        assertTrue(judge_table_res == true)
+
+        logger.info("table alter mv + mtmv rename")
+        init_environment()
+        sql mtmv_drop1
+        sql mtmv_drop2
+        table_mv_thread = Thread.start {
+            table_mv_func()
+        }
+        table_select_thread = Thread.start {
+            table_select_func()
+        }
+        mtmv_rename_thread = Thread.start {
+            mtmv_rename_func()
+        }
+        mtmv_select_thread = Thread.start {
+            mtmv_select_func()
+        }
+        table_mv_thread.join(thread_timeout)
+        table_select_thread.join(thread_timeout)
+        mtmv_rename_thread.join(thread_timeout)
+        mtmv_select_thread.join(thread_timeout)
+        threadTimeout(table_mv_thread)
+        threadTimeout(table_select_thread)
+        threadTimeout(mtmv_rename_thread)
+        threadTimeout(mtmv_select_thread)
+        assertTrue(judge_table_res == true)
 
 
-    logger.info("table date change + mtmv rename")
-    init_environment()
-    sql mtmv_drop1
-    sql mtmv_drop2
-    table_data_change_thread = Thread.start{
-        table_data_change_func()
-    }
-    table_select_thread = Thread.start{
-        table_select_func()
-    }
-    mtmv_rename_thread = Thread.start{
-        mtmv_rename_func()
-    }
-    mtmv_select_thread = Thread.start {
-        mtmv_select_func()
-    }
-    table_data_change_thread.join(thread_timeout)
-    table_select_thread.join(thread_timeout)
-    mtmv_rename_thread.join(thread_timeout)
-    mtmv_select_thread.join(thread_timeout)
-    threadTimeout(table_data_change_thread)
-    threadTimeout(table_select_thread)
-    threadTimeout(mtmv_rename_thread)
-    threadTimeout(mtmv_select_thread)
-    assertTrue(judge_table_res == true)
+        logger.info("table alter index + mtmv rename")
+        init_environment()
+        sql mtmv_drop1
+        sql mtmv_drop2
+        table_index_thread = Thread.start {
+            table_index_func()
+        }
+        table_select_thread = Thread.start {
+            table_select_func()
+        }
+        mtmv_rename_thread = Thread.start {
+            mtmv_rename_func()
+        }
+        mtmv_select_thread = Thread.start {
+            mtmv_select_func()
+        }
+        table_index_thread.join(thread_timeout)
+        table_select_thread.join(thread_timeout)
+        mtmv_rename_thread.join(thread_timeout)
+        mtmv_select_thread.join(thread_timeout)
+        threadTimeout(table_index_thread)
+        threadTimeout(table_select_thread)
+        threadTimeout(mtmv_rename_thread)
+        threadTimeout(mtmv_select_thread)
+        assertTrue(judge_table_res == true)
 
 
-    //
-    logger.info("table alter column + mtmv alter property")
-    init_environment()
-    sql mtmv_drop1
-    sql mtmv_drop2
-    table_alter_col_thread = Thread.start{
-        table_alter_col_func()
-    }
-    table_select_thread = Thread.start{
-        table_select_func()
-    }
-    def mtmv_alter_property_thread = Thread.start{
-        mtmv_alter_property_func()
-    }
-    mtmv_select_thread = Thread.start {
-        mtmv_select_func()
-    }
-    table_alter_col_thread.join(thread_timeout)
-    table_select_thread.join(thread_timeout)
-    mtmv_alter_property_thread.join(thread_timeout)
-    mtmv_select_thread.join(thread_timeout)
-    threadTimeout(table_alter_col_thread)
-    threadTimeout(table_select_thread)
-    threadTimeout(mtmv_alter_property_thread)
-    threadTimeout(mtmv_select_thread)
-    assertTrue(judge_table_res == true)
+        logger.info("table date change + mtmv rename")
+        init_environment()
+        sql mtmv_drop1
+        sql mtmv_drop2
+        table_data_change_thread = Thread.start {
+            table_data_change_func()
+        }
+        table_select_thread = Thread.start {
+            table_select_func()
+        }
+        mtmv_rename_thread = Thread.start {
+            mtmv_rename_func()
+        }
+        mtmv_select_thread = Thread.start {
+            mtmv_select_func()
+        }
+        table_data_change_thread.join(thread_timeout)
+        table_select_thread.join(thread_timeout)
+        mtmv_rename_thread.join(thread_timeout)
+        mtmv_select_thread.join(thread_timeout)
+        threadTimeout(table_data_change_thread)
+        threadTimeout(table_select_thread)
+        threadTimeout(mtmv_rename_thread)
+        threadTimeout(mtmv_select_thread)
+        assertTrue(judge_table_res == true)
 
 
-    logger.info("table alter partition + mtmv alter property")
-    init_environment()
-    sql mtmv_drop1
-    sql mtmv_drop2
-    table_part_thread = Thread.start{
-        table_part_func()
-    }
-    table_data_change_thread = Thread.start{
-        table_data_change_func()
-    }
-    table_select_thread = Thread.start{
-        table_select_func()
-    }
-    mtmv_alter_property_thread = Thread.start{
-        mtmv_alter_property_func()
-    }
-    mtmv_select_thread = Thread.start {
-        mtmv_select_func()
-    }
-    table_part_thread.join(thread_timeout)
-    table_data_change_thread.join(thread_timeout)
-    table_select_thread.join(thread_timeout)
-    mtmv_alter_property_thread.join(thread_timeout)
-    mtmv_select_thread.join(thread_timeout)
-    threadTimeout(table_part_thread)
-    threadTimeout(table_data_change_thread)
-    threadTimeout(table_select_thread)
-    threadTimeout(mtmv_alter_property_thread)
-    threadTimeout(mtmv_select_thread)
-    assertTrue(judge_table_res == true)
-
-    logger.info("table alter rollup + mtmv alter property")
-    init_environment()
-    sql mtmv_drop1
-    sql mtmv_drop2
-    table_rollup_thread = Thread.start{
-        table_rollup_func()
-    }
-    table_select_thread = Thread.start{
-        table_select_func()
-    }
-    mtmv_alter_property_thread = Thread.start{
-        mtmv_alter_property_func()
-    }
-    mtmv_select_thread = Thread.start {
-        mtmv_select_func()
-    }
-    table_rollup_thread.join(thread_timeout)
-    table_select_thread.join(thread_timeout)
-    mtmv_alter_property_thread.join(thread_timeout)
-    mtmv_select_thread.join(thread_timeout)
-    threadTimeout(table_rollup_thread)
-    threadTimeout(table_select_thread)
-    threadTimeout(mtmv_alter_property_thread)
-    threadTimeout(mtmv_select_thread)
-    assertTrue(judge_table_res == true)
-
-    logger.info("table alter mv + mtmv alter property")
-    init_environment()
-    sql mtmv_drop1
-    sql mtmv_drop2
-    table_mv_thread = Thread.start{
-        table_mv_func()
-    }
-    table_select_thread = Thread.start{
-        table_select_func()
-    }
-    mtmv_alter_property_thread = Thread.start{
-        mtmv_alter_property_func()
-    }
-    mtmv_select_thread = Thread.start {
-        mtmv_select_func()
-    }
-    table_mv_thread.join(thread_timeout)
-    table_select_thread.join(thread_timeout)
-    mtmv_alter_property_thread.join(thread_timeout)
-    mtmv_select_thread.join(thread_timeout)
-    threadTimeout(table_mv_thread)
-    threadTimeout(table_select_thread)
-    threadTimeout(mtmv_alter_property_thread)
-    threadTimeout(mtmv_select_thread)
-    assertTrue(judge_table_res == true)
+        //
+        logger.info("table alter column + mtmv alter property")
+        init_environment()
+        sql mtmv_drop1
+        sql mtmv_drop2
+        table_alter_col_thread = Thread.start {
+            table_alter_col_func()
+        }
+        table_select_thread = Thread.start {
+            table_select_func()
+        }
+        def mtmv_alter_property_thread = Thread.start {
+            mtmv_alter_property_func()
+        }
+        mtmv_select_thread = Thread.start {
+            mtmv_select_func()
+        }
+        table_alter_col_thread.join(thread_timeout)
+        table_select_thread.join(thread_timeout)
+        mtmv_alter_property_thread.join(thread_timeout)
+        mtmv_select_thread.join(thread_timeout)
+        threadTimeout(table_alter_col_thread)
+        threadTimeout(table_select_thread)
+        threadTimeout(mtmv_alter_property_thread)
+        threadTimeout(mtmv_select_thread)
+        assertTrue(judge_table_res == true)
 
 
-    logger.info("table alter index + mtmv alter property")
-    init_environment()
-    sql mtmv_drop1
-    sql mtmv_drop2
-    table_index_thread = Thread.start{
-        table_index_func()
-    }
-    table_select_thread = Thread.start{
-        table_select_func()
-    }
-    mtmv_alter_property_thread = Thread.start{
-        mtmv_alter_property_func()
-    }
-    mtmv_select_thread = Thread.start {
-        mtmv_select_func()
-    }
-    table_index_thread.join(thread_timeout)
-    table_select_thread.join(thread_timeout)
-    mtmv_alter_property_thread.join(thread_timeout)
-    mtmv_select_thread.join(thread_timeout)
-    threadTimeout(table_index_thread)
-    threadTimeout(table_select_thread)
-    threadTimeout(mtmv_alter_property_thread)
-    threadTimeout(mtmv_select_thread)
-    assertTrue(judge_table_res == true)
+        logger.info("table alter partition + mtmv alter property")
+        init_environment()
+        sql mtmv_drop1
+        sql mtmv_drop2
+        table_part_thread = Thread.start {
+            table_part_func()
+        }
+        table_data_change_thread = Thread.start {
+            table_data_change_func()
+        }
+        table_select_thread = Thread.start {
+            table_select_func()
+        }
+        mtmv_alter_property_thread = Thread.start {
+            mtmv_alter_property_func()
+        }
+        mtmv_select_thread = Thread.start {
+            mtmv_select_func()
+        }
+        table_part_thread.join(thread_timeout)
+        table_data_change_thread.join(thread_timeout)
+        table_select_thread.join(thread_timeout)
+        mtmv_alter_property_thread.join(thread_timeout)
+        mtmv_select_thread.join(thread_timeout)
+        threadTimeout(table_part_thread)
+        threadTimeout(table_data_change_thread)
+        threadTimeout(table_select_thread)
+        threadTimeout(mtmv_alter_property_thread)
+        threadTimeout(mtmv_select_thread)
+        assertTrue(judge_table_res == true)
+
+        logger.info("table alter rollup + mtmv alter property")
+        init_environment()
+        sql mtmv_drop1
+        sql mtmv_drop2
+        table_rollup_thread = Thread.start {
+            table_rollup_func()
+        }
+        table_select_thread = Thread.start {
+            table_select_func()
+        }
+        mtmv_alter_property_thread = Thread.start {
+            mtmv_alter_property_func()
+        }
+        mtmv_select_thread = Thread.start {
+            mtmv_select_func()
+        }
+        table_rollup_thread.join(thread_timeout)
+        table_select_thread.join(thread_timeout)
+        mtmv_alter_property_thread.join(thread_timeout)
+        mtmv_select_thread.join(thread_timeout)
+        threadTimeout(table_rollup_thread)
+        threadTimeout(table_select_thread)
+        threadTimeout(mtmv_alter_property_thread)
+        threadTimeout(mtmv_select_thread)
+        assertTrue(judge_table_res == true)
+
+        logger.info("table alter mv + mtmv alter property")
+        init_environment()
+        sql mtmv_drop1
+        sql mtmv_drop2
+        table_mv_thread = Thread.start {
+            table_mv_func()
+        }
+        table_select_thread = Thread.start {
+            table_select_func()
+        }
+        mtmv_alter_property_thread = Thread.start {
+            mtmv_alter_property_func()
+        }
+        mtmv_select_thread = Thread.start {
+            mtmv_select_func()
+        }
+        table_mv_thread.join(thread_timeout)
+        table_select_thread.join(thread_timeout)
+        mtmv_alter_property_thread.join(thread_timeout)
+        mtmv_select_thread.join(thread_timeout)
+        threadTimeout(table_mv_thread)
+        threadTimeout(table_select_thread)
+        threadTimeout(mtmv_alter_property_thread)
+        threadTimeout(mtmv_select_thread)
+        assertTrue(judge_table_res == true)
 
 
-    logger.info("table date change + mtmv alter property")
-    init_environment()
-    sql mtmv_drop1
-    sql mtmv_drop2
-    table_data_change_thread = Thread.start{
-        table_data_change_func()
-    }
-    table_select_thread = Thread.start{
-        table_select_func()
-    }
-    mtmv_alter_property_thread = Thread.start{
-        mtmv_alter_property_func()
-    }
-    mtmv_select_thread = Thread.start {
-        mtmv_select_func()
-    }
-    table_data_change_thread.join(thread_timeout)
-    table_select_thread.join(thread_timeout)
-    mtmv_alter_property_thread.join(thread_timeout)
-    mtmv_select_thread.join(thread_timeout)
-    threadTimeout(table_data_change_thread)
-    threadTimeout(table_select_thread)
-    threadTimeout(mtmv_alter_property_thread)
-    threadTimeout(mtmv_select_thread)
-    assertTrue(judge_table_res == true)
+        logger.info("table alter index + mtmv alter property")
+        init_environment()
+        sql mtmv_drop1
+        sql mtmv_drop2
+        table_index_thread = Thread.start {
+            table_index_func()
+        }
+        table_select_thread = Thread.start {
+            table_select_func()
+        }
+        mtmv_alter_property_thread = Thread.start {
+            mtmv_alter_property_func()
+        }
+        mtmv_select_thread = Thread.start {
+            mtmv_select_func()
+        }
+        table_index_thread.join(thread_timeout)
+        table_select_thread.join(thread_timeout)
+        mtmv_alter_property_thread.join(thread_timeout)
+        mtmv_select_thread.join(thread_timeout)
+        threadTimeout(table_index_thread)
+        threadTimeout(table_select_thread)
+        threadTimeout(mtmv_alter_property_thread)
+        threadTimeout(mtmv_select_thread)
+        assertTrue(judge_table_res == true)
 
 
-    //
-    logger.info("table alter column + mtmv pause resume")
-    init_environment()
-    sql mtmv_drop1
-    sql mtmv_drop2
-    table_alter_col_thread = Thread.start{
-        table_alter_col_func()
-    }
-    table_select_thread = Thread.start{
-        table_select_func()
-    }
-    def mtmv_pause_resume_thread = Thread.start{
-        mtmv_pause_resume_func()
-    }
-    mtmv_select_thread = Thread.start {
-        mtmv_select_func()
-    }
-    table_alter_col_thread.join(thread_timeout)
-    table_select_thread.join(thread_timeout)
-    mtmv_pause_resume_thread.join(thread_timeout)
-    mtmv_select_thread.join(thread_timeout)
-    threadTimeout(table_alter_col_thread)
-    threadTimeout(table_select_thread)
-    threadTimeout(mtmv_pause_resume_thread)
-    threadTimeout(mtmv_select_thread)
-    assertTrue(judge_table_res == true)
+        logger.info("table date change + mtmv alter property")
+        init_environment()
+        sql mtmv_drop1
+        sql mtmv_drop2
+        table_data_change_thread = Thread.start {
+            table_data_change_func()
+        }
+        table_select_thread = Thread.start {
+            table_select_func()
+        }
+        mtmv_alter_property_thread = Thread.start {
+            mtmv_alter_property_func()
+        }
+        mtmv_select_thread = Thread.start {
+            mtmv_select_func()
+        }
+        table_data_change_thread.join(thread_timeout)
+        table_select_thread.join(thread_timeout)
+        mtmv_alter_property_thread.join(thread_timeout)
+        mtmv_select_thread.join(thread_timeout)
+        threadTimeout(table_data_change_thread)
+        threadTimeout(table_select_thread)
+        threadTimeout(mtmv_alter_property_thread)
+        threadTimeout(mtmv_select_thread)
+        assertTrue(judge_table_res == true)
 
 
-    logger.info("table alter partition + mtmv pause resume")
-    init_environment()
-    sql mtmv_drop1
-    sql mtmv_drop2
-    table_part_thread = Thread.start{
-        table_part_func()
-    }
-    table_data_change_thread = Thread.start{
-        table_data_change_func()
-    }
-    table_select_thread = Thread.start{
-        table_select_func()
-    }
-    mtmv_pause_resume_thread = Thread.start{
-        mtmv_pause_resume_func()
-    }
-    mtmv_select_thread = Thread.start {
-        mtmv_select_func()
-    }
-    table_part_thread.join(thread_timeout)
-    table_data_change_thread.join(thread_timeout)
-    table_select_thread.join(thread_timeout)
-    mtmv_pause_resume_thread.join(thread_timeout)
-    mtmv_select_thread.join(thread_timeout)
-    threadTimeout(table_part_thread)
-    threadTimeout(table_data_change_thread)
-    threadTimeout(table_select_thread)
-    threadTimeout(mtmv_pause_resume_thread)
-    threadTimeout(mtmv_select_thread)
-    assertTrue(judge_table_res == true)
-
-    logger.info("table alter rollup + mtmv pause resume")
-    init_environment()
-    sql mtmv_drop1
-    sql mtmv_drop2
-    table_rollup_thread = Thread.start{
-        table_rollup_func()
-    }
-    table_select_thread = Thread.start{
-        table_select_func()
-    }
-    mtmv_pause_resume_thread = Thread.start{
-        mtmv_pause_resume_func()
-    }
-    mtmv_select_thread = Thread.start {
-        mtmv_select_func()
-    }
-    table_rollup_thread.join(thread_timeout)
-    table_select_thread.join(thread_timeout)
-    mtmv_alter_property_thread.join(thread_timeout)
-    mtmv_select_thread.join(thread_timeout)
-    threadTimeout(table_rollup_thread)
-    threadTimeout(table_select_thread)
-    threadTimeout(mtmv_pause_resume_thread)
-    threadTimeout(mtmv_select_thread)
-    assertTrue(judge_table_res == true)
-
-    logger.info("table alter mv + mtmv pause resume")
-    init_environment()
-    sql mtmv_drop1
-    sql mtmv_drop2
-    table_mv_thread = Thread.start{
-        table_mv_func()
-    }
-    table_select_thread = Thread.start{
-        table_select_func()
-    }
-    mtmv_pause_resume_thread = Thread.start{
-        mtmv_pause_resume_func()
-    }
-    mtmv_select_thread = Thread.start {
-        mtmv_select_func()
-    }
-    table_mv_thread.join(thread_timeout)
-    table_select_thread.join(thread_timeout)
-    mtmv_pause_resume_thread.join(thread_timeout)
-    mtmv_select_thread.join(thread_timeout)
-    threadTimeout(table_mv_thread)
-    threadTimeout(table_select_thread)
-    threadTimeout(mtmv_pause_resume_thread)
-    threadTimeout(mtmv_select_thread)
-    assertTrue(judge_table_res == true)
+        //
+        logger.info("table alter column + mtmv pause resume")
+        init_environment()
+        sql mtmv_drop1
+        sql mtmv_drop2
+        table_alter_col_thread = Thread.start {
+            table_alter_col_func()
+        }
+        table_select_thread = Thread.start {
+            table_select_func()
+        }
+        def mtmv_pause_resume_thread = Thread.start {
+            mtmv_pause_resume_func()
+        }
+        mtmv_select_thread = Thread.start {
+            mtmv_select_func()
+        }
+        table_alter_col_thread.join(thread_timeout)
+        table_select_thread.join(thread_timeout)
+        mtmv_pause_resume_thread.join(thread_timeout)
+        mtmv_select_thread.join(thread_timeout)
+        threadTimeout(table_alter_col_thread)
+        threadTimeout(table_select_thread)
+        threadTimeout(mtmv_pause_resume_thread)
+        threadTimeout(mtmv_select_thread)
+        assertTrue(judge_table_res == true)
 
 
-    logger.info("table alter index + mtmv pause resume")
-    init_environment()
-    sql mtmv_drop1
-    sql mtmv_drop2
-    table_index_thread = Thread.start{
-        table_index_func()
-    }
-    table_select_thread = Thread.start{
-        table_select_func()
-    }
-    mtmv_pause_resume_thread = Thread.start{
-        mtmv_pause_resume_func()
-    }
-    mtmv_select_thread = Thread.start {
-        mtmv_select_func()
-    }
-    table_index_thread.join(thread_timeout)
-    table_select_thread.join(thread_timeout)
-    mtmv_pause_resume_thread.join(thread_timeout)
-    mtmv_select_thread.join(thread_timeout)
-    threadTimeout(table_index_thread)
-    threadTimeout(table_select_thread)
-    threadTimeout(mtmv_pause_resume_thread)
-    threadTimeout(mtmv_select_thread)
-    assertTrue(judge_table_res == true)
+        logger.info("table alter partition + mtmv pause resume")
+        init_environment()
+        sql mtmv_drop1
+        sql mtmv_drop2
+        table_part_thread = Thread.start {
+            table_part_func()
+        }
+        table_data_change_thread = Thread.start {
+            table_data_change_func()
+        }
+        table_select_thread = Thread.start {
+            table_select_func()
+        }
+        mtmv_pause_resume_thread = Thread.start {
+            mtmv_pause_resume_func()
+        }
+        mtmv_select_thread = Thread.start {
+            mtmv_select_func()
+        }
+        table_part_thread.join(thread_timeout)
+        table_data_change_thread.join(thread_timeout)
+        table_select_thread.join(thread_timeout)
+        mtmv_pause_resume_thread.join(thread_timeout)
+        mtmv_select_thread.join(thread_timeout)
+        threadTimeout(table_part_thread)
+        threadTimeout(table_data_change_thread)
+        threadTimeout(table_select_thread)
+        threadTimeout(mtmv_pause_resume_thread)
+        threadTimeout(mtmv_select_thread)
+        assertTrue(judge_table_res == true)
+
+        logger.info("table alter rollup + mtmv pause resume")
+        init_environment()
+        sql mtmv_drop1
+        sql mtmv_drop2
+        table_rollup_thread = Thread.start {
+            table_rollup_func()
+        }
+        table_select_thread = Thread.start {
+            table_select_func()
+        }
+        mtmv_pause_resume_thread = Thread.start {
+            mtmv_pause_resume_func()
+        }
+        mtmv_select_thread = Thread.start {
+            mtmv_select_func()
+        }
+        table_rollup_thread.join(thread_timeout)
+        table_select_thread.join(thread_timeout)
+        mtmv_alter_property_thread.join(thread_timeout)
+        mtmv_select_thread.join(thread_timeout)
+        threadTimeout(table_rollup_thread)
+        threadTimeout(table_select_thread)
+        threadTimeout(mtmv_pause_resume_thread)
+        threadTimeout(mtmv_select_thread)
+        assertTrue(judge_table_res == true)
+
+        logger.info("table alter mv + mtmv pause resume")
+        init_environment()
+        sql mtmv_drop1
+        sql mtmv_drop2
+        table_mv_thread = Thread.start {
+            table_mv_func()
+        }
+        table_select_thread = Thread.start {
+            table_select_func()
+        }
+        mtmv_pause_resume_thread = Thread.start {
+            mtmv_pause_resume_func()
+        }
+        mtmv_select_thread = Thread.start {
+            mtmv_select_func()
+        }
+        table_mv_thread.join(thread_timeout)
+        table_select_thread.join(thread_timeout)
+        mtmv_pause_resume_thread.join(thread_timeout)
+        mtmv_select_thread.join(thread_timeout)
+        threadTimeout(table_mv_thread)
+        threadTimeout(table_select_thread)
+        threadTimeout(mtmv_pause_resume_thread)
+        threadTimeout(mtmv_select_thread)
+        assertTrue(judge_table_res == true)
 
 
-    logger.info("table date change + mtmv pause resume")
-    init_environment()
-    sql mtmv_drop1
-    sql mtmv_drop2
-    table_data_change_thread = Thread.start{
-        table_data_change_func()
-    }
-    table_select_thread = Thread.start{
-        table_select_func()
-    }
-    mtmv_pause_resume_thread = Thread.start{
-        mtmv_pause_resume_func()
-    }
-    mtmv_select_thread = Thread.start {
-        mtmv_select_func()
-    }
-    table_data_change_thread.join(thread_timeout)
-    table_select_thread.join(thread_timeout)
-    mtmv_pause_resume_thread.join(thread_timeout)
-    mtmv_select_thread.join(thread_timeout)
-    threadTimeout(table_data_change_thread)
-    threadTimeout(table_select_thread)
-    threadTimeout(mtmv_pause_resume_thread)
-    threadTimeout(mtmv_select_thread)
-    assertTrue(judge_table_res == true)
+        logger.info("table alter index + mtmv pause resume")
+        init_environment()
+        sql mtmv_drop1
+        sql mtmv_drop2
+        table_index_thread = Thread.start {
+            table_index_func()
+        }
+        table_select_thread = Thread.start {
+            table_select_func()
+        }
+        mtmv_pause_resume_thread = Thread.start {
+            mtmv_pause_resume_func()
+        }
+        mtmv_select_thread = Thread.start {
+            mtmv_select_func()
+        }
+        table_index_thread.join(thread_timeout)
+        table_select_thread.join(thread_timeout)
+        mtmv_pause_resume_thread.join(thread_timeout)
+        mtmv_select_thread.join(thread_timeout)
+        threadTimeout(table_index_thread)
+        threadTimeout(table_select_thread)
+        threadTimeout(mtmv_pause_resume_thread)
+        threadTimeout(mtmv_select_thread)
+        assertTrue(judge_table_res == true)
 
 
-    //
-    logger.info("table alter column + mtmv cancel")
-    init_environment()
-    sql mtmv_drop1
-    sql mtmv_drop2
-    table_alter_col_thread = Thread.start{
-        table_alter_col_func()
-    }
-    table_select_thread = Thread.start{
-        table_select_func()
-    }
-    def mtmv_cancel_thread = Thread.start{
-        mtmv_cancel_func()
-    }
-    mtmv_select_thread = Thread.start {
-        mtmv_select_func()
-    }
-    table_alter_col_thread.join(thread_timeout)
-    table_select_thread.join(thread_timeout)
-    mtmv_cancel_thread.join(thread_timeout)
-    mtmv_select_thread.join(thread_timeout)
-    threadTimeout(table_alter_col_thread)
-    threadTimeout(table_select_thread)
-    threadTimeout(mtmv_cancel_thread)
-    threadTimeout(mtmv_select_thread)
-    assertTrue(judge_table_res == true)
+        logger.info("table date change + mtmv pause resume")
+        init_environment()
+        sql mtmv_drop1
+        sql mtmv_drop2
+        table_data_change_thread = Thread.start {
+            table_data_change_func()
+        }
+        table_select_thread = Thread.start {
+            table_select_func()
+        }
+        mtmv_pause_resume_thread = Thread.start {
+            mtmv_pause_resume_func()
+        }
+        mtmv_select_thread = Thread.start {
+            mtmv_select_func()
+        }
+        table_data_change_thread.join(thread_timeout)
+        table_select_thread.join(thread_timeout)
+        mtmv_pause_resume_thread.join(thread_timeout)
+        mtmv_select_thread.join(thread_timeout)
+        threadTimeout(table_data_change_thread)
+        threadTimeout(table_select_thread)
+        threadTimeout(mtmv_pause_resume_thread)
+        threadTimeout(mtmv_select_thread)
+        assertTrue(judge_table_res == true)
 
 
-    logger.info("table alter partition + mtmv cancel")
-    init_environment()
-    sql mtmv_drop1
-    sql mtmv_drop2
-    table_part_thread = Thread.start{
-        table_part_func()
-    }
-    table_data_change_thread = Thread.start{
-        table_data_change_func()
-    }
-    table_select_thread = Thread.start{
-        table_select_func()
-    }
-    mtmv_cancel_thread = Thread.start{
-        mtmv_cancel_func()
-    }
-    mtmv_select_thread = Thread.start {
-        mtmv_select_func()
-    }
-    table_part_thread.join(thread_timeout)
-    table_data_change_thread.join(thread_timeout)
-    table_select_thread.join(thread_timeout)
-    mtmv_cancel_thread.join(thread_timeout)
-    mtmv_select_thread.join(thread_timeout)
-    threadTimeout(table_part_thread)
-    threadTimeout(table_data_change_thread)
-    threadTimeout(table_select_thread)
-    threadTimeout(mtmv_cancel_thread)
-    threadTimeout(mtmv_select_thread)
-    assertTrue(judge_table_res == true)
-
-    logger.info("table alter rollup + mtmv cancel")
-    init_environment()
-    sql mtmv_drop1
-    sql mtmv_drop2
-    table_rollup_thread = Thread.start{
-        table_rollup_func()
-    }
-    table_select_thread = Thread.start{
-        table_select_func()
-    }
-    mtmv_cancel_thread = Thread.start{
-        mtmv_cancel_func()
-    }
-    mtmv_select_thread = Thread.start {
-        mtmv_select_func()
-    }
-    table_rollup_thread.join(thread_timeout)
-    table_select_thread.join(thread_timeout)
-    mtmv_cancel_thread.join(thread_timeout)
-    mtmv_select_thread.join(thread_timeout)
-    threadTimeout(table_rollup_thread)
-    threadTimeout(table_select_thread)
-    threadTimeout(mtmv_cancel_thread)
-    threadTimeout(mtmv_select_thread)
-    assertTrue(judge_table_res == true)
-
-    logger.info("table alter mv + mtmv cancel")
-    init_environment()
-    sql mtmv_drop1
-    sql mtmv_drop2
-    table_mv_thread = Thread.start{
-        table_mv_func()
-    }
-    table_select_thread = Thread.start{
-        table_select_func()
-    }
-    mtmv_cancel_thread = Thread.start{
-        mtmv_cancel_func()
-    }
-    mtmv_select_thread = Thread.start {
-        mtmv_select_func()
-    }
-    table_mv_thread.join(thread_timeout)
-    table_select_thread.join(thread_timeout)
-    mtmv_cancel_thread.join(thread_timeout)
-    mtmv_select_thread.join(thread_timeout)
-    threadTimeout(table_mv_thread)
-    threadTimeout(table_select_thread)
-    threadTimeout(mtmv_cancel_thread)
-    threadTimeout(mtmv_select_thread)
-    assertTrue(judge_table_res == true)
+        //
+        logger.info("table alter column + mtmv cancel")
+        init_environment()
+        sql mtmv_drop1
+        sql mtmv_drop2
+        table_alter_col_thread = Thread.start {
+            table_alter_col_func()
+        }
+        table_select_thread = Thread.start {
+            table_select_func()
+        }
+        def mtmv_cancel_thread = Thread.start {
+            mtmv_cancel_func()
+        }
+        mtmv_select_thread = Thread.start {
+            mtmv_select_func()
+        }
+        table_alter_col_thread.join(thread_timeout)
+        table_select_thread.join(thread_timeout)
+        mtmv_cancel_thread.join(thread_timeout)
+        mtmv_select_thread.join(thread_timeout)
+        threadTimeout(table_alter_col_thread)
+        threadTimeout(table_select_thread)
+        threadTimeout(mtmv_cancel_thread)
+        threadTimeout(mtmv_select_thread)
+        assertTrue(judge_table_res == true)
 
 
-    logger.info("table alter index + mtmv cancel")
-    init_environment()
-    sql mtmv_drop1
-    sql mtmv_drop2
-    table_index_thread = Thread.start{
-        table_index_func()
-    }
-    table_select_thread = Thread.start{
-        table_select_func()
-    }
-    mtmv_cancel_thread = Thread.start{
-        mtmv_cancel_func()
-    }
-    mtmv_select_thread = Thread.start {
-        mtmv_select_func()
-    }
-    table_index_thread.join(thread_timeout)
-    table_select_thread.join(thread_timeout)
-    mtmv_cancel_thread.join(thread_timeout)
-    mtmv_select_thread.join(thread_timeout)
-    threadTimeout(table_index_thread)
-    threadTimeout(table_select_thread)
-    threadTimeout(mtmv_cancel_thread)
-    threadTimeout(mtmv_select_thread)
-    assertTrue(judge_table_res == true)
+        logger.info("table alter partition + mtmv cancel")
+        init_environment()
+        sql mtmv_drop1
+        sql mtmv_drop2
+        table_part_thread = Thread.start {
+            table_part_func()
+        }
+        table_data_change_thread = Thread.start {
+            table_data_change_func()
+        }
+        table_select_thread = Thread.start {
+            table_select_func()
+        }
+        mtmv_cancel_thread = Thread.start {
+            mtmv_cancel_func()
+        }
+        mtmv_select_thread = Thread.start {
+            mtmv_select_func()
+        }
+        table_part_thread.join(thread_timeout)
+        table_data_change_thread.join(thread_timeout)
+        table_select_thread.join(thread_timeout)
+        mtmv_cancel_thread.join(thread_timeout)
+        mtmv_select_thread.join(thread_timeout)
+        threadTimeout(table_part_thread)
+        threadTimeout(table_data_change_thread)
+        threadTimeout(table_select_thread)
+        threadTimeout(mtmv_cancel_thread)
+        threadTimeout(mtmv_select_thread)
+        assertTrue(judge_table_res == true)
+
+        logger.info("table alter rollup + mtmv cancel")
+        init_environment()
+        sql mtmv_drop1
+        sql mtmv_drop2
+        table_rollup_thread = Thread.start {
+            table_rollup_func()
+        }
+        table_select_thread = Thread.start {
+            table_select_func()
+        }
+        mtmv_cancel_thread = Thread.start {
+            mtmv_cancel_func()
+        }
+        mtmv_select_thread = Thread.start {
+            mtmv_select_func()
+        }
+        table_rollup_thread.join(thread_timeout)
+        table_select_thread.join(thread_timeout)
+        mtmv_cancel_thread.join(thread_timeout)
+        mtmv_select_thread.join(thread_timeout)
+        threadTimeout(table_rollup_thread)
+        threadTimeout(table_select_thread)
+        threadTimeout(mtmv_cancel_thread)
+        threadTimeout(mtmv_select_thread)
+        assertTrue(judge_table_res == true)
+
+        logger.info("table alter mv + mtmv cancel")
+        init_environment()
+        sql mtmv_drop1
+        sql mtmv_drop2
+        table_mv_thread = Thread.start {
+            table_mv_func()
+        }
+        table_select_thread = Thread.start {
+            table_select_func()
+        }
+        mtmv_cancel_thread = Thread.start {
+            mtmv_cancel_func()
+        }
+        mtmv_select_thread = Thread.start {
+            mtmv_select_func()
+        }
+        table_mv_thread.join(thread_timeout)
+        table_select_thread.join(thread_timeout)
+        mtmv_cancel_thread.join(thread_timeout)
+        mtmv_select_thread.join(thread_timeout)
+        threadTimeout(table_mv_thread)
+        threadTimeout(table_select_thread)
+        threadTimeout(mtmv_cancel_thread)
+        threadTimeout(mtmv_select_thread)
+        assertTrue(judge_table_res == true)
 
 
-    logger.info("table date change + mtmv cancel")
-    init_environment()
-    sql mtmv_drop1
-    sql mtmv_drop2
-    table_data_change_thread = Thread.start{
-        table_data_change_func()
+        logger.info("table alter index + mtmv cancel")
+        init_environment()
+        sql mtmv_drop1
+        sql mtmv_drop2
+        table_index_thread = Thread.start {
+            table_index_func()
+        }
+        table_select_thread = Thread.start {
+            table_select_func()
+        }
+        mtmv_cancel_thread = Thread.start {
+            mtmv_cancel_func()
+        }
+        mtmv_select_thread = Thread.start {
+            mtmv_select_func()
+        }
+        table_index_thread.join(thread_timeout)
+        table_select_thread.join(thread_timeout)
+        mtmv_cancel_thread.join(thread_timeout)
+        mtmv_select_thread.join(thread_timeout)
+        threadTimeout(table_index_thread)
+        threadTimeout(table_select_thread)
+        threadTimeout(mtmv_cancel_thread)
+        threadTimeout(mtmv_select_thread)
+        assertTrue(judge_table_res == true)
+
+
+        logger.info("table date change + mtmv cancel")
+        init_environment()
+        sql mtmv_drop1
+        sql mtmv_drop2
+        table_data_change_thread = Thread.start {
+            table_data_change_func()
+        }
+        table_select_thread = Thread.start {
+            table_select_func()
+        }
+        mtmv_cancel_thread = Thread.start {
+            mtmv_cancel_func()
+        }
+        mtmv_select_thread = Thread.start {
+            mtmv_select_func()
+        }
+        table_data_change_thread.join(thread_timeout)
+        table_select_thread.join(thread_timeout)
+        mtmv_cancel_thread.join(thread_timeout)
+        mtmv_select_thread.join(thread_timeout)
+        threadTimeout(table_data_change_thread)
+        threadTimeout(table_select_thread)
+        threadTimeout(mtmv_cancel_thread)
+        threadTimeout(mtmv_select_thread)
+        assertTrue(judge_table_res == true)
     }
-    table_select_thread = Thread.start{
-        table_select_func()
-    }
-    mtmv_cancel_thread = Thread.start{
-        mtmv_cancel_func()
-    }
-    mtmv_select_thread = Thread.start {
-        mtmv_select_func()
-    }
-    table_data_change_thread.join(thread_timeout)
-    table_select_thread.join(thread_timeout)
-    mtmv_cancel_thread.join(thread_timeout)
-    mtmv_select_thread.join(thread_timeout)
-    threadTimeout(table_data_change_thread)
-    threadTimeout(table_select_thread)
-    threadTimeout(mtmv_cancel_thread)
-    threadTimeout(mtmv_select_thread)
-    assertTrue(judge_table_res == true)
 
 }
 
