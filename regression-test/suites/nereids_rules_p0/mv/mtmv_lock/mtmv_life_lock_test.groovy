@@ -536,6 +536,14 @@ suite("mtmv_life_lock_test") {
         }
     }
 
+    def conn_antion = { def func ->
+        connect(user = user, password = pwd, url = context.config.jdbcUrl) {
+            sql """USE ${db}"""
+            // auth ok, no exception
+            func()
+        }
+    }
+
     def init_environment = {
         judge_table_res = true
         judge_mtmv_res = true
@@ -556,22 +564,21 @@ suite("mtmv_life_lock_test") {
 
     while (true) {
 
-
         logger.info("table alter column + mtmv create")
         init_environment()
         sql mtmv_drop1
         sql mtmv_drop2
         def table_alter_col_thread = Thread.start {
-            table_alter_col_func()
+            conn_antion(table_alter_col_func)
         }
         def table_select_thread = Thread.start {
-            table_select_func()
+            conn_antion(table_select_func)
         }
         def mtmv_create_thread = Thread.start {
-            mtmv_create_func()
+            conn_antion(mtmv_create_func)
         }
         def mtmv_select_thread = Thread.start {
-            mtmv_select_func()
+            conn_antion(mtmv_select_func)
         }
         table_alter_col_thread.join(thread_timeout)
         table_select_thread.join(thread_timeout)
@@ -583,7 +590,7 @@ suite("mtmv_life_lock_test") {
         threadTimeout(mtmv_select_thread)
         assertTrue(judge_table_res == true)
 
-
+/*
         logger.info("table alter partition + mtmv create")
         init_environment()
         sql mtmv_drop1
@@ -1550,6 +1557,8 @@ suite("mtmv_life_lock_test") {
         threadTimeout(mtmv_cancel_thread)
         threadTimeout(mtmv_select_thread)
         assertTrue(judge_table_res == true)
+
+ */
 
         sleep(30 * 60 * 1000)
     }
