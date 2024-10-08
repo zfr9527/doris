@@ -589,25 +589,24 @@ suite("mtmv_life_lock_test") {
         threadTimeout(mtmv_select_thread)
         assertTrue(judge_table_res == true)
 
-/*
         logger.info("table alter partition + mtmv create")
         init_environment()
         sql mtmv_drop1
         sql mtmv_drop2
         def table_part_thread = Thread.start {
-            table_part_func()
+            conn_antion(table_part_func)
         }
         def table_data_change_thread = Thread.start {
-            table_data_change_func()
+            conn_antion(table_data_change_func)
         }
         table_select_thread = Thread.start {
-            table_select_func()
+            conn_antion(table_select_func)
         }
         mtmv_create_thread = Thread.start {
-            mtmv_create_func()
+            conn_antion(mtmv_create_func)
         }
         mtmv_select_thread = Thread.start {
-            mtmv_select_func()
+            conn_antion(mtmv_select_func)
         }
         table_part_thread.join(thread_timeout)
         table_data_change_thread.join(thread_timeout)
@@ -626,16 +625,16 @@ suite("mtmv_life_lock_test") {
         sql mtmv_drop1
         sql mtmv_drop2
         def table_rollup_thread = Thread.start {
-            table_rollup_func()
+            conn_antion(table_rollup_func)
         }
         table_select_thread = Thread.start {
-            table_select_func()
+            conn_antion(table_select_func)
         }
         mtmv_create_thread = Thread.start {
-            mtmv_create_func()
+            conn_antion(mtmv_create_func)
         }
         mtmv_select_thread = Thread.start {
-            mtmv_select_func()
+            conn_antion(mtmv_select_func)
         }
         table_rollup_thread.join(thread_timeout)
         table_select_thread.join(thread_timeout)
@@ -652,16 +651,16 @@ suite("mtmv_life_lock_test") {
         sql mtmv_drop1
         sql mtmv_drop2
         def table_mv_thread = Thread.start {
-            table_mv_func()
+            conn_antion(table_mv_func)
         }
         table_select_thread = Thread.start {
-            table_select_func()
+            conn_antion(table_select_func)
         }
         mtmv_create_thread = Thread.start {
-            mtmv_create_func()
+            conn_antion(mtmv_create_func)
         }
         mtmv_select_thread = Thread.start {
-            mtmv_select_func()
+            conn_antion(mtmv_select_func)
         }
         table_mv_thread.join(thread_timeout)
         table_select_thread.join(thread_timeout)
@@ -679,16 +678,16 @@ suite("mtmv_life_lock_test") {
         sql mtmv_drop1
         sql mtmv_drop2
         def table_index_thread = Thread.start {
-            table_index_func()
+            conn_antion(table_index_func)
         }
         table_select_thread = Thread.start {
-            table_select_func()
+            conn_antion(table_select_func)
         }
         mtmv_create_thread = Thread.start {
-            mtmv_create_func()
+            conn_antion(mtmv_create_func)
         }
         mtmv_select_thread = Thread.start {
-            mtmv_select_func()
+            conn_antion(mtmv_select_func)
         }
         table_index_thread.join(thread_timeout)
         table_select_thread.join(thread_timeout)
@@ -706,16 +705,16 @@ suite("mtmv_life_lock_test") {
         sql mtmv_drop1
         sql mtmv_drop2
         table_data_change_thread = Thread.start {
-            table_data_change_func()
+            conn_antion(table_data_change_func)
         }
         table_select_thread = Thread.start {
-            table_select_func()
+            conn_antion(table_select_func)
         }
         mtmv_create_thread = Thread.start {
-            mtmv_create_func()
+            conn_antion(mtmv_create_func)
         }
         mtmv_select_thread = Thread.start {
-            mtmv_select_func()
+            conn_antion(mtmv_select_func)
         }
         table_data_change_thread.join(thread_timeout)
         table_select_thread.join(thread_timeout)
@@ -734,16 +733,16 @@ suite("mtmv_life_lock_test") {
         sql mtmv_drop1
         sql mtmv_drop2
         table_alter_col_thread = Thread.start {
-            table_alter_col_func()
+            conn_antion(table_alter_col_func)
         }
         table_select_thread = Thread.start {
-            table_select_func()
+            conn_antion(table_select_func)
         }
         def mtmv_refresh_thread = Thread.start {
-            mtmv_refresh_func()
+            conn_antion(mtmv_refresh_func)
         }
         mtmv_select_thread = Thread.start {
-            mtmv_select_func()
+            conn_antion(mtmv_select_func)
         }
         table_alter_col_thread.join(thread_timeout)
         table_select_thread.join(thread_timeout)
@@ -761,19 +760,19 @@ suite("mtmv_life_lock_test") {
         sql mtmv_drop1
         sql mtmv_drop2
         table_part_thread = Thread.start {
-            table_part_func()
+            conn_antion(table_part_func)
         }
         table_data_change_thread = Thread.start {
-            table_data_change_func()
+            conn_antion(table_data_change_func)
         }
         table_select_thread = Thread.start {
-            table_select_func()
+            conn_antion(table_select_func)
         }
         mtmv_refresh_thread = Thread.start {
-            mtmv_refresh_func()
+            conn_antion(mtmv_refresh_func)
         }
         mtmv_select_thread = Thread.start {
-            mtmv_select_func()
+            conn_antion(mtmv_select_func)
         }
         table_part_thread.join(thread_timeout)
         table_data_change_thread.join(thread_timeout)
@@ -792,16 +791,16 @@ suite("mtmv_life_lock_test") {
         sql mtmv_drop1
         sql mtmv_drop2
         table_rollup_thread = Thread.start {
-            table_rollup_func()
+            conn_antion(table_rollup_func)
         }
         table_select_thread = Thread.start {
-            table_select_func()
+            conn_antion(table_select_func)
         }
         mtmv_refresh_thread = Thread.start {
-            mtmv_refresh_func()
+            conn_antion(mtmv_refresh_func)
         }
         mtmv_select_thread = Thread.start {
-            mtmv_select_func()
+            conn_antion(mtmv_select_func)
         }
         table_rollup_thread.join(thread_timeout)
         table_select_thread.join(thread_timeout)
@@ -818,16 +817,16 @@ suite("mtmv_life_lock_test") {
         sql mtmv_drop1
         sql mtmv_drop2
         table_mv_thread = Thread.start {
-            table_mv_func()
+            conn_antion(table_mv_func)
         }
         table_select_thread = Thread.start {
-            table_select_func()
+            conn_antion(table_select_func)
         }
         mtmv_refresh_thread = Thread.start {
-            mtmv_refresh_func()
+            conn_antion(mtmv_refresh_func)
         }
         mtmv_select_thread = Thread.start {
-            mtmv_select_func()
+            conn_antion(mtmv_select_func)
         }
         table_mv_thread.join(thread_timeout)
         table_select_thread.join(thread_timeout)
@@ -845,16 +844,16 @@ suite("mtmv_life_lock_test") {
         sql mtmv_drop1
         sql mtmv_drop2
         table_index_thread = Thread.start {
-            table_index_func()
+            conn_antion(table_index_func)
         }
         table_select_thread = Thread.start {
-            table_select_func()
+            conn_antion(table_select_func)
         }
         mtmv_refresh_thread = Thread.start {
-            mtmv_refresh_func()
+            conn_antion(mtmv_refresh_func)
         }
         mtmv_select_thread = Thread.start {
-            mtmv_select_func()
+            conn_antion(mtmv_select_func)
         }
         table_index_thread.join(thread_timeout)
         table_select_thread.join(thread_timeout)
@@ -872,16 +871,16 @@ suite("mtmv_life_lock_test") {
         sql mtmv_drop1
         sql mtmv_drop2
         table_data_change_thread = Thread.start {
-            table_data_change_func()
+            conn_antion(table_data_change_func)
         }
         table_select_thread = Thread.start {
-            table_select_func()
+            conn_antion(table_select_func)
         }
         mtmv_refresh_thread = Thread.start {
-            mtmv_refresh_func()
+            conn_antion(mtmv_refresh_func)
         }
         mtmv_select_thread = Thread.start {
-            mtmv_select_func()
+            conn_antion(mtmv_select_func)
         }
         table_data_change_thread.join(thread_timeout)
         table_select_thread.join(thread_timeout)
@@ -900,16 +899,16 @@ suite("mtmv_life_lock_test") {
         sql mtmv_drop1
         sql mtmv_drop2
         table_alter_col_thread = Thread.start {
-            table_alter_col_func()
+            conn_antion(table_alter_col_func)
         }
         table_select_thread = Thread.start {
-            table_select_func()
+            conn_antion(table_select_func)
         }
         def mtmv_rename_thread = Thread.start {
-            mtmv_rename_func()
+            conn_antion(mtmv_rename_func)
         }
         mtmv_select_thread = Thread.start {
-            mtmv_select_func()
+            conn_antion(mtmv_select_func)
         }
         table_alter_col_thread.join(thread_timeout)
         table_select_thread.join(thread_timeout)
@@ -927,19 +926,19 @@ suite("mtmv_life_lock_test") {
         sql mtmv_drop1
         sql mtmv_drop2
         table_part_thread = Thread.start {
-            table_part_func()
+            conn_antion(table_part_func)
         }
         table_data_change_thread = Thread.start {
-            table_data_change_func()
+            conn_antion(table_data_change_func)
         }
         table_select_thread = Thread.start {
-            table_select_func()
+            conn_antion(table_select_func)
         }
         mtmv_rename_thread = Thread.start {
-            mtmv_rename_func()
+            conn_antion(mtmv_rename_func)
         }
         mtmv_select_thread = Thread.start {
-            mtmv_select_func()
+            conn_antion(mtmv_select_func)
         }
         table_part_thread.join(thread_timeout)
         table_data_change_thread.join(thread_timeout)
@@ -958,16 +957,16 @@ suite("mtmv_life_lock_test") {
         sql mtmv_drop1
         sql mtmv_drop2
         table_rollup_thread = Thread.start {
-            table_rollup_func()
+            conn_antion(table_rollup_func)
         }
         table_select_thread = Thread.start {
-            table_select_func()
+            conn_antion(table_select_func)
         }
         mtmv_rename_thread = Thread.start {
-            mtmv_rename_func()
+            conn_antion(mtmv_rename_func)
         }
         mtmv_select_thread = Thread.start {
-            mtmv_select_func()
+            conn_antion(mtmv_select_func)
         }
         table_rollup_thread.join(thread_timeout)
         table_select_thread.join(thread_timeout)
@@ -984,16 +983,16 @@ suite("mtmv_life_lock_test") {
         sql mtmv_drop1
         sql mtmv_drop2
         table_mv_thread = Thread.start {
-            table_mv_func()
+            conn_antion(table_mv_func)
         }
         table_select_thread = Thread.start {
-            table_select_func()
+            conn_antion(table_select_func)
         }
         mtmv_rename_thread = Thread.start {
-            mtmv_rename_func()
+            conn_antion(mtmv_rename_func)
         }
         mtmv_select_thread = Thread.start {
-            mtmv_select_func()
+            conn_antion(mtmv_select_func)
         }
         table_mv_thread.join(thread_timeout)
         table_select_thread.join(thread_timeout)
@@ -1011,16 +1010,16 @@ suite("mtmv_life_lock_test") {
         sql mtmv_drop1
         sql mtmv_drop2
         table_index_thread = Thread.start {
-            table_index_func()
+            conn_antion(table_index_func)
         }
         table_select_thread = Thread.start {
-            table_select_func()
+            conn_antion(table_select_func)
         }
         mtmv_rename_thread = Thread.start {
-            mtmv_rename_func()
+            conn_antion(mtmv_rename_func)
         }
         mtmv_select_thread = Thread.start {
-            mtmv_select_func()
+            conn_antion(mtmv_select_func)
         }
         table_index_thread.join(thread_timeout)
         table_select_thread.join(thread_timeout)
@@ -1038,16 +1037,16 @@ suite("mtmv_life_lock_test") {
         sql mtmv_drop1
         sql mtmv_drop2
         table_data_change_thread = Thread.start {
-            table_data_change_func()
+            conn_antion(table_data_change_func)
         }
         table_select_thread = Thread.start {
-            table_select_func()
+            conn_antion(table_select_func)
         }
         mtmv_rename_thread = Thread.start {
-            mtmv_rename_func()
+            conn_antion(mtmv_rename_func)
         }
         mtmv_select_thread = Thread.start {
-            mtmv_select_func()
+            conn_antion(mtmv_select_func)
         }
         table_data_change_thread.join(thread_timeout)
         table_select_thread.join(thread_timeout)
@@ -1066,16 +1065,16 @@ suite("mtmv_life_lock_test") {
         sql mtmv_drop1
         sql mtmv_drop2
         table_alter_col_thread = Thread.start {
-            table_alter_col_func()
+            conn_antion(table_alter_col_func)
         }
         table_select_thread = Thread.start {
-            table_select_func()
+            conn_antion(table_select_func)
         }
         def mtmv_alter_property_thread = Thread.start {
-            mtmv_alter_property_func()
+            conn_antion(mtmv_alter_property_func)
         }
         mtmv_select_thread = Thread.start {
-            mtmv_select_func()
+            conn_antion(mtmv_select_func)
         }
         table_alter_col_thread.join(thread_timeout)
         table_select_thread.join(thread_timeout)
@@ -1093,19 +1092,19 @@ suite("mtmv_life_lock_test") {
         sql mtmv_drop1
         sql mtmv_drop2
         table_part_thread = Thread.start {
-            table_part_func()
+            conn_antion(table_part_func)
         }
         table_data_change_thread = Thread.start {
-            table_data_change_func()
+            conn_antion(table_data_change_func)
         }
         table_select_thread = Thread.start {
-            table_select_func()
+            conn_antion(table_select_func)
         }
         mtmv_alter_property_thread = Thread.start {
-            mtmv_alter_property_func()
+            conn_antion(mtmv_alter_property_func)
         }
         mtmv_select_thread = Thread.start {
-            mtmv_select_func()
+            conn_antion(mtmv_select_func)
         }
         table_part_thread.join(thread_timeout)
         table_data_change_thread.join(thread_timeout)
@@ -1124,16 +1123,16 @@ suite("mtmv_life_lock_test") {
         sql mtmv_drop1
         sql mtmv_drop2
         table_rollup_thread = Thread.start {
-            table_rollup_func()
+            conn_antion(table_rollup_func)
         }
         table_select_thread = Thread.start {
-            table_select_func()
+            conn_antion(table_select_func)
         }
         mtmv_alter_property_thread = Thread.start {
-            mtmv_alter_property_func()
+            conn_antion(mtmv_alter_property_func)
         }
         mtmv_select_thread = Thread.start {
-            mtmv_select_func()
+            conn_antion(mtmv_select_func)
         }
         table_rollup_thread.join(thread_timeout)
         table_select_thread.join(thread_timeout)
@@ -1150,16 +1149,16 @@ suite("mtmv_life_lock_test") {
         sql mtmv_drop1
         sql mtmv_drop2
         table_mv_thread = Thread.start {
-            table_mv_func()
+            conn_antion(table_mv_func)
         }
         table_select_thread = Thread.start {
-            table_select_func()
+            conn_antion(table_select_func)
         }
         mtmv_alter_property_thread = Thread.start {
-            mtmv_alter_property_func()
+            conn_antion(mtmv_alter_property_func)
         }
         mtmv_select_thread = Thread.start {
-            mtmv_select_func()
+            conn_antion(mtmv_select_func)
         }
         table_mv_thread.join(thread_timeout)
         table_select_thread.join(thread_timeout)
@@ -1177,16 +1176,16 @@ suite("mtmv_life_lock_test") {
         sql mtmv_drop1
         sql mtmv_drop2
         table_index_thread = Thread.start {
-            table_index_func()
+            conn_antion(table_index_func)
         }
         table_select_thread = Thread.start {
-            table_select_func()
+            conn_antion(table_select_func)
         }
         mtmv_alter_property_thread = Thread.start {
-            mtmv_alter_property_func()
+            conn_antion(mtmv_alter_property_func)
         }
         mtmv_select_thread = Thread.start {
-            mtmv_select_func()
+            conn_antion(mtmv_select_func)
         }
         table_index_thread.join(thread_timeout)
         table_select_thread.join(thread_timeout)
@@ -1204,16 +1203,16 @@ suite("mtmv_life_lock_test") {
         sql mtmv_drop1
         sql mtmv_drop2
         table_data_change_thread = Thread.start {
-            table_data_change_func()
+            conn_antion(table_data_change_func)
         }
         table_select_thread = Thread.start {
-            table_select_func()
+            conn_antion(table_select_func)
         }
         mtmv_alter_property_thread = Thread.start {
-            mtmv_alter_property_func()
+            conn_antion(mtmv_alter_property_func)
         }
         mtmv_select_thread = Thread.start {
-            mtmv_select_func()
+            conn_antion(mtmv_select_func)
         }
         table_data_change_thread.join(thread_timeout)
         table_select_thread.join(thread_timeout)
@@ -1232,16 +1231,16 @@ suite("mtmv_life_lock_test") {
         sql mtmv_drop1
         sql mtmv_drop2
         table_alter_col_thread = Thread.start {
-            table_alter_col_func()
+            conn_antion(table_alter_col_func)
         }
         table_select_thread = Thread.start {
-            table_select_func()
+            conn_antion(table_select_func)
         }
         def mtmv_pause_resume_thread = Thread.start {
-            mtmv_pause_resume_func()
+            conn_antion(mtmv_pause_resume_func)
         }
         mtmv_select_thread = Thread.start {
-            mtmv_select_func()
+            conn_antion(mtmv_select_func)
         }
         table_alter_col_thread.join(thread_timeout)
         table_select_thread.join(thread_timeout)
@@ -1259,19 +1258,19 @@ suite("mtmv_life_lock_test") {
         sql mtmv_drop1
         sql mtmv_drop2
         table_part_thread = Thread.start {
-            table_part_func()
+            conn_antion(table_part_func)
         }
         table_data_change_thread = Thread.start {
-            table_data_change_func()
+            conn_antion(table_data_change_func)
         }
         table_select_thread = Thread.start {
-            table_select_func()
+            conn_antion(table_select_func)
         }
         mtmv_pause_resume_thread = Thread.start {
-            mtmv_pause_resume_func()
+            conn_antion(mtmv_pause_resume_func)
         }
         mtmv_select_thread = Thread.start {
-            mtmv_select_func()
+            conn_antion(mtmv_select_func)
         }
         table_part_thread.join(thread_timeout)
         table_data_change_thread.join(thread_timeout)
@@ -1290,16 +1289,16 @@ suite("mtmv_life_lock_test") {
         sql mtmv_drop1
         sql mtmv_drop2
         table_rollup_thread = Thread.start {
-            table_rollup_func()
+            conn_antion(table_rollup_func)
         }
         table_select_thread = Thread.start {
-            table_select_func()
+            conn_antion(table_select_func)
         }
         mtmv_pause_resume_thread = Thread.start {
-            mtmv_pause_resume_func()
+            conn_antion(mtmv_pause_resume_func)
         }
         mtmv_select_thread = Thread.start {
-            mtmv_select_func()
+            conn_antion(mtmv_select_func)
         }
         table_rollup_thread.join(thread_timeout)
         table_select_thread.join(thread_timeout)
@@ -1316,16 +1315,16 @@ suite("mtmv_life_lock_test") {
         sql mtmv_drop1
         sql mtmv_drop2
         table_mv_thread = Thread.start {
-            table_mv_func()
+            conn_antion(table_mv_func)
         }
         table_select_thread = Thread.start {
-            table_select_func()
+            conn_antion(table_select_func)
         }
         mtmv_pause_resume_thread = Thread.start {
-            mtmv_pause_resume_func()
+            conn_antion(mtmv_pause_resume_func)
         }
         mtmv_select_thread = Thread.start {
-            mtmv_select_func()
+            conn_antion(mtmv_select_func)
         }
         table_mv_thread.join(thread_timeout)
         table_select_thread.join(thread_timeout)
@@ -1343,16 +1342,16 @@ suite("mtmv_life_lock_test") {
         sql mtmv_drop1
         sql mtmv_drop2
         table_index_thread = Thread.start {
-            table_index_func()
+            conn_antion(table_index_func)
         }
         table_select_thread = Thread.start {
-            table_select_func()
+            conn_antion(table_select_func)
         }
         mtmv_pause_resume_thread = Thread.start {
-            mtmv_pause_resume_func()
+            conn_antion(mtmv_pause_resume_func)
         }
         mtmv_select_thread = Thread.start {
-            mtmv_select_func()
+            conn_antion(mtmv_select_func)
         }
         table_index_thread.join(thread_timeout)
         table_select_thread.join(thread_timeout)
@@ -1370,16 +1369,16 @@ suite("mtmv_life_lock_test") {
         sql mtmv_drop1
         sql mtmv_drop2
         table_data_change_thread = Thread.start {
-            table_data_change_func()
+            conn_antion(table_data_change_func)
         }
         table_select_thread = Thread.start {
-            table_select_func()
+            conn_antion(table_select_func)
         }
         mtmv_pause_resume_thread = Thread.start {
-            mtmv_pause_resume_func()
+            conn_antion(mtmv_pause_resume_func)
         }
         mtmv_select_thread = Thread.start {
-            mtmv_select_func()
+            conn_antion(mtmv_select_func)
         }
         table_data_change_thread.join(thread_timeout)
         table_select_thread.join(thread_timeout)
@@ -1398,16 +1397,16 @@ suite("mtmv_life_lock_test") {
         sql mtmv_drop1
         sql mtmv_drop2
         table_alter_col_thread = Thread.start {
-            table_alter_col_func()
+            conn_antion(table_alter_col_func)
         }
         table_select_thread = Thread.start {
-            table_select_func()
+            conn_antion(table_select_func)
         }
         def mtmv_cancel_thread = Thread.start {
-            mtmv_cancel_func()
+            conn_antion(mtmv_cancel_func)
         }
         mtmv_select_thread = Thread.start {
-            mtmv_select_func()
+            conn_antion(mtmv_select_func)
         }
         table_alter_col_thread.join(thread_timeout)
         table_select_thread.join(thread_timeout)
@@ -1425,19 +1424,19 @@ suite("mtmv_life_lock_test") {
         sql mtmv_drop1
         sql mtmv_drop2
         table_part_thread = Thread.start {
-            table_part_func()
+            conn_antion(table_part_func)
         }
         table_data_change_thread = Thread.start {
-            table_data_change_func()
+            conn_antion(table_data_change_func)
         }
         table_select_thread = Thread.start {
-            table_select_func()
+            conn_antion(table_select_func)
         }
         mtmv_cancel_thread = Thread.start {
-            mtmv_cancel_func()
+            conn_antion(mtmv_cancel_func)
         }
         mtmv_select_thread = Thread.start {
-            mtmv_select_func()
+            conn_antion(mtmv_select_func)
         }
         table_part_thread.join(thread_timeout)
         table_data_change_thread.join(thread_timeout)
@@ -1456,16 +1455,16 @@ suite("mtmv_life_lock_test") {
         sql mtmv_drop1
         sql mtmv_drop2
         table_rollup_thread = Thread.start {
-            table_rollup_func()
+            conn_antion(table_rollup_func)
         }
         table_select_thread = Thread.start {
-            table_select_func()
+            conn_antion(table_select_func)
         }
         mtmv_cancel_thread = Thread.start {
-            mtmv_cancel_func()
+            conn_antion(mtmv_cancel_func)
         }
         mtmv_select_thread = Thread.start {
-            mtmv_select_func()
+            conn_antion(mtmv_select_func)
         }
         table_rollup_thread.join(thread_timeout)
         table_select_thread.join(thread_timeout)
@@ -1482,16 +1481,16 @@ suite("mtmv_life_lock_test") {
         sql mtmv_drop1
         sql mtmv_drop2
         table_mv_thread = Thread.start {
-            table_mv_func()
+            conn_antion(table_mv_func)
         }
         table_select_thread = Thread.start {
-            table_select_func()
+            conn_antion(table_select_func)
         }
         mtmv_cancel_thread = Thread.start {
-            mtmv_cancel_func()
+            conn_antion(mtmv_cancel_func)
         }
         mtmv_select_thread = Thread.start {
-            mtmv_select_func()
+            conn_antion(mtmv_select_func)
         }
         table_mv_thread.join(thread_timeout)
         table_select_thread.join(thread_timeout)
@@ -1509,16 +1508,16 @@ suite("mtmv_life_lock_test") {
         sql mtmv_drop1
         sql mtmv_drop2
         table_index_thread = Thread.start {
-            table_index_func()
+            conn_antion(table_index_func)
         }
         table_select_thread = Thread.start {
-            table_select_func()
+            conn_antion(table_select_func)
         }
         mtmv_cancel_thread = Thread.start {
-            mtmv_cancel_func()
+            conn_antion(mtmv_cancel_func)
         }
         mtmv_select_thread = Thread.start {
-            mtmv_select_func()
+            conn_antion(mtmv_select_func)
         }
         table_index_thread.join(thread_timeout)
         table_select_thread.join(thread_timeout)
@@ -1536,16 +1535,16 @@ suite("mtmv_life_lock_test") {
         sql mtmv_drop1
         sql mtmv_drop2
         table_data_change_thread = Thread.start {
-            table_data_change_func()
+            conn_antion(table_data_change_func)
         }
         table_select_thread = Thread.start {
-            table_select_func()
+            conn_antion(table_select_func)
         }
         mtmv_cancel_thread = Thread.start {
-            mtmv_cancel_func()
+            conn_antion(mtmv_cancel_func)
         }
         mtmv_select_thread = Thread.start {
-            mtmv_select_func()
+            conn_antion(mtmv_select_func)
         }
         table_data_change_thread.join(thread_timeout)
         table_select_thread.join(thread_timeout)
@@ -1556,8 +1555,6 @@ suite("mtmv_life_lock_test") {
         threadTimeout(mtmv_cancel_thread)
         threadTimeout(mtmv_select_thread)
         assertTrue(judge_table_res == true)
-
- */
 
         sleep(30 * 60 * 1000)
     }
