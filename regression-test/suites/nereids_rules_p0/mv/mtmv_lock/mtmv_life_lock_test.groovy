@@ -539,7 +539,6 @@ suite("mtmv_life_lock_test") {
     def conn_antion = { def func ->
         connect(user = "root", password = "", url = context.config.jdbcUrl) {
             sql """USE ${db}"""
-            // auth ok, no exception
             func()
         }
     }
