@@ -562,7 +562,6 @@ suite("mtmv_life_lock_test") {
     }
 
     def threadTimeout = { Thread cur_thread ->
-        logger.info("cur_thread:" + cur_thread)
         if (cur_thread.isAlive()) {
             logger.info("cur_thread:" + cur_thread)
             logger.info("thread timeout")
@@ -1566,7 +1565,7 @@ suite("mtmv_life_lock_test") {
         threadTimeout(mtmv_select_thread)
         assertTrue(judge_table_res == true)
 
-        sleep(30 * 60 * 1000)
+        sleep(10 * 60 * 1000)
     }
 
 }
