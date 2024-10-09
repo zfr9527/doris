@@ -315,6 +315,7 @@ suite("mtmv_life_lock_test") {
             }
             i++
         }
+        logger.info("table_alter_col_thread2 end")
     }
     def table_part_func = {
         logger.info("table_part_thread3 start")
@@ -328,6 +329,7 @@ suite("mtmv_life_lock_test") {
                 judge_table_res = false
             }
         }
+        logger.info("table_part_thread3 end")
     }
     def table_rollup_func = {
         logger.info("table_rollup_thread5 start")
@@ -344,6 +346,7 @@ suite("mtmv_life_lock_test") {
             }
             i++
         }
+        logger.info("table_rollup_thread5 end")
     }
     def table_mv_func = {
         logger.info("table_mv_thread6 start")
@@ -360,6 +363,7 @@ suite("mtmv_life_lock_test") {
             }
             i++
         }
+        logger.info("table_mv_thread6 end")
     }
     def table_index_func = {
         logger.info("table_index_thread7 start")
@@ -377,6 +381,7 @@ suite("mtmv_life_lock_test") {
             }
 
         }
+        logger.info("table_index_thread7 end")
     }
     def table_data_change_func = {
         logger.info("table_data_change_thread9 start")
@@ -393,6 +398,7 @@ suite("mtmv_life_lock_test") {
             }
             sleep(1000)
         }
+        logger.info("table_data_change_thread9 end")
     }
     def table_select_func = {
         logger.info("table_select_thread10 start")
@@ -409,6 +415,7 @@ suite("mtmv_life_lock_test") {
             }
             sleep(1000)
         }
+        logger.info("table_select_thread10 end")
     }
 
 
@@ -534,6 +541,7 @@ suite("mtmv_life_lock_test") {
             }
             sleep(1000)
         }
+        logger.info("table_select_thread10 end")
     }
 
     def conn_antion = { def func ->
@@ -554,6 +562,7 @@ suite("mtmv_life_lock_test") {
     }
 
     def threadTimeout = { Thread cur_thread ->
+        logger.info("cur_thread:" + cur_thread)
         if (cur_thread.isAlive()) {
             logger.info("thread timeout")
             judge_table_res = false
