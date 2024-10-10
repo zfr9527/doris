@@ -300,240 +300,284 @@ suite("mtmv_life_lock_test") {
 
     def table_alter_col_func = {
         logger.info("table_alter_col_thread2 start")
-        int i = 1
-        def alter_column_tmp = table_alter_column
-        while (judge_mtmv_res && judge_table_res) {
-            try {
-                sql alter_column_tmp.replaceAll("new_col", "col_${i}")
-                if (!waitingColumnTaskFinished(db, lineitem_table)) {
+        connect(user = "root", password = "", url = context.config.jdbcUrl) {
+            sql """USE ${db}"""
+            int i = 1
+            def alter_column_tmp = table_alter_column
+            while (judge_mtmv_res && judge_table_res) {
+                try {
+                    sql alter_column_tmp.replaceAll("new_col", "col_${i}")
+                    if (!waitingColumnTaskFinished(db, lineitem_table)) {
+                        judge_table_res = false
+                    }
+                } catch (Exception e) {
+                    log.info(e.getMessage())
+                    log.info("judge_table_res = false")
                     judge_table_res = false
                 }
-            } catch (Exception e) {
-                log.info(e.getMessage())
-                log.info("judge_table_res = false")
-                judge_table_res = false
+                i++
             }
-            i++
         }
+        logger.info("table_alter_col_thread2 end")
     }
     def table_part_func = {
         logger.info("table_part_thread3 start")
-        while (judge_mtmv_res && judge_table_res) {
-            try {
-                sql table_alter_add_partition
-                sql table_alter_del_partition
-            } catch (Exception e) {
-                log.info(e.getMessage())
-                log.info("judge_table_res = false")
-                judge_table_res = false
+        connect(user = "root", password = "", url = context.config.jdbcUrl) {
+            sql """USE ${db}"""
+            while (judge_mtmv_res && judge_table_res) {
+                try {
+                    sql table_alter_add_partition
+                    sql table_alter_del_partition
+                } catch (Exception e) {
+                    log.info(e.getMessage())
+                    log.info("judge_table_res = false")
+                    judge_table_res = false
+                }
             }
         }
+        logger.info("table_part_thread3 end")
     }
     def table_rollup_func = {
         logger.info("table_rollup_thread5 start")
-        int i = 1
-        def alter_rollup_tmp = table_alter_rollup
-        while (judge_mtmv_res && judge_table_res) {
-            try {
-                sql alter_rollup_tmp.replaceAll("rollup_life_lock", "rollup_life_lock${i}")
-                waitingMVTaskFinishedByMvName(db, lineitem_table)
-            } catch (Exception e) {
-                log.info(e.getMessage())
-                log.info("judge_table_res = false")
-                judge_table_res = false
+        connect(user = "root", password = "", url = context.config.jdbcUrl) {
+            sql """USE ${db}"""
+            int i = 1
+            def alter_rollup_tmp = table_alter_rollup
+            while (judge_mtmv_res && judge_table_res) {
+                try {
+                    sql alter_rollup_tmp.replaceAll("rollup_life_lock", "rollup_life_lock${i}")
+                    waitingMVTaskFinishedByMvName(db, lineitem_table)
+                } catch (Exception e) {
+                    log.info(e.getMessage())
+                    log.info("judge_table_res = false")
+                    judge_table_res = false
+                }
+                i++
             }
-            i++
         }
+        logger.info("table_rollup_thread5 end")
     }
     def table_mv_func = {
         logger.info("table_mv_thread6 start")
-        int i = 1
-        def alter_mv_tmp = table_alter_mv
-        while (judge_mtmv_res && judge_table_res) {
-            try {
-                sql alter_mv_tmp.replaceAll("mv_life_lock", "mv_life_lock${i}")
-                waitingMVTaskFinishedByMvName(db, lineitem_table)
-            } catch (Exception e) {
-                log.info(e.getMessage())
-                log.info("judge_table_res = false")
-                judge_table_res = false
+        connect(user = "root", password = "", url = context.config.jdbcUrl) {
+            sql """USE ${db}"""
+            int i = 1
+            def alter_mv_tmp = table_alter_mv
+            while (judge_mtmv_res && judge_table_res) {
+                try {
+                    sql alter_mv_tmp.replaceAll("mv_life_lock", "mv_life_lock${i}")
+                    waitingMVTaskFinishedByMvName(db, lineitem_table)
+                } catch (Exception e) {
+                    log.info(e.getMessage())
+                    log.info("judge_table_res = false")
+                    judge_table_res = false
+                }
+                i++
             }
-            i++
         }
+        logger.info("table_mv_thread6 end")
     }
     def table_index_func = {
         logger.info("table_index_thread7 start")
-        while (judge_mtmv_res && judge_table_res) {
-            try {
-                sql table_alter_add_index
-                if (!waitIndexCreateSucc()) {
+        connect(user = "root", password = "", url = context.config.jdbcUrl) {
+            sql """USE ${db}"""
+            while (judge_mtmv_res && judge_table_res) {
+                try {
+                    sql table_alter_add_index
+                    if (!waitIndexCreateSucc()) {
+                        judge_table_res = false
+                    }
+                    sql table_alter_del_index
+                } catch (Exception e) {
+                    log.info(e.getMessage())
+                    log.info("judge_table_res = false")
                     judge_table_res = false
                 }
-                sql table_alter_del_index
-            } catch (Exception e) {
-                log.info(e.getMessage())
-                log.info("judge_table_res = false")
-                judge_table_res = false
             }
-
         }
+        logger.info("table_index_thread7 end")
     }
     def table_data_change_func = {
         logger.info("table_data_change_thread9 start")
-        while (judge_mtmv_res && judge_table_res) {
-            try {
-                sql """set delete_without_partition=true;"""
-                sql table_truncate
-                sql table_insert
-                sql table_delete
-            } catch (Exception e) {
-                log.info(e.getMessage())
-                log.info("judge_table_res = false")
-                judge_table_res = false
+        connect(user = "root", password = "", url = context.config.jdbcUrl) {
+            sql """USE ${db}"""
+            while (judge_mtmv_res && judge_table_res) {
+                try {
+                    sql """set delete_without_partition=true;"""
+                    sql table_truncate
+                    sql table_insert
+                    sql table_delete
+                } catch (Exception e) {
+                    log.info(e.getMessage())
+                    log.info("judge_table_res = false")
+                    judge_table_res = false
+                }
+                sleep(1000)
             }
-            sleep(1000)
         }
+        logger.info("table_data_change_thread9 end")
     }
     def table_select_func = {
         logger.info("table_select_thread10 start")
-        while (judge_mtmv_res && judge_table_res) {
-            try {
-                sql table_select1
-                sql table_select2
-                sql mtmv_sql
-                sql sql2
-            } catch (Exception e) {
-                log.info(e.getMessage())
-                log.info("judge_table_res = false")
-                judge_table_res = false
+        connect(user = "root", password = "", url = context.config.jdbcUrl) {
+            sql """USE ${db}"""
+            while (judge_mtmv_res && judge_table_res) {
+                try {
+                    sql table_select1
+                    sql table_select2
+                    sql mtmv_sql
+                    sql sql2
+                } catch (Exception e) {
+                    log.info(e.getMessage())
+                    log.info("judge_table_res = false")
+                    judge_table_res = false
+                }
+                sleep(1000)
             }
-            sleep(1000)
         }
-    }
-
-
-    def sleep_func = {
-        sleep(5 * 1000)
+        logger.info("table_select_thread10 end")
     }
 
     def mtmv_create_func = {
         logger.info("mtmv_create_thread1 start")
-        try {
-            for (int i = 0; i < 5; i++) {
-                sql mtmv_create1
-                sql mtmv_create2
-                sql mtmv_drop1
-                sql mtmv_drop2
-                sleep(2 * 1000)
+        connect(user = "root", password = "", url = context.config.jdbcUrl) {
+            sql """USE ${db}"""
+            try {
+                for (int i = 0; i < 5; i++) {
+                    sql mtmv_create1
+                    sql mtmv_create2
+                    sql mtmv_drop1
+                    sql mtmv_drop2
+                    sleep(2 * 1000)
+                }
+                sleep(3 * 1000)
+            } catch (Exception e) {
+                log.info(e.getMessage())
+            } finally {
+                judge_mtmv_res = false
             }
-            sleep_func()
-        } catch (Exception e) {
-            log.info(e.getMessage())
-        } finally {
-            judge_mtmv_res = false
         }
         logger.info("mtmv_create_thread1 end")
     }
     def mtmv_refresh_func = {
         logger.info("mtmv_refresh_thread2 start")
-        try {
-            for (int i = 0; i < 5; i++) {
-                sql mtmv_refresh1
-                sql mtmv_refresh2
-                sleep(2 * 1000)
+        connect(user = "root", password = "", url = context.config.jdbcUrl) {
+            sql """USE ${db}"""
+            try {
+                for (int i = 0; i < 5; i++) {
+                    sql mtmv_refresh1
+                    sql mtmv_refresh2
+                    sleep(2 * 1000)
+                }
+                sleep(3 * 1000)
+            } catch (Exception e) {
+                log.info(e.getMessage())
+            } finally {
+                log.info("judge_mtmv_res = false")
+                judge_mtmv_res = false
             }
-            sleep_func()
-        } catch (Exception e) {
-            log.info(e.getMessage())
-        } finally {
-            log.info("judge_mtmv_res = false")
-            judge_mtmv_res = false
         }
         logger.info("mtmv_refresh_thread2 end")
     }
     def mtmv_rename_func = {
         logger.info("mtmv_rename_thread3 start")
-        try {
-            for (int i = 0; i < 5; i++) {
-                sql mtmv_alter_rename1
-                sql mtmv_alter_rename2
-                sleep(2 * 1000)
+        connect(user = "root", password = "", url = context.config.jdbcUrl) {
+            sql """USE ${db}"""
+            try {
+                for (int i = 0; i < 5; i++) {
+                    sql mtmv_alter_rename1
+                    sql mtmv_alter_rename2
+                    sleep(2 * 1000)
+                }
+                sleep(3 * 1000)
+            } catch (Exception e) {
+                log.info(e.getMessage())
+            } finally {
+                log.info("judge_mtmv_res = false")
+                judge_mtmv_res = false
             }
-            sleep_func()
-        } catch (Exception e) {
-            log.info(e.getMessage())
-        } finally {
-            log.info("judge_mtmv_res = false")
-            judge_mtmv_res = false
         }
         logger.info("mtmv_rename_thread3 end")
     }
     def mtmv_alter_property_func = {
         logger.info("mtmv_alter_property_thread4 start")
-        try {
-            for (int i = 0; i < 5; i++) {
-                sql mtmv_alter_property
-                sleep(2 * 1000)
+        connect(user = "root", password = "", url = context.config.jdbcUrl) {
+            sql """USE ${db}"""
+            try {
+                for (int i = 0; i < 5; i++) {
+                    sql mtmv_alter_property
+                    sleep(2 * 1000)
+                }
+                sleep(3 * 1000)
+            } catch (Exception e) {
+                log.info(e.getMessage())
+            } finally {
+                log.info("judge_mtmv_res = false")
+                judge_mtmv_res = false
             }
-            sleep_func()
-        } catch (Exception e) {
-            log.info(e.getMessage())
-        } finally {
-            log.info("judge_mtmv_res = false")
-            judge_mtmv_res = false
         }
         logger.info("mtmv_alter_property_thread4 end")
     }
     def mtmv_pause_resume_func = {
         logger.info("mtmv_pause_resume_thread6 start")
-        try {
-            for (int i = 0; i < 5; i++) {
-                sql mtmv_pause_job
-                sql mtmv_resume_job
-                sleep(2 * 1000)
+        connect(user = "root", password = "", url = context.config.jdbcUrl) {
+            sql """USE ${db}"""
+            try {
+                for (int i = 0; i < 5; i++) {
+                    sql mtmv_pause_job
+                    sql mtmv_resume_job
+                    sleep(2 * 1000)
+                }
+                sleep(3 * 1000)
+            } catch (Exception e) {
+                log.info(e.getMessage())
+            } finally {
+                log.info("judge_mtmv_res = false")
+                judge_mtmv_res = false
             }
-            sleep_func()
-        } catch (Exception e) {
-            log.info(e.getMessage())
-        } finally {
-            log.info("judge_mtmv_res = false")
-            judge_mtmv_res = false
         }
         logger.info("mtmv_pause_resume_thread6 end")
     }
     def mtmv_cancel_func = {
         logger.info("mtmv_cancel_thread7 start")
-        try {
-            for (int i = 0; i < 5; i++) {
-                sql mtmv_refresh1
-                sql mtmv_cancel_job
-                sleep(2 * 1000)
+        connect(user = "root", password = "", url = context.config.jdbcUrl) {
+            sql """USE ${db}"""
+            try {
+                for (int i = 0; i < 5; i++) {
+                    sql mtmv_refresh1
+                    sql mtmv_cancel_job
+                    sleep(2 * 1000)
+                }
+                sleep(3 * 1000)
+            } catch (Exception e) {
+                log.info(e.getMessage())
+            } finally {
+                log.info("judge_mtmv_res = false")
+                judge_mtmv_res = false
             }
-            sleep_func()
-        } catch (Exception e) {
-            log.info(e.getMessage())
-        } finally {
-            log.info("judge_mtmv_res = false")
-            judge_mtmv_res = false
         }
         logger.info("mtmv_cancel_thread7 end")
     }
     def mtmv_select_func = {
         logger.info("table_select_thread10 start")
-        while (judge_mtmv_res) {
-            try {
-                sql mtmv_select1
-                sql mtmv_select2
-            } catch (Exception e) {
-                log.info(e.getMessage())
-                assertTrue(e.getMessage().contains("does not exist"))
-                if (!e.getMessage().contains("does not exist")) {
-                    log.info("judge_table_res = false")
-                    judge_table_res = false
+        connect(user = "root", password = "", url = context.config.jdbcUrl) {
+            sql """USE ${db}"""
+            while (judge_mtmv_res) {
+                try {
+                    sql mtmv_select1
+                    sql mtmv_select2
+                } catch (Exception e) {
+                    log.info(e.getMessage())
+                    assertTrue(e.getMessage().contains("does not exist"))
+                    if (!e.getMessage().contains("does not exist")) {
+                        log.info("judge_table_res = false")
+                        judge_table_res = false
+                    }
                 }
+                sleep(1000)
             }
-            sleep(1000)
         }
+        logger.info("table_select_thread10 end")
     }
 
     def conn_antion = { def func ->
@@ -556,7 +600,7 @@ suite("mtmv_life_lock_test") {
     def threadTimeout = { Thread cur_thread ->
         if (cur_thread.isAlive()) {
             logger.info("thread timeout")
-            judge_table_res == false
+            judge_table_res = false
         }
     }
 
@@ -568,16 +612,16 @@ suite("mtmv_life_lock_test") {
         sql mtmv_drop1
         sql mtmv_drop2
         def table_alter_col_thread = Thread.start {
-            conn_antion(table_alter_col_func)
+            table_alter_col_func()
         }
         def table_select_thread = Thread.start {
-            conn_antion(table_select_func)
+            table_select_func()
         }
         def mtmv_create_thread = Thread.start {
-            conn_antion(mtmv_create_func)
+            mtmv_create_func()
         }
         def mtmv_select_thread = Thread.start {
-            conn_antion(mtmv_select_func)
+            mtmv_select_func()
         }
         table_alter_col_thread.join(thread_timeout)
         table_select_thread.join(thread_timeout)
@@ -589,7 +633,7 @@ suite("mtmv_life_lock_test") {
         threadTimeout(mtmv_select_thread)
         assertTrue(judge_table_res == true)
 
-/*
+
         logger.info("table alter partition + mtmv create")
         init_environment()
         sql mtmv_drop1
@@ -1557,9 +1601,7 @@ suite("mtmv_life_lock_test") {
         threadTimeout(mtmv_select_thread)
         assertTrue(judge_table_res == true)
 
- */
-
-        sleep(30 * 60 * 1000)
+        sleep(10 * 60 * 1000)
     }
 
 }
