@@ -74,7 +74,7 @@ suite("mtmv_life_lock_test") {
             DUPLICATE KEY(`o_orderkey`, `o_custkey`)
             COMMENT 'OLAP'
             auto partition by range (date_trunc(`o_orderdate`, 'day')) ()
-            DISTRIBUTED BY HASH(`o_orderkey`) BUCKETS 96
+            DISTRIBUTED BY HASH(`o_orderkey`) BUCKETS 1
             PROPERTIES (
             "replication_allocation" = "tag.location.default: 1"
             );"""
@@ -107,7 +107,7 @@ suite("mtmv_life_lock_test") {
             DUPLICATE KEY(l_orderkey, l_linenumber, l_partkey, l_suppkey )
             COMMENT 'OLAP'
             auto partition by range (date_trunc(`l_shipdate`, 'day')) ()
-            DISTRIBUTED BY HASH(`l_orderkey`) BUCKETS 96
+            DISTRIBUTED BY HASH(`l_orderkey`) BUCKETS 1
             PROPERTIES (
             "replication_allocation" = "tag.location.default: 1"
             );"""
@@ -125,7 +125,7 @@ suite("mtmv_life_lock_test") {
             ) ENGINE=OLAP
             DUPLICATE KEY(`ps_partkey`)
             COMMENT 'OLAP'
-            DISTRIBUTED BY HASH(`ps_partkey`) BUCKETS 24
+            DISTRIBUTED BY HASH(`ps_partkey`) BUCKETS 1
             PROPERTIES (
             "replication_allocation" = "tag.location.default: 1"
             );"""
