@@ -642,6 +642,29 @@ suite("mtmv_life_lock_test") {
         def table_part_thread = Thread.start {
             table_part_func()
         }
+        table_select_thread = Thread.start {
+            table_select_func()
+        }
+        mtmv_create_thread = Thread.start {
+            mtmv_create_func()
+        }
+        mtmv_select_thread = Thread.start {
+            mtmv_select_func()
+        }
+        table_part_thread.join(thread_timeout)
+        table_select_thread.join(thread_timeout)
+        mtmv_create_thread.join(thread_timeout)
+        mtmv_select_thread.join(thread_timeout)
+        threadTimeout(table_part_thread)
+        threadTimeout(table_select_thread)
+        threadTimeout(mtmv_create_thread)
+        threadTimeout(mtmv_select_thread)
+        assertTrue(judge_table_res == true)
+
+        logger.info("table data change + mtmv create")
+        init_environment()
+        sql mtmv_drop1
+        sql mtmv_drop2
         def table_data_change_thread = Thread.start {
             table_data_change_func()
         }
@@ -654,12 +677,10 @@ suite("mtmv_life_lock_test") {
         mtmv_select_thread = Thread.start {
             mtmv_select_func()
         }
-        table_part_thread.join(thread_timeout)
         table_data_change_thread.join(thread_timeout)
         table_select_thread.join(thread_timeout)
         mtmv_create_thread.join(thread_timeout)
         mtmv_select_thread.join(thread_timeout)
-        threadTimeout(table_part_thread)
         threadTimeout(table_data_change_thread)
         threadTimeout(table_select_thread)
         threadTimeout(mtmv_create_thread)
