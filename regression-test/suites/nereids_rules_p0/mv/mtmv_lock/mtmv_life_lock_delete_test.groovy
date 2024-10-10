@@ -189,6 +189,23 @@ suite("mtmv_life_lock_test_index") {
         assertTrue(result.size() == 1)
         return result.size() == 1
     }
+    def waitIndexDropSucc = {
+        sql """use ${db}"""
+        long startTime = System.currentTimeMillis()
+        long timeoutTimestamp = startTime + 5 * 60 * 1000 // 5 min
+        def result
+        do {
+            result = sql """SHOW INDEX FROM ${lineitem_table};"""
+            logger.info("result: " + result.toString())
+            if (result.size() == 0) {
+                break
+            }
+            Thread.sleep(1000)
+        } while (timeoutTimestamp > System.currentTimeMillis())
+        result = sql """SHOW INDEX FROM ${lineitem_table};"""
+        assertTrue(result.size() == 0)
+        return result.size() == 0
+    }
 
     def waitingColumnTaskFinished = { def dbName, def tableName ->
         Thread.sleep(2000)
@@ -388,6 +405,9 @@ suite("mtmv_life_lock_test_index") {
                         judge_table_res = false
                     }
                     sql table_alter_del_index
+                    if (!waitIndexDropSucc()) {
+                        judge_table_res = false
+                    }
                 } catch (Exception e) {
                     log.info(e.getMessage())
                     log.info("judge_table_res = false")
