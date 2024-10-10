@@ -599,6 +599,7 @@ suite("mtmv_life_lock_test") {
 
     def threadTimeout = { Thread cur_thread ->
         if (cur_thread.isAlive()) {
+            logger.info("cur_thread: " + cur_thread)
             logger.info("thread timeout")
             judge_table_res = false
         }
