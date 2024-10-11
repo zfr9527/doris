@@ -210,7 +210,7 @@ suite("mtmv_life_lock_test") {
     def waitingChangeTaskFinished = { def curDb ->
         Thread.sleep(2000)
         sql """use ${curDb}"""
-        String showTasks = "SHOW ALTER TABLE COLUMN order by CreateTime;"
+        String showTasks = "SHOW ALTER TABLE COLUMN order by CreateTime DESC limit 1;"
         String status = "NULL"
         List<List<Object>> result
         long startTime = System.currentTimeMillis()
@@ -222,12 +222,13 @@ suite("mtmv_life_lock_test") {
                 status = result.last().get(9)
             }
             logger.info("The state of ${showTasks} is ${status}")
-            Thread.sleep(1000);
+            Thread.sleep(1000)
         } while (timeoutTimestamp > System.currentTimeMillis() && (status != 'FINISHED'))
         if (status != "FINISHED") {
             logger.info("status is not success")
         }
-        Assert.assertEquals("FINISHED", status)
+        assertTrue("FINISHED" == status)
+        return "FINISHED" == status
     }
 
     def waitingColumnTaskFinished = { def dbName, def tableName ->
@@ -424,15 +425,13 @@ suite("mtmv_life_lock_test") {
             while (judge_mtmv_res && judge_table_res) {
                 try {
                     sql table_alter_add_index
-                    if (!waitIndexCreateSucc()) {
+                    if (!waitingChangeTaskFinished(db)) {
                         judge_table_res = false
                     }
                     sql table_alter_del_index
-                    if (!waitIndexDropSucc()) {
+                    if (!waitingChangeTaskFinished(db)) {
                         judge_table_res = false
                     }
-
-                    waitingChangeTaskFinished
                 } catch (Exception e) {
                     log.info(e.getMessage())
                     log.info("judge_table_res = false")
