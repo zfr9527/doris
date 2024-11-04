@@ -1477,6 +1477,30 @@ class Suite implements GroovyInterceptable {
         sql "analyze table ${result.last().get(6)}.${result.last().get(5)} with sync;"
     }
 
+    void waitingMTMVTaskFinishedAndFail(String jobName) {
+        Thread.sleep(2000);
+        String showTasks = "select TaskId,JobId,JobName,MvId,Status,MvName,MvDatabaseName,ErrorMsg from tasks('type'='mv') where JobName = '${jobName}' order by CreateTime ASC"
+        String status = "NULL"
+        List<List<Object>> result
+        long startTime = System.currentTimeMillis()
+        long timeoutTimestamp = startTime + 5 * 60 * 1000 // 5 min
+        do {
+            result = sql(showTasks)
+            logger.info("result: " + result.toString())
+            if (!result.isEmpty()) {
+                status = result.last().get(4)
+            }
+            logger.info("The state of ${showTasks} is ${status}")
+            Thread.sleep(1000);
+        } while (timeoutTimestamp > System.currentTimeMillis() && (status == 'PENDING' || status == 'RUNNING' || status == 'NULL'))
+        if (status != "FAILED") {
+            logger.info("status is not success")
+        }
+        Assert.assertEquals("FAILED", status)
+        // Need to analyze materialized view for cbo to choose the materialized view accurately
+        logger.info("waitingMTMVTaskFinishedAndFail analyze mv name is " + result.last().get(5))
+    }
+
     void waitingMTMVTaskFinishedNotNeedSuccess(String jobName) {
         Thread.sleep(2000);
         String showTasks = "select TaskId,JobId,JobName,MvId,Status,MvName,MvDatabaseName,ErrorMsg from tasks('type'='mv') where JobName = '${jobName}' order by CreateTime ASC"
@@ -1781,14 +1805,58 @@ class Suite implements GroovyInterceptable {
         sql "analyze table ${db}.${mv_name} with sync;"
     }
 
+    def refresh_async_mv = { db, mv_name ->
+
+        sql """refresh MATERIALIZED VIEW ${db}.${mv_name} auto;"""
+        def job_name = getJobName(db, mv_name);
+        waitingMTMVTaskFinished(job_name)
+        sql "analyze table ${db}.${mv_name} with sync;"
+    }
+
+    def refresh_async_mv_fail = { db, mv_name ->
+
+        sql """refresh MATERIALIZED VIEW ${db}.${mv_name} auto;"""
+        def job_name = getJobName(db, mv_name);
+        waitingMTMVTaskFinishedAndFail(job_name)
+    }
+
+    String getMVStmt(String name, String sql) {
+        return "CREATE MATERIALIZED VIEW " + name + " AS " + sql
+    }
+
+    def waitingColumnTaskFinished = { def dbName, def tableName ->
+        Thread.sleep(2000)
+        String showTasks = "SHOW ALTER TABLE COLUMN from ${dbName} where TableName='${tableName}' ORDER BY CreateTime ASC"
+        String status = "NULL"
+        List<List<Object>> result
+        long startTime = System.currentTimeMillis()
+        long timeoutTimestamp = startTime + 5 * 60 * 1000 // 5 min
+        do {
+            result = sql(showTasks)
+            logger.info("result: " + result.toString())
+            if (!result.isEmpty()) {
+                status = result.last().get(9)
+            }
+            logger.info("The state of ${showTasks} is ${status}")
+            Thread.sleep(1000)
+        } while (timeoutTimestamp > System.currentTimeMillis() && (status != 'FINISHED'))
+        if (status != "FINISHED") {
+            logger.info("status is not success")
+            return false
+        }
+        Assert.assertEquals("FINISHED", status)
+        return true
+    }
+
     // mv not part in rewrite process
     def mv_not_part_in = { query_sql, mv_name ->
         logger.info("query_sql = " + query_sql + ", mv_names = " + mv_name)
         explain {
             sql(" memo plan ${query_sql}")
             check { result ->
-                boolean success = !result.contains("${mv_name} chose") && !result.contains("${mv_name} not chose")
-                && !result.contains("${mv_name} fail")
+                logger.info("result:" + result)
+                boolean success = !result.contains(".${mv_name} chose") && !result.contains(".${mv_name} not chose")
+                && !result.contains(".${mv_name} fail")
                 Assert.assertEquals(true, success)
             }
         }
@@ -1802,8 +1870,8 @@ class Suite implements GroovyInterceptable {
             check { result ->
                 boolean success = true;
                 for (String mv_name : mv_names) {
-                    success = !result.contains("${mv_name} chose") && !result.contains("${mv_name} not chose")
-                            && !result.contains("${mv_name} fail")
+                    success = !result.contains(".${mv_name} chose") && !result.contains(".${mv_name} not chose")
+                            && !result.contains(".${mv_name} fail")
                 }
                 Assert.assertEquals(true, success)
             }
@@ -1830,7 +1898,7 @@ class Suite implements GroovyInterceptable {
         }
         explain {
             sql(" memo plan ${query_sql}")
-            contains("${mv_name} chose")
+            contains(".${mv_name} chose")
         }
     }
 
@@ -1863,7 +1931,7 @@ class Suite implements GroovyInterceptable {
             check { result ->
                 boolean success = true;
                 for (String mv_name : mv_names) {
-                    success = success && result.contains("${mv_name} chose")
+                    success = success && result.contains(".${mv_name} chose")
                 }
                 Assert.assertEquals(true, success)
             }
@@ -1899,7 +1967,7 @@ class Suite implements GroovyInterceptable {
             check { result ->
                 boolean success = false;
                 for (String mv_name : mv_names) {
-                    success = success || result.contains("${mv_name} chose")
+                    success = success || result.contains(".${mv_name} chose")
                 }
                 Assert.assertEquals(true, success)
             }
@@ -1928,7 +1996,7 @@ class Suite implements GroovyInterceptable {
             check {result ->
                 boolean success = true
                 for (String mv_name : mv_names) {
-                    boolean stepSuccess = result.contains("${mv_name} chose") || result.contains("${mv_name} not chose")
+                    boolean stepSuccess = result.contains(".${mv_name} chose") || result.contains(".${mv_name} not chose")
                     success = success && stepSuccess
                 }
                 Assert.assertEquals(true, success)
@@ -1958,7 +2026,7 @@ class Suite implements GroovyInterceptable {
             check {result ->
                 boolean success = false
                 for (String mv_name : mv_names) {
-                    success = success || result.contains("${mv_name} chose") || result.contains("${mv_name} not chose")
+                    success = success || result.contains(".${mv_name} chose") || result.contains(".${mv_name} not chose")
                 }
                 Assert.assertEquals(true, success)
             }
@@ -1979,7 +2047,7 @@ class Suite implements GroovyInterceptable {
         explain {
             sql(" memo plan ${query_sql}")
             check { result ->
-                result.contains("${mv_name} chose") || result.contains("${mv_name} not chose")
+                result.contains(".${mv_name} chose") || result.contains(".${mv_name} not chose")
             }
         }
     }
@@ -1997,7 +2065,7 @@ class Suite implements GroovyInterceptable {
         }
         explain {
             sql(" memo plan ${query_sql}")
-            contains("${mv_name} fail")
+            contains(".${mv_name} fail")
         }
     }
 
@@ -2024,7 +2092,7 @@ class Suite implements GroovyInterceptable {
             check {result ->
                 boolean fail = true
                 for (String mv_name : mv_names) {
-                    boolean stepFail = result.contains("${mv_name} fail")
+                    boolean stepFail = result.contains(".${mv_name} fail")
                     fail = fail && stepFail
                 }
                 Assert.assertEquals(true, fail)
@@ -2054,7 +2122,7 @@ class Suite implements GroovyInterceptable {
             check { result ->
                 boolean fail = false
                 for (String mv_name : mv_names) {
-                    fail = fail || result.contains("${mv_name} fail")
+                    fail = fail || result.contains(".${mv_name} fail")
                 }
                 Assert.assertEquals(true, fail)
             }
