@@ -253,7 +253,7 @@ suite("mtmv_3tb_join_test") {
                                 }
                             }
                         }
-                        if (sql_pt.toString().indexOf("filter4") == -1) {
+                        if (sql_pt.toString().indexOf("filter4") != -1) {
                             def sz = sql_queue.size()
                             for (int z = 0; z < sz; z++) {
                                 def cur_sql = sql_queue.poll()
