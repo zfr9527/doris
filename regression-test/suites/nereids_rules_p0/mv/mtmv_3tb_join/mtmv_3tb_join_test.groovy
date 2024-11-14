@@ -178,7 +178,8 @@ suite("mtmv_3tb_join_test") {
 
     def template_results = generateCombinations(4)
     def join_list = [
-            "inner join", "left join", "right join", "full join", "left semi join", "right semi join", "left anti join", "right anti join"]
+            "inner join", "left join", "right join", "full join"]
+    def join_special_list = ["left semi join", "right semi join", "left anti join", "right anti join"]
     def join_no_on_list = ["join", "cross join"]
     def condition1_list = [
             "${lineitem_tb}.l_orderkey = ${orders_tb}.o_orderkey",
