@@ -154,8 +154,8 @@ suite("mtmv_3tb_join_test") {
         sum(o_orderkey + l_orderkey + ps_partkey * 2),
         count() as count_all
         from ${orders_tb} filter1
-        jointype1 ${lineitem_tb} on condition1 filter2
-        jointype2 ${partsupp_tb} on condition2 filter3
+        jointype1 ${lineitem_tb} on condition1 where filter2
+        jointype2 ${partsupp_tb} on condition2 where filter3
         filter4
         group by 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14"""
 
