@@ -147,29 +147,124 @@ suite("mtmv_3tb_join_test") {
         }
     }
 
-
-
-    sql """select o_orderdate, o_shippriority, o_comment, o_orderkey, ${orders_tb}.public_col as col1,
+    def sql_template = """select o_orderdate, o_shippriority, o_comment, o_orderkey, ${orders_tb}.public_col as col1,
         l_orderkey, l_partkey, l_suppkey, ${lineitem_tb}.public_col as col2,
         ps_partkey, ps_suppkey, ${partsupp_tb}.public_col as col3, ${partsupp_tb}.public_col * 2 as col4,
         o_orderkey + l_orderkey + ps_partkey * 2, 
+        sum(o_orderkey + l_orderkey + ps_partkey * 2),
         count() as count_all
-        from ${orders_tb}
-        inner join ${lineitem_tb} on ${lineitem_tb}.l_orderkey = ${orders_tb}.o_orderkey 
-        inner join ${partsupp_tb} on ${partsupp_tb}.ps_partkey = ${lineitem_tb}.l_partkey and ${partsupp_tb}.ps_suppkey = ${lineitem_tb}.l_suppkey
+        from ${orders_tb} filter1
+        jointype1 ${lineitem_tb} on condition1 filter2
+        jointype2 ${partsupp_tb} on condition2 filter3
+        filter4
         group by 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14"""
 
+
+    def generateCombinations = { int length ->
+        def combinations = []
+        int totalCombinations = (1 << length)
+        (0..<totalCombinations).each { i ->
+            def binaryString = String.format("%${length}d", Integer.parseInt(Integer.toBinaryString(i))).replace(' ', '0')
+            def cur_sql_template = sql_template
+            for (int j = 0; j < binaryString.size(); j++) {
+                if (binaryString[j] == '0') {
+                    cur_sql_template = cur_sql_template.replaceAll("filter${j+1}", "")
+                }
+            }
+            combinations << cur_sql_template
+        }
+        return combinations
+    }
+
+    def template_results = generateCombinations(4)
+    def join_list = [
+            "inner join", "left join", "right join", "full join", "left semi join", "right semi join", "left anti join", "right anti join"]
+    def join_no_on_list = ["join", "cross join"]
+    def condition1_list = [
+            "${lineitem_tb}.l_orderkey = ${orders_tb}.o_orderkey",
+            "l_orderkey = o_orderkey",
+            "${lineitem_tb}.public_col = ${orders_tb}.public_col"]
+    def condition2_list = [
+            "${partsupp_tb}.ps_partkey = ${lineitem_tb}.l_partkey and ${partsupp_tb}.ps_suppkey = ${lineitem_tb}.l_suppkey",
+            "${partsupp_tb}.ps_partkey = ${orders_tb}.o_orderkey and ${partsupp_tb}.ps_suppkey = ${orders_tb}.o_custkey",
+            "ps_partkey = l_partkey and ps_suppkey = l_suppkey",
+            "ps_partkey = o_orderkey and ps_suppkey = o_custkey",
+            "${partsupp_tb}.public_col = ${lineitem_tb}.public_col",
+            "${partsupp_tb}.public_col = ${orders_tb}.public_col"]
+    def filter1_list = [
+            "o_orderkey is null", "o_orderkey <> 1", "o_orderkey is null or o_orderkey <> 1",
+            "${orders_tb}.public_col is null", "${orders_tb}.public_col <> 1", "${orders_tb}.public_col is null or ${orders_tb}.public_col <> 1"]
+    def filter2_list = [
+            "l_orderkey is null", "l_orderkey <> 1", "l_orderkey is null or l_orderkey <> 1",
+            "${lineitem_tb}.public_col is null", "${lineitem_tb}.public_col <> 1", "${lineitem_tb}.public_col is null or ${lineitem_tb}.public_col <> 1"]
+    def filter3_list = [
+            "ps_partkey is null", "ps_partkey <> 1", "ps_partkey is null or ps_partkey <> 1",
+            "${partsupp_tb}.public_col is null", "${partsupp_tb}.public_col <> 1", "${partsupp_tb}.public_col is null or ${partsupp_tb}.public_col <> 1"]
+    def filter4_list = [
+            "o_orderkey is null", "o_orderkey <> 1", "o_orderkey is null or o_orderkey <> 1",
+            "${orders_tb}.public_col is null", "${orders_tb}.public_col <> 1", "${orders_tb}.public_col is null or ${orders_tb}.public_col <> 1",
+            "l_orderkey is null", "l_orderkey <> 1", "l_orderkey is null or l_orderkey <> 1",
+            "${lineitem_tb}.public_col is null", "${lineitem_tb}.public_col <> 1", "${lineitem_tb}.public_col is null or ${lineitem_tb}.public_col <> 1",
+            "ps_partkey is null", "ps_partkey <> 1", "ps_partkey is null or ps_partkey <> 1",
+            "${partsupp_tb}.public_col is null", "${partsupp_tb}.public_col <> 1", "${partsupp_tb}.public_col is null or ${partsupp_tb}.public_col <> 1"]
+
+    for (int template_results_it = 0; template_results_it < template_results.size(); template_results_it++) {
+        def sql_pt = template_results[template_results_it]
+
+        // join type
+        for (int join_list_1 = 0; join_list_1 < join_list.size(); join_list_1++) {
+            sql_pt = sql_pt.replaceAll("jointype1", join_list[join_list_1])
+            for (int join_list_2 = 0; join_list_2 < join_list.size(); join_list_2++) {
+                sql_pt = sql_pt.replaceAll("jointype2", join_list[join_list_2])
+
+                // on condition
+                for (int condition1_list_it = 0; condition1_list_it < condition1_list.size(); condition1_list_it ++) {
+                    sql_pt = sql_pt.replaceAll("condition1", condition1_list[condition1_list_it])
+                    for (int condition2_list_it = 0; condition2_list_it < condition2_list.size(); condition2_list_it ++) {
+                        sql_pt = sql_pt.replaceAll("condition2", condition2_list[condition2_list_it])
+
+                        // where filter condition
+                        for (int filter1_list_it = 0; filter1_list_it < filter1_list.size(); filter1_list_it++) {
+                            for (int filter2_list_it = 0; filter2_list_it < filter2_list.size(); filter2_list_it++) {
+                                for (int filter3_list_it = 0; filter3_list_it < filter3_list.size(); filter3_list_it++) {
+                                    for (int filter4_list_it = 0; filter4_list_it < filter4_list.size(); filter4_list_it++) {
+                                        sql_pt = sql_pt.replaceAll("filter1", filter1_list[filter1_list_it])
+                                                .replaceAll("filter2", filter2_list[filter2_list_it])
+                                                .replaceAll("filter3", filter3_list[filter3_list_it])
+                                                .replaceAll("filter4", filter4_list[filter4_list_it])
+                                        sql sql_pt
+
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+
+
+            }
+        }
+
+    }
+
 /*
-    """select * from
-        (select o_orderdate, o_shippriority, o_comment, o_orderkey, ${orders_tb}.public_col as col1,
+    """
+    select o_orderdate, o_shippriority, o_comment, o_orderkey, ${orders_tb}.public_col as col1,
         l_orderkey, l_partkey, l_suppkey, ${lineitem_tb}.public_col as col2,
         ps_partkey, ps_suppkey, ${partsupp_tb}.public_col as col3, ${partsupp_tb}.public_col * 2 as col4,
-        o_orderkey + l_orderkey + ps_partkey * 2,
+        sum(o_orderkey + l_orderkey + ps_partkey * 2),
+        count() as count_all
+    from
+    (select o_orderdate, o_shippriority, o_comment, o_orderkey, ${orders_tb}.public_col as col1,
+        l_orderkey, l_partkey, l_suppkey, ${lineitem_tb}.public_col as col2,
+        ps_partkey, ps_suppkey, ${partsupp_tb}.public_col as col3, ${partsupp_tb}.public_col * 2 as col4,
+        sum(o_orderkey + l_orderkey + ps_partkey * 2),
         count() as count_all
         from ${orders_tb}
-        join_type1 ${lineitem_tb} on ${lineitem_tb}.l_orderkey = ${orders_tb}.o_orderkey
-        join_type2 ${partsupp_tb} on ${partsupp_tb}.ps_partkey = ${lineitem_tb}.l_partkey and ${partsupp_tb}.ps_suppkey = ${lineitem_tb}.l_suppkey
-        ) as public_col where  public_col.
+        inner join ${lineitem_tb} on ${lineitem_tb}.l_orderkey = ${orders_tb}.o_orderkey
+        inner join ${partsupp_tb} on ${partsupp_tb}.ps_partkey = ${lineitem_tb}.l_partkey and ${partsupp_tb}.ps_suppkey = ${lineitem_tb}.l_suppkey
+        where
+        group by 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13) as public_col
 
     """
 
@@ -192,33 +287,28 @@ where:
     where o_orderkey is null
     where o_orderkey <> 1
     where o_orderkey is null or o_orderkey <> 1
-    where o_orderkey is null and o_orderkey <> 1
 
     where ${orders_tb}.public_col is null
     where ${orders_tb}.public_col <> 1
     where ${orders_tb}.public_col is null or ${orders_tb}.public_col <> 1
-    where ${orders_tb}.public_col is null and ${orders_tb}.public_col <> 1
 
     where l_orderkey is null
     where l_orderkey <> 1
     where l_orderkey is null or l_orderkey <> 1
-    where l_orderkey is null and l_orderkey <> 1
 
     where ${lineitem_tb}.public_col is null
     where ${lineitem_tb}.public_col <> 1
     where ${lineitem_tb}.public_col is null or ${lineitem_tb}.public_col <> 1
-    where ${lineitem_tb}.public_col is null and ${lineitem_tb}.public_col <> 1
 
 
     where ps_partkey is null
     where ps_partkey <> 1
     where ps_partkey is null or ps_partkey <> 1
-    where ps_partkey is null and ps_partkey <> 1
 
     where ${partsupp_tb}.public_col is null
     where ${partsupp_tb}.public_col <> 1
     where ${partsupp_tb}.public_col is null or ${partsupp_tb}.public_col <> 1
-    where ${partsupp_tb}.public_col is null and ${partsupp_tb}.public_col <> 1
+
 
 on:
 
