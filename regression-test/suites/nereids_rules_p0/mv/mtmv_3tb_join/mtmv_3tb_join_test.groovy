@@ -254,7 +254,7 @@ suite("mtmv_3tb_join_test") {
                                 sql_pt = sql_pt.replaceAll("filter4", filter4_list[filter4_list_it])
                             }
                         }
-                        println(sql_pt)
+                        sql sql_pt
 
                     }
                 }
