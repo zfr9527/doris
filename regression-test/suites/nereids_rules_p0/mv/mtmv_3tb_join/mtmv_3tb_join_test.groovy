@@ -35,7 +35,7 @@ suite("mtmv_3tb_join_test") {
       `o_shippriority` INT NULL,
       `o_comment` VARCHAR(79) NULL,
       `o_orderdate` DATE not NULL,
-      `o_orderdate` INT NULL
+      `public_col` INT NULL
     ) ENGINE=OLAP
     DUPLICATE KEY(`o_orderkey`, `o_custkey`)
     COMMENT 'OLAP'
@@ -145,7 +145,7 @@ suite("mtmv_3tb_join_test") {
     sql """alter table ${orders_tb} modify column o_shippriority set stats ('row_count'='100');"""
     sql """alter table ${orders_tb} modify column o_comment set stats ('row_count'='100');"""
     sql """alter table ${orders_tb} modify column o_orderdate set stats ('row_count'='100');"""
-    sql """alter table ${orders_tb} modify column o_orderdate set stats ('row_count'='100');"""
+    sql """alter table ${orders_tb} modify column public_col set stats ('row_count'='100');"""
 
 
     sql """alter table ${lineitem_tb} modify column l_orderkey set stats ('row_count'='100');"""
