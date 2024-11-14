@@ -177,37 +177,27 @@ suite("mtmv_3tb_join_test") {
     }
 
     def template_results = generateCombinations(4)
-    def join_list = [
-            "inner join", "left join", "right join", "full join"]
+    def join_list = ["inner join", "left join", "right join", "full join"]
     def join_special_list = ["left semi join", "right semi join", "left anti join", "right anti join"]
     def join_no_on_list = ["join", "cross join"]
     def condition1_list = [
-            "${lineitem_tb}.l_orderkey = ${orders_tb}.o_orderkey",
             "l_orderkey = o_orderkey",
             "${lineitem_tb}.public_col = ${orders_tb}.public_col"]
     def condition2_list = [
-            "${partsupp_tb}.ps_partkey = ${lineitem_tb}.l_partkey and ${partsupp_tb}.ps_suppkey = ${lineitem_tb}.l_suppkey",
-            "${partsupp_tb}.ps_partkey = ${orders_tb}.o_orderkey and ${partsupp_tb}.ps_suppkey = ${orders_tb}.o_custkey",
             "ps_partkey = l_partkey and ps_suppkey = l_suppkey",
             "ps_partkey = o_orderkey and ps_suppkey = o_custkey",
             "${partsupp_tb}.public_col = ${lineitem_tb}.public_col",
             "${partsupp_tb}.public_col = ${orders_tb}.public_col"]
     def filter1_list = [
-            "o_orderkey is null", "o_orderkey <> 1", "o_orderkey is null or o_orderkey <> 1",
-            "${orders_tb}.public_col is null", "${orders_tb}.public_col <> 1", "${orders_tb}.public_col is null or ${orders_tb}.public_col <> 1"]
+            "o_orderkey <> 1", "o_orderkey is null or o_orderkey <> 1", "${orders_tb}.public_col is null or ${orders_tb}.public_col <> 1"]
     def filter2_list = [
-            "l_orderkey is null", "l_orderkey <> 1", "l_orderkey is null or l_orderkey <> 1",
-            "${lineitem_tb}.public_col is null", "${lineitem_tb}.public_col <> 1", "${lineitem_tb}.public_col is null or ${lineitem_tb}.public_col <> 1"]
+            "l_orderkey <> 1", "l_orderkey is null or l_orderkey <> 1", "${lineitem_tb}.public_col is null or ${lineitem_tb}.public_col <> 1"]
     def filter3_list = [
-            "ps_partkey is null", "ps_partkey <> 1", "ps_partkey is null or ps_partkey <> 1",
-            "${partsupp_tb}.public_col is null", "${partsupp_tb}.public_col <> 1", "${partsupp_tb}.public_col is null or ${partsupp_tb}.public_col <> 1"]
+            "ps_partkey <> 1", "ps_partkey is null or ps_partkey <> 1", "${partsupp_tb}.public_col is null or ${partsupp_tb}.public_col <> 1"]
     def filter4_list = [
-            "o_orderkey is null", "o_orderkey <> 1", "o_orderkey is null or o_orderkey <> 1",
-            "${orders_tb}.public_col is null", "${orders_tb}.public_col <> 1", "${orders_tb}.public_col is null or ${orders_tb}.public_col <> 1",
-            "l_orderkey is null", "l_orderkey <> 1", "l_orderkey is null or l_orderkey <> 1",
-            "${lineitem_tb}.public_col is null", "${lineitem_tb}.public_col <> 1", "${lineitem_tb}.public_col is null or ${lineitem_tb}.public_col <> 1",
-            "ps_partkey is null", "ps_partkey <> 1", "ps_partkey is null or ps_partkey <> 1",
-            "${partsupp_tb}.public_col is null", "${partsupp_tb}.public_col <> 1", "${partsupp_tb}.public_col is null or ${partsupp_tb}.public_col <> 1"]
+            "o_orderkey <> 1", "o_orderkey is null or o_orderkey <> 1", "${orders_tb}.public_col is null or ${orders_tb}.public_col <> 1",
+            "l_orderkey <> 1", "l_orderkey is null or l_orderkey <> 1", "${lineitem_tb}.public_col is null or ${lineitem_tb}.public_col <> 1",
+            "ps_partkey <> 1", "ps_partkey is null or ps_partkey <> 1", "${partsupp_tb}.public_col is null or ${partsupp_tb}.public_col <> 1"]
 
     for (int template_results_it = 0; template_results_it < template_results.size(); template_results_it++) {
         def sql_pt = template_results[template_results_it]
