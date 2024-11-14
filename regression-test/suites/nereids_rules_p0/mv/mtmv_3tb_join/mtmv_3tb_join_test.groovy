@@ -149,8 +149,8 @@ suite("mtmv_3tb_join_test") {
         o_orderkey + l_orderkey + ps_partkey * 2, 
         count() as count_all
         from ${orders_tb}
-        join_type1 ${lineitem_tb} on ${lineitem_tb}.l_orderkey = ${orders_tb}.o_orderkey 
-        join_type2 ${partsupp_tb} on ${partsupp_tb}.ps_partkey = ${lineitem_tb}.l_partkey and ${partsupp_tb}.ps_suppkey = ${lineitem_tb}.l_suppkey
+        inner join ${lineitem_tb} on ${lineitem_tb}.l_orderkey = ${orders_tb}.o_orderkey 
+        inner join ${partsupp_tb} on ${partsupp_tb}.ps_partkey = ${lineitem_tb}.l_partkey and ${partsupp_tb}.ps_suppkey = ${lineitem_tb}.l_suppkey
         group by 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14 """
 
 /*
