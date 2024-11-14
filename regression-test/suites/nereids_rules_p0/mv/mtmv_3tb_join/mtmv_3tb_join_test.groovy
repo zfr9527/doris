@@ -192,13 +192,13 @@ suite("mtmv_3tb_join_test") {
         }
     }
 
-    def sql_template = """select o_orderdate, o_shippriority, o_comment, o_orderkey, ${orders_tb}.public_col as col1,
+    def sql_template = """select o_custkey, o_orderdate, o_shippriority, o_comment, o_orderkey, ${orders_tb}.public_col as col1,
         l_orderkey, l_partkey, l_suppkey, ${lineitem_tb}.public_col as col2,
         ps_partkey, ps_suppkey, ${partsupp_tb}.public_col as col3, ${partsupp_tb}.public_col * 2 as col4,
         o_orderkey + l_orderkey + ps_partkey * 2, 
         sum(o_orderkey + l_orderkey + ps_partkey * 2),
         count() as count_all
-        from (select o_orderdate, o_shippriority, o_comment, o_orderkey, ${orders_tb}.public_col as public_col from ${orders_tb} filter1) ${orders_tb} 
+        from (select o_custkey, o_orderdate, o_shippriority, o_comment, o_orderkey, ${orders_tb}.public_col as public_col from ${orders_tb} filter1) ${orders_tb} 
         jointype1 (select l_orderkey, l_partkey, l_suppkey, ${lineitem_tb}.public_col as public_col from ${lineitem_tb} filter2) ${lineitem_tb} on condition1 
         jointype2 (select ps_partkey, ps_suppkey, ${partsupp_tb}.public_col as public_col from ${partsupp_tb} filter3) ${partsupp_tb} on condition2 
         filter4
