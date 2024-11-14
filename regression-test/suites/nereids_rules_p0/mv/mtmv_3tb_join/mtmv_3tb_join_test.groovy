@@ -213,19 +213,19 @@ suite("mtmv_3tb_join_test") {
 
         // join type
         for (int join_list_1 = 0; join_list_1 < join_list.size(); join_list_1++) {
-            sql_pt = sql_pt.replaceAll("jointype1", join_list[join_list_1])
+            def sql_pt1 = sql_pt.replaceAll("jointype1", join_list[join_list_1])
             for (int join_list_2 = 0; join_list_2 < join_list.size(); join_list_2++) {
-                sql_pt = sql_pt.replaceAll("jointype2", join_list[join_list_2])
+                def sql_pt2 = sql_pt1.replaceAll("jointype2", join_list[join_list_2])
 
                 // on condition
                 for (int condition1_list_it = 0; condition1_list_it < condition1_list.size(); condition1_list_it ++) {
-                    sql_pt = sql_pt.replaceAll("condition1", condition1_list[condition1_list_it])
+                    def sql_pt3 = sql_pt2.replaceAll("condition1", condition1_list[condition1_list_it])
                     for (int condition2_list_it = 0; condition2_list_it < condition2_list.size(); condition2_list_it ++) {
-                        sql_pt = sql_pt.replaceAll("condition2", condition2_list[condition2_list_it])
+                        def sql_pt4 = sql_pt3.replaceAll("condition2", condition2_list[condition2_list_it])
 
                         // where filter condition
                         def sql_queue = new LinkedList()
-                        sql_queue.add(sql_pt)
+                        sql_queue.add(sql_pt4)
                         if (sql_pt.toString().indexOf("filter1") != -1) {
                             def sz = sql_queue.size()
                             for (int z = 0; z < sz; z++) {
