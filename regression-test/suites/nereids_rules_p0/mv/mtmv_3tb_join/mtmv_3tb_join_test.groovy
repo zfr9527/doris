@@ -225,22 +225,39 @@ suite("mtmv_3tb_join_test") {
 
                         // where filter condition
                         for (int filter1_list_it = 0; filter1_list_it < filter1_list.size(); filter1_list_it++) {
-                            for (int filter2_list_it = 0; filter2_list_it < filter2_list.size(); filter2_list_it++) {
-                                for (int filter3_list_it = 0; filter3_list_it < filter3_list.size(); filter3_list_it++) {
-                                    for (int filter4_list_it = 0; filter4_list_it < filter4_list.size(); filter4_list_it++) {
-                                        sql_pt = sql_pt.replaceAll("filter1", filter1_list[filter1_list_it])
-                                                .replaceAll("filter2", filter2_list[filter2_list_it])
-                                                .replaceAll("filter3", filter3_list[filter3_list_it])
-                                                .replaceAll("filter4", filter4_list[filter4_list_it])
-                                        sql sql_pt
+                            if (sql_pt.toString().indexOf("filter1") == -1) {
+                                continue
+                            } else {
+                                sql_pt = sql_pt.replaceAll("filter1", filter1_list[filter1_list_it])
+                            }
 
-                                    }
-                                }
+                        }
+                        for (int filter2_list_it = 0; filter2_list_it < filter2_list.size(); filter2_list_it++) {
+                            if (sql_pt.toString().indexOf("filter2") == -1) {
+                                continue
+                            } else {
+                                sql_pt = sql_pt.replaceAll("filter2", filter2_list[filter2_list_it])
+                            }
+
+                        }
+                        for (int filter3_list_it = 0; filter3_list_it < filter3_list.size(); filter3_list_it++) {
+                            if (sql_pt.toString().indexOf("filter3") == -1) {
+                                continue
+                            } else {
+                                sql_pt = sql_pt.replaceAll("filter3", filter3_list[filter3_list_it])
                             }
                         }
+                        for (int filter4_list_it = 0; filter4_list_it < filter4_list.size(); filter4_list_it++) {
+                            if (sql_pt.toString().indexOf("filter4") == -1) {
+                                continue
+                            } else {
+                                sql_pt = sql_pt.replaceAll("filter4", filter4_list[filter4_list_it])
+                            }
+                        }
+                        println(sql_pt)
+
                     }
                 }
-
 
             }
         }
