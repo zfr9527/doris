@@ -202,6 +202,7 @@ suite("mtmv_3tb_join_test") {
             "l_orderkey <> 1", "l_orderkey is null or l_orderkey <> 1", "${lineitem_tb}.public_col is null or ${lineitem_tb}.public_col <> 1",
             "ps_partkey <> 1", "ps_partkey is null or ps_partkey <> 1", "${partsupp_tb}.public_col is null or ${partsupp_tb}.public_col <> 1"]
 
+    def count = 0
     for (int template_results_it = 0; template_results_it < template_results.size(); template_results_it++) {
         def sql_pt = template_results[template_results_it]
 
@@ -260,6 +261,8 @@ suite("mtmv_3tb_join_test") {
                         sql_queue.each { item ->
                             def res = sql item
                             assertTrue(res.size() > 0)
+                            count ++
+                            logger.info("count: " + count)
                         }
 
                     }
