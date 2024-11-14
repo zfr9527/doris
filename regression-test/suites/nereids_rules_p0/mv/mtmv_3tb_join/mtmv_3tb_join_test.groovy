@@ -180,9 +180,7 @@ suite("mtmv_3tb_join_test") {
     def join_list = ["inner join", "left join", "right join", "full join"]
     def join_special_list = ["left semi join", "right semi join", "left anti join", "right anti join"]
     def join_no_on_list = ["join", "cross join"]
-    def condition1_list = [
-            "l_orderkey = o_orderkey",
-            "${lineitem_tb}.public_col = ${orders_tb}.public_col"]
+    def condition1_list = ["l_orderkey = o_orderkey", "${lineitem_tb}.public_col = ${orders_tb}.public_col"]
     def condition2_list = [
             "ps_partkey = l_partkey and ps_suppkey = l_suppkey",
             "ps_partkey = o_orderkey and ps_suppkey = o_custkey",
