@@ -224,37 +224,48 @@ suite("mtmv_3tb_join_test") {
                         sql_pt = sql_pt.replaceAll("condition2", condition2_list[condition2_list_it])
 
                         // where filter condition
-                        for (int filter1_list_it = 0; filter1_list_it < filter1_list.size(); filter1_list_it++) {
-                            if (sql_pt.toString().indexOf("filter1") == -1) {
-                                continue
-                            } else {
-                                sql_pt = sql_pt.replaceAll("filter1", "where " + filter1_list[filter1_list_it])
+                        def sql_queue = new LinkedList()
+                        sql_queue.add(sql_pt)
+                        if (sql_pt.toString().indexOf("filter1") != -1) {
+                            def sz = sql_queue.size()
+                            for (int z = 0; z < sz; z++) {
+                                def cur_sql = sql_queue.poll()
+                                for (int filter1_list_it = 0; filter1_list_it < filter1_list.size(); filter1_list_it++) {
+                                    sql_queue.add(cur_sql.replaceAll("filter1", "where " + filter1_list[filter1_list_it]))
+                                }
                             }
+                        }
+                        if (sql_pt.toString().indexOf("filter2") != -1) {
+                            def sz = sql_queue.size()
+                            for (int z = 0; z < sz; z++) {
+                                def cur_sql = sql_queue.poll()
+                                for (int filter2_list_it = 0; filter2_list_it < filter2_list.size(); filter2_list_it++) {
+                                    sql_queue.add(cur_sql.replaceAll("filter2", "where " + filter2_list[filter2_list_it]))
+                                }
+                            }
+                        }
+                        if (sql_pt.toString().indexOf("filter3") != -1) {
+                            def sz = sql_queue.size()
+                            for (int z = 0; z < sz; z++) {
+                                def cur_sql = sql_queue.poll()
+                                for (int filter3_list_it = 0; filter3_list_it < filter3_list.size(); filter3_list_it++) {
+                                    sql_queue.add(cur_sql.replaceAll("filter3", "where " + filter3_list[filter3_list_it]))
+                                }
+                            }
+                        }
+                        if (sql_pt.toString().indexOf("filter4") == -1) {
+                            def sz = sql_queue.size()
+                            for (int z = 0; z < sz; z++) {
+                                def cur_sql = sql_queue.poll()
+                                for (int filter4_list_it = 0; filter4_list_it < filter4_list.size(); filter4_list_it++) {
+                                    sql_queue.add(cur_sql.replaceAll("filter4", "where " + filter4_list[filter4_list_it]))
+                                }
+                            }
+                        }
 
+                        sql_queue.each { item ->
+                            println item
                         }
-                        for (int filter2_list_it = 0; filter2_list_it < filter2_list.size(); filter2_list_it++) {
-                            if (sql_pt.toString().indexOf("filter2") == -1) {
-                                continue
-                            } else {
-                                sql_pt = sql_pt.replaceAll("filter2", "where " + filter2_list[filter2_list_it])
-                            }
-
-                        }
-                        for (int filter3_list_it = 0; filter3_list_it < filter3_list.size(); filter3_list_it++) {
-                            if (sql_pt.toString().indexOf("filter3") == -1) {
-                                continue
-                            } else {
-                                sql_pt = sql_pt.replaceAll("filter3", "where " + filter3_list[filter3_list_it])
-                            }
-                        }
-                        for (int filter4_list_it = 0; filter4_list_it < filter4_list.size(); filter4_list_it++) {
-                            if (sql_pt.toString().indexOf("filter4") == -1) {
-                                continue
-                            } else {
-                                sql_pt = sql_pt.replaceAll("filter4", "where " + filter4_list[filter4_list_it])
-                            }
-                        }
-                        sql sql_pt
 
                     }
                 }
