@@ -264,7 +264,7 @@ suite("mtmv_3tb_join_test") {
                         }
 
                         sql_queue.each { item ->
-                            println item
+                            sql item
                         }
 
                     }
