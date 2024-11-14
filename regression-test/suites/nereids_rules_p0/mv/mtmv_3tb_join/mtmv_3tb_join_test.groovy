@@ -253,7 +253,8 @@ suite("mtmv_3tb_join_test") {
                         }
 
                         sql_queue.each { item ->
-                            sql item
+                            def res = sql item
+                            assertTrue(res.size() > 0)
                         }
 
                     }
