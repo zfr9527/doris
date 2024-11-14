@@ -35,7 +35,7 @@ suite("mtmv_3tb_join_test") {
       `o_shippriority` INT NULL,
       `o_comment` VARCHAR(79) NULL,
       `o_orderdate` DATE not NULL,
-      `public_col` INT NULL
+      `o_orderdate` INT NULL
     ) ENGINE=OLAP
     DUPLICATE KEY(`o_orderkey`, `o_custkey`)
     COMMENT 'OLAP'
@@ -135,6 +135,46 @@ suite("mtmv_3tb_join_test") {
     (3, null, 1, 99.5, 'yy', 3),
     (3, null, 1, 99.5, 'yy', null); 
     """
+
+    sql """alter table ${orders_tb} modify column o_orderkey set stats ('row_count'='100');"""
+    sql """alter table ${orders_tb} modify column o_custkey set stats ('row_count'='100');"""
+    sql """alter table ${orders_tb} modify column o_orderstatus set stats ('row_count'='100');"""
+    sql """alter table ${orders_tb} modify column o_totalprice set stats ('row_count'='100');"""
+    sql """alter table ${orders_tb} modify column o_orderpriority set stats ('row_count'='100');"""
+    sql """alter table ${orders_tb} modify column o_clerk set stats ('row_count'='100');"""
+    sql """alter table ${orders_tb} modify column o_shippriority set stats ('row_count'='100');"""
+    sql """alter table ${orders_tb} modify column o_comment set stats ('row_count'='100');"""
+    sql """alter table ${orders_tb} modify column o_orderdate set stats ('row_count'='100');"""
+    sql """alter table ${orders_tb} modify column o_orderdate set stats ('row_count'='100');"""
+
+
+    sql """alter table ${lineitem_tb} modify column l_orderkey set stats ('row_count'='100');"""
+    sql """alter table ${lineitem_tb} modify column l_linenumber set stats ('row_count'='100');"""
+    sql """alter table ${lineitem_tb} modify column l_partkey set stats ('row_count'='100');"""
+    sql """alter table ${lineitem_tb} modify column l_suppkey set stats ('row_count'='100');"""
+    sql """alter table ${lineitem_tb} modify column l_quantity set stats ('row_count'='100');"""
+    sql """alter table ${lineitem_tb} modify column l_extendedprice set stats ('row_count'='100');"""
+    sql """alter table ${lineitem_tb} modify column l_discount set stats ('row_count'='100');"""
+    sql """alter table ${lineitem_tb} modify column l_tax set stats ('row_count'='100');"""
+    sql """alter table ${lineitem_tb} modify column l_returnflag set stats ('row_count'='100');"""
+    sql """alter table ${lineitem_tb} modify column l_linestatus set stats ('row_count'='100');"""
+    sql """alter table ${lineitem_tb} modify column l_commitdate set stats ('row_count'='100');"""
+    sql """alter table ${lineitem_tb} modify column l_receiptdate set stats ('row_count'='100');"""
+    sql """alter table ${lineitem_tb} modify column l_shipinstruct set stats ('row_count'='100');"""
+    sql """alter table ${lineitem_tb} modify column l_shipmode set stats ('row_count'='100');"""
+    sql """alter table ${lineitem_tb} modify column l_comment set stats ('row_count'='100');"""
+    sql """alter table ${lineitem_tb} modify column l_shipdate set stats ('row_count'='100');"""
+    sql """alter table ${lineitem_tb} modify column public_col set stats ('row_count'='100');"""
+
+
+    sql """alter table ${partsupp_tb} modify column ps_partkey set stats ('row_count'='100');"""
+    sql """alter table ${partsupp_tb} modify column ps_suppkey set stats ('row_count'='100');"""
+    sql """alter table ${partsupp_tb} modify column ps_availqty set stats ('row_count'='100');"""
+    sql """alter table ${partsupp_tb} modify column ps_supplycost set stats ('row_count'='100');"""
+    sql """alter table ${partsupp_tb} modify column ps_comment set stats ('row_count'='100');"""
+    sql """alter table ${partsupp_tb} modify column public_col set stats ('row_count'='100');"""
+
+
 
     def compare_res = { def stmt ->
         sql "SET enable_materialized_view_rewrite=false"
