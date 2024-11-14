@@ -158,7 +158,7 @@ suite("mtmv_3tb_join_test") {
         o_orderkey + l_orderkey + ps_partkey * 2, 
         sum(o_orderkey + l_orderkey + ps_partkey * 2),
         count() as count_all
-        from ${orders_tb} filter1
+        from (select o_orderdate, o_shippriority, o_comment, o_orderkey, ${orders_tb}.public_col as public_col from ${orders_tb} filter1) ${orders_tb} 
         jointype1 (select l_orderkey, l_partkey, l_suppkey, ${lineitem_tb}.public_col as public_col from ${lineitem_tb} filter2) ${lineitem_tb} on condition1 
         jointype2 (select ps_partkey, ps_suppkey, ${partsupp_tb}.public_col as public_col from ${partsupp_tb} filter3) ${partsupp_tb} on condition2 
         filter4
@@ -204,6 +204,7 @@ suite("mtmv_3tb_join_test") {
 
     def count = 0
     for (int template_results_it = 0; template_results_it < template_results.size(); template_results_it++) {
+        logger.info("template_results_it:" + template_results_it)
         def sql_pt = template_results[template_results_it]
 
         // join type
