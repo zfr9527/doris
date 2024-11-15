@@ -16,6 +16,8 @@
 // under the License.
 
 suite("mtmv_3tb_join_test") {
+    sql """set enable_nereids_distribute_planner=false;"""
+
     String db = context.config.getDbNameByFile(context.file)
     def orders_tb = "orders"
     def lineitem_tb = "lineitem"
