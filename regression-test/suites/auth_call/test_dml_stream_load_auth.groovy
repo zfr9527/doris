@@ -59,32 +59,77 @@ suite("test_dml_stream_load_auth","p0,auth_call") {
 
     def path_file = "${context.file.parent}/../../data/auth_call/stream_load_data.csv"
     def load_path = "${context.file.parent}/../../data/auth_call/stream_load_cm.sh"
-    def cm = """curl --location-trusted -u ${user}:${pwd} -H "column_separator:," -T ${path_file} http://${sql_ip}:${http_port}/api/${dbName}/${tableName}/_stream_load"""
-    logger.info("cm: " + cm)
-    write_to_file(load_path, cm)
-    cm = "bash " + load_path
-    logger.info("cm:" + cm)
 
 
-    def proc = cm.execute()
-    def sout = new StringBuilder(), serr = new StringBuilder()
-    proc.consumeProcessOutput(sout, serr)
-    proc.waitForOrKill(7200000)
-    logger.info("std out: " + sout + "std err: " + serr)
-    assertTrue(sout.toString().indexOf("FAILED") != -1)
-    assertTrue(sout.toString().indexOf("denied") != -1)
+    connect(user = user, password = "${pwd}", url = context.config.jdbcUrl) {
+        streamLoad {
+            table """${dbName}.${tableName}"""
+            set 'column_separator', ','
+            file path_file
+            time 10000 // limit inflight 10s
+            // stream load action will check result, include Success status, and NumberTotalRows == NumberLoadedRows
+
+            check { result, exception, startTime, endTime ->
+                if (exception != null) {
+                    throw exception
+                }
+                log.info("Stream load result: ${result}".toString())
+                def json = parseJson(result)
+                assertEquals(200, json.NumberTotalRows)
+                assertEquals(200, json.NumberLoadedRows)
+            }
+        }
+    }
+
+//    def cm = """curl --location-trusted -u ${user}:${pwd} -H "column_separator:," -T ${path_file} http://${sql_ip}:${http_port}/api/${dbName}/${tableName}/_stream_load"""
+//    logger.info("cm: " + cm)
+//    write_to_file(load_path, cm)
+//    cm = "bash " + load_path
+//    logger.info("cm:" + cm)
+//
+//
+//    def proc = cm.execute()
+//    def sout = new StringBuilder(), serr = new StringBuilder()
+//    proc.consumeProcessOutput(sout, serr)
+//    proc.waitForOrKill(7200000)
+//    logger.info("std out: " + sout + "std err: " + serr)
+//    assertTrue(sout.toString().indexOf("FAILED") != -1)
+//    assertTrue(sout.toString().indexOf("denied") != -1)
 
 
     sql """grant load_priv on ${dbName}.${tableName} to ${user}"""
 
-    proc = cm.execute()
-    sout = new StringBuilder()
-    serr = new StringBuilder()
-    proc.consumeProcessOutput(sout, serr)
-    proc.waitForOrKill(7200000)
-    logger.info("std out: " + sout + "std err: " + serr)
-    assertTrue(sout.toString().indexOf("Success") != -1)
 
+    connect(user = user, password = "${pwd}", url = context.config.jdbcUrl) {
+        streamLoad {
+            table """${dbName}.${tableName}"""
+            set 'column_separator', ','
+            file path_file
+            time 10000 // limit inflight 10s
+            // stream load action will check result, include Success status, and NumberTotalRows == NumberLoadedRows
+
+            check { result, exception, startTime, endTime ->
+                if (exception != null) {
+                    throw exception
+                }
+                log.info("Stream load result: ${result}".toString())
+                def json = parseJson(result)
+                assertEquals(200, json.NumberTotalRows)
+                assertEquals(200, json.NumberLoadedRows)
+            }
+        }
+    }
+
+//    proc = cm.execute()
+//    sout = new StringBuilder()
+//    serr = new StringBuilder()
+//    proc.consumeProcessOutput(sout, serr)
+//    proc.waitForOrKill(7200000)
+//    logger.info("std out: " + sout + "std err: " + serr)
+//    assertTrue(sout.toString().indexOf("Success") != -1)
+
+
+    /*
     int pos1 = sout.indexOf("TxnId")
     int pos2 = sout.indexOf(",", pos1)
     int pos3 = sout.indexOf(":", pos1)
@@ -112,4 +157,6 @@ suite("test_dml_stream_load_auth","p0,auth_call") {
 
     sql """drop database if exists ${dbName}"""
     try_sql("DROP USER ${user}")
+
+     */
 }
