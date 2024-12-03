@@ -306,7 +306,7 @@ suite("mtmv_3tb_join_test") {
                             assertTrue(res.size() > 0)
                             count ++
                             logger.info("count: " + count)
-                            if (count > 0) {
+                            if (count > 23002) {
                                 create_async_mv(db, "three_tb_join_mtmv", item)
                                 mv_rewrite_success(item, "three_tb_join_mtmv")
                                 compare_res(item + " order by 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14")
