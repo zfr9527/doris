@@ -65,8 +65,13 @@ suite("test_random_upgrade_downgrade_prepare_auth","p0,auth,restart_fe") {
     sql """grant DROP_PRIV on ${dbName}.${tableName1} to ${user1}"""
     sql """grant DROP_PRIV on ${dbName} to ${user1}"""
 
+    connect(user1, "${pwd}", context.config.jdbcUrl) {
+        def grants_res = sql """show grants;"""
+        assertTrue(grants_res[0][4] == """internal.default_cluster:information_schema: Select_priv  (false); internal.default_cluster:regression_test: Select_priv  (false); internal.default_cluster:test_auth_up_down_db: Select_priv Load_priv Alter_priv Create_priv Drop_priv  (false)""")
+        assertTrue(grants_res[0][5] == """internal.default_cluster:test_auth_up_down_db.test_auth_up_down_table1: Select_priv Load_priv Alter_priv Create_priv Drop_priv  (false); test_auth_up_down_db.default_cluster:test_auth_up_down_table1.id: Select_priv Load_priv Alter_priv Create_priv Drop_priv  (false)""")
+    }
 
-    /*
+
     sql """revoke select_priv on ${dbName}.${tableName1}.id from ${user1}"""
     sql """revoke select_priv on ${dbName}.${tableName1} from ${user1}"""
     sql """revoke select_priv on ${dbName} from ${user1}"""
@@ -82,9 +87,11 @@ suite("test_random_upgrade_downgrade_prepare_auth","p0,auth,restart_fe") {
     sql """revoke DROP_PRIV on ${dbName}.${tableName1}.id from ${user1}"""
     sql """revoke DROP_PRIV on ${dbName}.${tableName1} from ${user1}"""
     sql """revoke DROP_PRIV on ${dbName} from ${user1}"""
-
-
-     */
+    connect(user1, "${pwd}", context.config.jdbcUrl) {
+        def grants_res = sql """show grants;"""
+        assertTrue(grants_res[0][4] == """internal.default_cluster:information_schema: Select_priv  (false); internal.default_cluster:regression_test: Select_priv  (false)""")
+        assertTrue(grants_res[0][5] == """NULL""")
+    }
 
 
 }
