@@ -102,7 +102,38 @@ suite("test_random_upgrade_downgrade_compatibility_auth","p0,auth,restart_fe") {
     if (version_no_1) {
         sql """grant '${role1}' to '${user1}'"""
 
+        sql """grant select_priv on ${dbName}.${tableName1}.id to ROLE ${role1}"""
+        sql """grant select_priv on ${dbName}.${tableName1} to ROLE ${role1}"""
+        sql """grant select_priv on ${dbName} to ROLE ${role1}"""
+        sql """grant LOAD_PRIV on ${dbName}.${tableName1}.id to ROLE ${role1}"""
+        sql """grant LOAD_PRIV on ${dbName}.${tableName1} to ROLE ${role1}"""
+        sql """grant LOAD_PRIV on ${dbName} to ROLE ${role1}"""
+        sql """grant ALTER_PRIV on ${dbName}.${tableName1}.id to ROLE ${role1}"""
+        sql """grant ALTER_PRIV on ${dbName}.${tableName1} to ROLE ${role1}"""
+        sql """grant ALTER_PRIV on ${dbName} to ROLE ${role1}"""
+        sql """grant CREATE_PRIV on ${dbName}.${tableName1}.id to ROLE ${role1}"""
+        sql """grant CREATE_PRIV on ${dbName}.${tableName1} to ROLE ${role1}"""
+        sql """grant CREATE_PRIV on ${dbName} to ROLE ${role1}"""
+        sql """grant DROP_PRIV on ${dbName}.${tableName1}.id to ROLE ${role1}"""
+        sql """grant DROP_PRIV on ${dbName}.${tableName1} to ROLE ${role1}"""
+        sql """grant DROP_PRIV on ${dbName} to ROLE ${role1}"""
+        sql """grant SHOW_VIEW_PRIV on ${dbName}.${tableName1}.id to ROLE ${role1}"""
+        sql """grant SHOW_VIEW_PRIV on ${dbName}.${tableName1} to ROLE ${role1}"""
+        sql """grant SHOW_VIEW_PRIV on ${dbName} to ROLE ${role1}"""
+
+
+//        connect(user1, "${pwd}", context.config.jdbcUrl) {
+//            def grants_res = sql """show grants;"""
+//
+//            assertTrue(grants_res[0][4] == """internal.default_cluster:information_schema: Select_priv  (false); internal.default_cluster:regression_test: Select_priv  (false); internal.default_cluster:test_auth_up_down_db: Select_priv Load_priv Alter_priv Create_priv Drop_priv  (false)""")
+//            assertTrue(grants_res[0][5] == """internal.default_cluster:test_auth_up_down_db.test_auth_up_down_table1: Select_priv Load_priv Alter_priv Create_priv Drop_priv  (false); test_auth_up_down_db.default_cluster:test_auth_up_down_table1.id: Select_priv Load_priv Alter_priv Create_priv Drop_priv  (false)""")
+//
+//
+//        }
     }
 
 
+
+
+    如何检测远程机器上文件是否存在
 }
