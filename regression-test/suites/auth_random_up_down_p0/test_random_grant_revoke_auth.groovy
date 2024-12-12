@@ -34,26 +34,6 @@ suite("test_random_upgrade_downgrade_compatibility_auth","p0,auth,restart_fe") {
     // catalog/database/table/column
     // SELECT_PRIV/LOAD_PRIV/ALTER_PRIV/CREATE_PRIV/DROP_PRIV/SHOW_VIEW_PRIV
 
-    try_sql("DROP USER ${user1}")
-    try_sql("DROP role ${role1}")
-    sql """CREATE USER '${user1}' IDENTIFIED BY '${pwd}'"""
-    sql """grant select_priv on regression_test to ${user1}"""
-    sql """CREATE ROLE ${role1}"""
-
-    try_sql """drop table if exists ${dbName}.${tableName1}"""
-    sql """drop database if exists ${dbName}"""
-    sql """create database ${dbName}"""
-    sql """
-        CREATE TABLE IF NOT EXISTS ${dbName}.`${tableName1}` (
-            id BIGINT,
-            username VARCHAR(20)
-        )
-        DISTRIBUTED BY HASH(id) BUCKETS 2
-        PROPERTIES (
-            "replication_allocation" = "tag.location.default: 1"
-        );
-        """
-
     sql """grant select_priv on ${dbName}.${tableName1}.id to ${user1}"""
     sql """grant select_priv on ${dbName}.${tableName1} to ${user1}"""
     sql """grant select_priv on ${dbName} to ${user1}"""
