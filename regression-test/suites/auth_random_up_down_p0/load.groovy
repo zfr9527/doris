@@ -29,7 +29,65 @@ suite("test_random_upgrade_downgrade_prepare_auth","p0,auth,restart_fe") {
     // catalog/database/table/column
     // SELECT_PRIV/LOAD_PRIV/ALTER_PRIV/CREATE_PRIV/DROP_PRIV/SHOW_VIEW_PRIV
 
+    try_sql("DROP USER ${user1}")
+    try_sql("DROP role ${role1}")
+    sql """CREATE USER '${user1}' IDENTIFIED BY '${pwd}'"""
+    sql """grant select_priv on regression_test to ${user1}"""
+    sql """CREATE ROLE ${role1}"""
 
+    try_sql """drop table if exists ${dbName}.${tableName1}"""
+    sql """drop database if exists ${dbName}"""
+    sql """create database ${dbName}"""
+    sql """
+        CREATE TABLE IF NOT EXISTS ${dbName}.`${tableName1}` (
+            id BIGINT,
+            username VARCHAR(20)
+        )
+        DISTRIBUTED BY HASH(id) BUCKETS 2
+        PROPERTIES (
+            "replication_allocation" = "tag.location.default: 1"
+        );
+        """
 
+    sql """grant select_priv on ${dbName}.${tableName1}.id to ${user1}"""
+    sql """grant select_priv on ${dbName}.${tableName1} to ${user1}"""
+    sql """grant select_priv on ${dbName} to ${user1}"""
+    sql """revoke select_priv on ${dbName}.${tableName1}.id from ${user1}"""
+    sql """revoke select_priv on ${dbName}.${tableName1} from ${user1}"""
+    sql """revoke select_priv on ${dbName} from ${user1}"""
 
+    sql """grant LOAD_PRIV on ${dbName}.${tableName1}.id to ${user1}"""
+    sql """grant LOAD_PRIV on ${dbName}.${tableName1} to ${user1}"""
+    sql """grant LOAD_PRIV on ${dbName} to ${user1}"""
+    sql """revoke LOAD_PRIV on ${dbName}.${tableName1}.id from ${user1}"""
+    sql """revoke LOAD_PRIV on ${dbName}.${tableName1} from ${user1}"""
+    sql """revoke LOAD_PRIV on ${dbName} from ${user1}"""
+
+    sql """grant ALTER_PRIV on ${dbName}.${tableName1}.id to ${user1}"""
+    sql """grant ALTER_PRIV on ${dbName}.${tableName1} to ${user1}"""
+    sql """grant ALTER_PRIV on ${dbName} to ${user1}"""
+    sql """revoke ALTER_PRIV on ${dbName}.${tableName1}.id from ${user1}"""
+    sql """revoke ALTER_PRIV on ${dbName}.${tableName1} from ${user1}"""
+    sql """revoke ALTER_PRIV on ${dbName} from ${user1}"""
+
+    sql """grant CREATE_PRIV on ${dbName}.${tableName1}.id to ${user1}"""
+    sql """grant CREATE_PRIV on ${dbName}.${tableName1} to ${user1}"""
+    sql """grant CREATE_PRIV on ${dbName} to ${user1}"""
+    sql """revoke CREATE_PRIV on ${dbName}.${tableName1}.id from ${user1}"""
+    sql """revoke CREATE_PRIV on ${dbName}.${tableName1} from ${user1}"""
+    sql """revoke CREATE_PRIV on ${dbName} from ${user1}"""
+
+    sql """grant DROP_PRIV on ${dbName}.${tableName1}.id to ${user1}"""
+    sql """grant DROP_PRIV on ${dbName}.${tableName1} to ${user1}"""
+    sql """grant DROP_PRIV on ${dbName} to ${user1}"""
+    sql """revoke DROP_PRIV on ${dbName}.${tableName1}.id from ${user1}"""
+    sql """revoke DROP_PRIV on ${dbName}.${tableName1} from ${user1}"""
+    sql """revoke DROP_PRIV on ${dbName} from ${user1}"""
+
+    sql """grant SHOW_VIEW_PRIV on ${dbName}.${tableName1}.id to ${user1}"""
+    sql """grant SHOW_VIEW_PRIV on ${dbName}.${tableName1} to ${user1}"""
+    sql """grant SHOW_VIEW_PRIV on ${dbName} to ${user1}"""
+    sql """revoke SHOW_VIEW_PRIV on ${dbName}.${tableName1}.id from ${user1}"""
+    sql """revoke SHOW_VIEW_PRIV on ${dbName}.${tableName1} from ${user1}"""
+    sql """revoke SHOW_VIEW_PRIV on ${dbName} from ${user1}"""
 }
