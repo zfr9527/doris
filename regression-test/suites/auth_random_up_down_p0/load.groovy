@@ -90,8 +90,7 @@ suite("test_random_upgrade_downgrade_prepare_auth","p0,auth,restart_fe") {
     connect(user1, "${pwd}", context.config.jdbcUrl) {
         def grants_res = sql """show grants;"""
         assertTrue(grants_res[0][4] == """internal.default_cluster:information_schema: Select_priv  (false); internal.default_cluster:regression_test: Select_priv  (false)""")
-        logger.info("grants_res[0][5]: |" + grants_res[0][5] + "|")
-        assertTrue(grants_res[0][5] == """NULL""")
+        assertTrue(grants_res[0][5] == null)
     }
 
 
