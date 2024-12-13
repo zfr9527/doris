@@ -64,6 +64,7 @@ suite("test_random_upgrade_downgrade_compatibility_auth","p0,auth,restart_fe") {
             assertTrue(grants_res[0][4] == """internal.default_cluster:information_schema: Select_priv  (false); internal.default_cluster:regression_test: Select_priv  (false); internal.default_cluster:test_auth_up_down_db: Select_priv Load_priv Alter_priv Create_priv Drop_priv  (false)""")
             assertTrue(grants_res[0][5] == """internal.default_cluster:test_auth_up_down_db.test_auth_up_down_table1: Select_priv Load_priv Alter_priv Create_priv Drop_priv  (false); test_auth_up_down_db.default_cluster:test_auth_up_down_table1.id: Select_priv Load_priv Alter_priv Create_priv Drop_priv  (false)""")
         } else {
+            logger.info("grants_res[0][2]: |" + grants_res[0][2] + "|")
             logger.info("grants_res[0][5]: |" + grants_res[0][5] + "|")
             logger.info("grants_res[0][6]: |" + grants_res[0][6] + "|")
             assertTrue(grants_res[0][2] == null)
