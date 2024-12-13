@@ -17,17 +17,18 @@
 
 suite("test_random_upgrade_downgrade_prepare_auth","p0,auth,restart_fe") {
 
+    def version_res = sql """show backends;"""
+    def version_no_1 = true
+    if (version_res[0][21].startsWith("doris-1.")) {
+        version_no_1 = false
+    }
+
     String user1 = 'test_random_up_down_auth_user1'
     String role1 = 'test_random_up_down_auth_role1'
     String pwd = 'C123_567p'
 
     String dbName = 'test_auth_up_down_db'
     String tableName1 = 'test_auth_up_down_table1'
-    String tableName2 = 'test_auth_up_down_table2'
-
-    // grant/revoke
-    // catalog/database/table/column
-    // SELECT_PRIV/LOAD_PRIV/ALTER_PRIV/CREATE_PRIV/DROP_PRIV/SHOW_VIEW_PRIV
 
     try_sql("DROP USER ${user1}")
     try_sql("DROP role ${role1}")
@@ -49,4 +50,29 @@ suite("test_random_upgrade_downgrade_prepare_auth","p0,auth,restart_fe") {
         );
         """
 
+    def priv_level_list = ["${dbName}.${tableName1}.id", "${dbName}.${tableName1}", "${dbName}"]
+    def priv_type_list = ["SELECT_PRIV", "LOAD_PRIV", "ALTER_PRIV", "CREATE_PRIV", "DROP_PRIV", "SHOW_VIEW_PRIV"]
+
+    // grant all priv to user
+    for (int i = 0; i < priv_level_list.size(); i++) {
+        for (int j = 0; j < priv_type_list.size()-1; j++) {
+            sql """grant ${priv_type_list[j]} on ${priv_level_list[i]} to ${user1}"""
+        }
+    }
+    if (version_no_1) {
+        for (int i = 0; i < priv_level_list.size(); i++) {
+            for (int j = priv_type_list.size()-1; j < priv_type_list.size(); j++) {
+                sql """grant ${priv_type_list[j]} on ${priv_level_list[i]} to ${user1}"""
+            }
+        }
+    }
+
+    // grant all priv to role
+    if (version_no_1) {
+        for (int i = 0; i < priv_level_list.size(); i++) {
+            for (int j = 0; j < priv_type_list.size(); j++) {
+                sql """grant ${priv_type_list[j]} on ${priv_level_list[i]} to ROLE '${role1}'"""
+            }
+        }
+    }
 }

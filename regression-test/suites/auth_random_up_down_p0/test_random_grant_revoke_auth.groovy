@@ -28,13 +28,70 @@ suite("test_random_upgrade_downgrade_compatibility_auth","p0,auth,restart_fe") {
 
     String dbName = 'test_auth_up_down_db'
     String tableName1 = 'test_auth_up_down_table1'
-    String tableName2 = 'test_auth_up_down_table2'
 
-    // grant/revoke
-    // catalog/database/table/column
-    // SELECT_PRIV/LOAD_PRIV/ALTER_PRIV/CREATE_PRIV/DROP_PRIV/SHOW_VIEW_PRIV
     def priv_level_list = ["${dbName}.${tableName1}.id", "${dbName}.${tableName1}", "${dbName}"]
     def priv_type_list = ["SELECT_PRIV", "LOAD_PRIV", "ALTER_PRIV", "CREATE_PRIV", "DROP_PRIV", "SHOW_VIEW_PRIV"]
+
+    connect(user1, "${pwd}", context.config.jdbcUrl) {
+        def grants_res = sql """show grants;"""
+        if (!version_no_1) {
+            assertTrue(grants_res[0][4] == """internal.default_cluster:information_schema: Select_priv  (false); internal.default_cluster:regression_test: Select_priv  (false); internal.default_cluster:test_auth_up_down_db: Select_priv Load_priv Alter_priv Create_priv Drop_priv  (false)""")
+            assertTrue(grants_res[0][5] == """internal.default_cluster:test_auth_up_down_db.test_auth_up_down_table1: Select_priv Load_priv Alter_priv Create_priv Drop_priv  (false); test_auth_up_down_db.default_cluster:test_auth_up_down_table1.id: Select_priv Load_priv Alter_priv Create_priv Drop_priv  (false)""")
+        } else {
+            assertTrue(grants_res[0][2] == "")
+            assertTrue(grants_res[0][5] == "internal.default_cluster:information_schema: Select_priv ; internal.default_cluster:mysql: Select_priv ; internal.default_cluster:regression_test: Select_priv ; internal.default_cluster:test_auth_up_down_db: Select_priv Load_priv Alter_priv Create_priv Drop_priv Show_view_priv ")
+            assertTrue(grants_res[0][6] == "internal.default_cluster:test_auth_up_down_db.test_auth_up_down_table1: Select_priv Load_priv Alter_priv Create_priv Drop_priv Show_view_priv ; test_auth_up_down_db.default_cluster:test_auth_up_down_table1.id: Select_priv Load_priv Alter_priv Create_priv Drop_priv Show_view_priv ")
+        }
+    }
+
+    for (int i = 0; i < priv_level_list.size(); i++) {
+        for (int j = 0; j < priv_type_list.size()-1; j++) {
+            sql """revoke ${priv_type_list[j]} on ${priv_level_list[i]} from ${user1}"""
+        }
+    }
+    if (version_no_1) {
+        for (int i = 0; i < priv_level_list.size(); i++) {
+            for (int j = priv_type_list.size()-1; j < priv_type_list.size(); j++) {
+                sql """revoke ${priv_type_list[j]} on ${priv_level_list[i]} from ${user1}"""
+            }
+        }
+    }
+
+    connect(user1, "${pwd}", context.config.jdbcUrl) {
+        def grants_res = sql """show grants;"""
+        if (!version_no_1) {
+            assertTrue(grants_res[0][4] == """internal.default_cluster:information_schema: Select_priv  (false); internal.default_cluster:regression_test: Select_priv  (false)""")
+            assertTrue(grants_res[0][5] == null)
+        } else {
+            assertTrue(grants_res[0][2] == "")
+            assertTrue(grants_res[0][5] == "internal.default_cluster:information_schema: Select_priv ; internal.default_cluster:mysql: Select_priv ; internal.default_cluster:regression_test: Select_priv ")
+            assertTrue(grants_res[0][6] == null)
+        }
+
+    }
+
+    if (version_no_1) {
+        sql """grant '${role1}' to '${user1}'"""
+        connect(user1, "${pwd}", context.config.jdbcUrl) {
+            def grants_res = sql """show grants;"""
+            assertTrue(grants_res[0][2] == """default_cluster:test_random_up_down_auth_role1""")
+            assertTrue(grants_res[0][5] == "internal.default_cluster:information_schema: Select_priv ; internal.default_cluster:mysql: Select_priv ; internal.default_cluster:regression_test: Select_priv ; internal.default_cluster:test_auth_up_down_db: Select_priv Load_priv Alter_priv Create_priv Drop_priv Show_view_priv ")
+            assertTrue(grants_res[0][6] == "internal.default_cluster:test_auth_up_down_db.test_auth_up_down_table1: Select_priv Load_priv Alter_priv Create_priv Drop_priv Show_view_priv ; test_auth_up_down_db.default_cluster:test_auth_up_down_table1.id: Select_priv Load_priv Alter_priv Create_priv Drop_priv Show_view_priv ")
+        }
+        sql """revoke '${role1}' from '${user1}'"""
+        connect(user1, "${pwd}", context.config.jdbcUrl) {
+            def grants_res = sql """show grants;"""
+            assertTrue(grants_res[0][2] == "")
+            assertTrue(grants_res[0][5] == "internal.default_cluster:information_schema: Select_priv ; internal.default_cluster:mysql: Select_priv ; internal.default_cluster:regression_test: Select_priv ")
+            assertTrue(grants_res[0][6] == null)
+        }
+    }
+
+
+/*
+
+
+
 
     for (int i = 0; i < priv_level_list.size(); i++) {
         for (int j = 0; j < priv_type_list.size()-1; j++) {
@@ -128,11 +185,9 @@ suite("test_random_upgrade_downgrade_compatibility_auth","p0,auth,restart_fe") {
     }
 
 
-    Random random = new Random()
-
-//    int priv_random_index = random.nextInt(ptiv_list.size())
 
 
+ */
 
 
 //    如何检测远程机器上文件是否存在
