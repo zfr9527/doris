@@ -38,13 +38,13 @@ suite("test_random_upgrade_downgrade_compatibility_auth","p0,auth,restart_fe") {
 
     for (int i = 0; i < priv_level_list.size(); i++) {
         for (int j = 0; j < priv_type_list.size()-1; j++) {
-            sql """grant "${priv_type_list[j]}" on ${priv_level_list[i]} to ${user1}"""
+            sql """grant ${priv_type_list[j]} on ${priv_level_list[i]} to ${user1}"""
         }
     }
     if (version_no_1) {
         for (int i = 0; i < priv_level_list.size(); i++) {
             for (int j = priv_type_list.size()-1; j < priv_type_list.size(); j++) {
-                sql """grant "${priv_type_list[j]}" on ${priv_level_list[i]} to ${user1}"""
+                sql """grant ${priv_type_list[j]} on ${priv_level_list[i]} to ${user1}"""
             }
         }
     }
@@ -63,13 +63,13 @@ suite("test_random_upgrade_downgrade_compatibility_auth","p0,auth,restart_fe") {
 
     for (int i = 0; i < priv_level_list.size(); i++) {
         for (int j = 0; j < priv_type_list.size()-1; j++) {
-            sql """revoke "${priv_type_list[j]}" on ${priv_level_list[i]} from ${user1}"""
+            sql """revoke ${priv_type_list[j]} on ${priv_level_list[i]} from ${user1}"""
         }
     }
     if (version_no_1) {
         for (int i = 0; i < priv_level_list.size(); i++) {
             for (int j = priv_type_list.size()-1; j < priv_type_list.size(); j++) {
-                sql """revoke "${priv_type_list[j]}" on ${priv_level_list[i]} from ${user1}"""
+                sql """revoke ${priv_type_list[j]} on ${priv_level_list[i]} from ${user1}"""
             }
         }
     }
@@ -92,7 +92,7 @@ suite("test_random_upgrade_downgrade_compatibility_auth","p0,auth,restart_fe") {
 
         for (int i = 0; i < priv_level_list.size(); i++) {
             for (int j = 0; j < priv_type_list.size(); j++) {
-                sql """grant "${priv_type_list[j]}" on ${priv_level_list[i]} to ROLE '${role1}'"""
+                sql """grant ${priv_type_list[j]} on ${priv_level_list[i]} to ROLE '${role1}'"""
             }
         }
 
@@ -115,7 +115,7 @@ suite("test_random_upgrade_downgrade_compatibility_auth","p0,auth,restart_fe") {
 
         for (int i = 0; i < priv_level_list.size(); i++) {
             for (int j = 0; j < priv_type_list.size(); j++) {
-                sql """revoke "${priv_type_list[j]}" on ${priv_level_list[i]} from ROLE '${role1}'"""
+                sql """revoke ${priv_type_list[j]} on ${priv_level_list[i]} from ROLE '${role1}'"""
             }
         }
         connect(user1, "${pwd}", context.config.jdbcUrl) {
