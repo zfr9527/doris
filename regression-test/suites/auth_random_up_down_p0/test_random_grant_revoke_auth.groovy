@@ -149,7 +149,7 @@ suite("test_random_upgrade_downgrade_compatibility_auth","p0,auth,restart_fe") {
         sql """revoke '${role1}' from '${user1}'"""
         connect(user1, "${pwd}", context.config.jdbcUrl) {
             def grants_res = sql """show grants;"""
-            assertTrue(grants_res[0][2] == """default_cluster:test_random_up_down_auth_role1""")
+            assertTrue(grants_res[0][2] == "")
             assertTrue(grants_res[0][5] == "internal.default_cluster:information_schema: Select_priv ; internal.default_cluster:mysql: Select_priv ; internal.default_cluster:regression_test: Select_priv ; internal.default_cluster:test_auth_up_down_db: Select_priv Load_priv Alter_priv Create_priv Drop_priv Show_view_priv ")
             assertTrue(grants_res[0][6] == "internal.default_cluster:test_auth_up_down_db.test_auth_up_down_table1: Select_priv Load_priv Alter_priv Create_priv Drop_priv Show_view_priv ; test_auth_up_down_db.default_cluster:test_auth_up_down_table1.id: Select_priv Load_priv Alter_priv Create_priv Drop_priv Show_view_priv ")
         }
