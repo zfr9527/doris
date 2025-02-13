@@ -78,7 +78,7 @@ suite("test_upgrade_downgrade_olap_mtmv","p0,mtmv,restart_fe") {
 
 
 
-//    CREATE MATERIALIZED VIEW mtmv_up_down_olap_dropMtmvName4
+//    CREATE MATERIALIZED VIEW mtmv_up_down_olap_dropMtmvName10
 //    REFRESH AUTO ON MANUAL
 //    DISTRIBUTED BY RANDOM BUCKETS 2
 //    PROPERTIES ('replication_num' = '1')
