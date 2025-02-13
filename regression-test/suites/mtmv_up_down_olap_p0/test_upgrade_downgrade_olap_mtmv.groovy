@@ -24,9 +24,20 @@ suite("test_upgrade_downgrade_olap_mtmv","p0,mtmv,restart_fe") {
     order_qt_refresh_init "SELECT * FROM ${mvName}"
     // test is sync
     order_qt_mtmv_sync "select SyncWithBaseTables from mv_infos('database'='${dbName}') where Name='${mvName}'"
-     sql """
+    sql """
             REFRESH MATERIALIZED VIEW ${mvName} complete
         """
     // test can refresh success
     waitingMTMVTaskFinishedByMvName(mvName)
+
+
+    String dropTableName1 = """${suiteName}_DropTableName1"""
+    String dropTableName2 = """${suiteName}_DropTableName2"""
+    String dropTableName3 = """${suiteName}_DropTableName3"""
+    String dropTableName4 = """${suiteName}_DropTableName4"""
+    String dropMtmvName1 = """${suiteName}_dropMtmvName1"""
+    String dropMtmvName2 = """${suiteName}_dropMtmvName2"""
+    String dropMtmvName3 = """${suiteName}_dropMtmvName3"""
+
+
 }
