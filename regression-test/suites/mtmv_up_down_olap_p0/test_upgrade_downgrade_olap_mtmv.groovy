@@ -53,7 +53,7 @@ suite("test_upgrade_downgrade_olap_mtmv","p0,mtmv,restart_fe") {
     assertTrue(state_mtmv3[0][2] == "1")
 
 
-    // 删除原表和分区，对应mtmv的表现不一致
+    // 删除原表
     sql """drop table ${dropTableName1}"""
     state_mtmv1 = sql """select State,RefreshState,SyncWithBaseTables from mv_infos('database'='${dbName}') where Name = '${dropMtmvName1}';"""
     assertTrue(state_mtmv1[0][0] == "SCHEMA_CHANGE")
@@ -69,12 +69,15 @@ suite("test_upgrade_downgrade_olap_mtmv","p0,mtmv,restart_fe") {
             SELECT user_id, age FROM ${dropTableName4};
     """
 
+    // 删除表分区
     def parts_res = sql """show partitions from ${dropTableName2}"""
     sql """ALTER TABLE ${dropTableName2} DROP PARTITION ${parts_res[0][1]};"""
     state_mtmv2 = sql """select State,RefreshState,SyncWithBaseTables from mv_infos('database'='${dbName}') where Name = '${dropMtmvName2}';"""
     assertTrue(state_mtmv2[0][0] == "NORMAL")
     assertTrue(state_mtmv2[0][1] == "SUCCESS")
     assertTrue(state_mtmv2[0][2] == "0")
+
+    sql """refresh """
 
 
 
