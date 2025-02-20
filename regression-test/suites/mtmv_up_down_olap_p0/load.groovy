@@ -181,15 +181,15 @@ suite("test_upgrade_downgrade_prepare_olap_mtmv","p0,mtmv,restart_fe") {
     """
     waitingMTMVTaskFinishedByMvName(dropMtmvName2)
 
-    sql """
-        CREATE MATERIALIZED VIEW ${dropMtmvName3}
-            REFRESH AUTO ON MANUAL
-            partition by(`date`)
-            DISTRIBUTED BY RANDOM BUCKETS 2
-            PROPERTIES ('replication_num' = '1')
-            AS
-            SELECT a.* FROM ${dropTableName3} a inner join ${dropTableName4} b on a.user_id=b.user_id;
-    """
-    waitingMTMVTaskFinishedByMvName(dropMtmvName3)
+//    sql """
+//        CREATE MATERIALIZED VIEW ${dropMtmvName3}
+//            REFRESH AUTO ON MANUAL
+//            partition by(`date`)
+//            DISTRIBUTED BY RANDOM BUCKETS 2
+//            PROPERTIES ('replication_num' = '1')
+//            AS
+//            SELECT a.* FROM ${dropTableName3} a inner join ${dropTableName4} b on a.user_id=b.user_id;
+//    """
+//    waitingMTMVTaskFinishedByMvName(dropMtmvName3)
 
 }

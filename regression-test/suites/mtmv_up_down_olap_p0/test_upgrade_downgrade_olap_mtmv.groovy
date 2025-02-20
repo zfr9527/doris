@@ -60,14 +60,9 @@ suite("test_upgrade_downgrade_olap_mtmv","p0,mtmv,restart_fe") {
     assertTrue(state_mtmv1[0][1] == "SUCCESS")
     assertTrue(state_mtmv1[0][2] == "0")
 
-    sql """
-        CREATE MATERIALIZED VIEW ${dropMtmvName3}
-            REFRESH AUTO ON MANUAL
-            DISTRIBUTED BY RANDOM BUCKETS 2
-            PROPERTIES ('replication_num' = '1')
-            AS
-            SELECT user_id, age FROM ${dropTableName4};
-    """
+    def sql1 = "SELECT a.* FROM ${dropTableName1} a inner join ${dropTableName4} b on a.user_id=b.user_id;"
+    mv_rewrite_fail(sql1, dropMtmvName1)
+
 
     // 删除表分区
     def parts_res = sql """show partitions from ${dropTableName2}"""
@@ -76,38 +71,37 @@ suite("test_upgrade_downgrade_olap_mtmv","p0,mtmv,restart_fe") {
     assertTrue(state_mtmv2[0][0] == "NORMAL")
     assertTrue(state_mtmv2[0][1] == "SUCCESS")
     assertTrue(state_mtmv2[0][2] == "0")
+    def mtmv_part_res = sql """show partitions from ${dropMtmvName2}"""
+    assertTrue(mtmv_part_res.size() == 3)
+    assertTrue(mtmv_part_res[0][18] == false)
+    assertTrue(mtmv_part_res[0][19] == dropTableName2)
 
-    sql """refresh """
+    def sql2 = "SELECT a.* FROM ${dropTableName2} a inner join ${dropTableName4} b on a.user_id=b.user_id;"
+    mv_rewrite_success(sql2, dropMtmvName2)
+
+    // 单独刷新分区执行报错，且并没有刷新之后分区被删除
+    sql """refresh MATERIALIZED VIEW ${dropMtmvName2} partition(${mtmv_part_res[0][1]})"""
+
+    // 刷新整个mtmv，分区会被删除
+    sql """refresh MATERIALIZED VIEW ${dropMtmvName2} auto"""
+    mtmv_part_res = sql """show partitions from ${dropMtmvName2}"""
+    assertTrue(mtmv_part_res.size() == 2)
+
+    state_mtmv2 = sql """select State,RefreshState,SyncWithBaseTables from mv_infos('database'='${dbName}') where Name = '${dropMtmvName2}';"""
+    assertTrue(state_mtmv2[0][0] == "NORMAL")
+    assertTrue(state_mtmv2[0][1] == "SUCCESS")
+    assertTrue(state_mtmv2[0][2] == "1")
+    mv_rewrite_success(sql2, dropMtmvName2)
 
 
-
-//    CREATE MATERIALIZED VIEW mtmv_up_down_olap_dropMtmvName10
-//    REFRESH AUTO ON MANUAL
-//    DISTRIBUTED BY RANDOM BUCKETS 2
-//    PROPERTIES ('replication_num' = '1')
-//    AS
-//    SELECT user_id, age FROM mtmv_up_down_olap_DropTableName4;
-
-
-
-
-
+    // 删除表之后新建mtmv
     sql """
-        CREATE TABLE `${dropTableName1}` (
-          `user_id` LARGEINT NOT NULL COMMENT '\"用户id\"',
-          `date` DATE NOT NULL COMMENT '\"数据灌入日期时间\"',
-          `num` SMALLINT NOT NULL COMMENT '\"数量\"'
-        ) ENGINE=OLAP
-        DUPLICATE KEY(`user_id`, `date`, `num`)
-        COMMENT 'OLAP'
-        PARTITION BY RANGE(`date`)
-        (PARTITION p201701_1000 VALUES [('0000-01-01'), ('2017-02-01')),
-        PARTITION p201702_2000 VALUES [('2017-02-01'), ('2017-03-01')),
-        PARTITION p201703_all VALUES [('2017-03-01'), ('2017-04-01')))
-        DISTRIBUTED BY HASH(`user_id`) BUCKETS 2
-        PROPERTIES ('replication_num' = '1') ;
+        CREATE MATERIALIZED VIEW ${dropMtmvName3}
+            REFRESH AUTO ON MANUAL
+            DISTRIBUTED BY RANDOM BUCKETS 2
+            PROPERTIES ('replication_num' = '1')
+            AS
+            SELECT user_id, age FROM ${dropTableName4};
         """
-    sql """
-        insert into ${dropTableName1} values(1,"2017-01-15",1),(2,"2017-02-15",2),(3,"2017-03-15",3);
-        """
+
 }
