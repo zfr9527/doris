@@ -80,7 +80,11 @@ suite("test_upgrade_downgrade_olap_mtmv","p0,mtmv,restart_fe") {
     mv_rewrite_success(sql2, dropMtmvName2)
 
     // 单独刷新分区执行报错，且并没有刷新之后分区被删除
-    sql """refresh MATERIALIZED VIEW ${dropMtmvName2} partition(${mtmv_part_res[0][1]})"""
+    test {
+        sql """refresh MATERIALIZED VIEW ${dropMtmvName2} partition(${mtmv_part_res[0][1]})"""
+        exception "partition not exist"
+    }
+
 
     // 刷新整个mtmv，分区会被删除
     sql """refresh MATERIALIZED VIEW ${dropMtmvName2} auto"""
