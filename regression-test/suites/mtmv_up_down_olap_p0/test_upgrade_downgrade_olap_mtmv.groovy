@@ -55,8 +55,10 @@ suite("test_upgrade_downgrade_olap_mtmv","p0,mtmv,restart_fe") {
     assertTrue(state_mtmv1[0][1] == "SUCCESS")
     assertTrue(state_mtmv1[0][2] == false)
 
-    def sql1 = "SELECT a.* FROM ${dropTableName1} a inner join ${dropTableName4} b on a.user_id=b.user_id;"
-    mv_not_part_in(sql1, dropMtmvName1)
+    test {
+        sql "SELECT a.* FROM ${dropTableName1} a inner join ${dropTableName4} b on a.user_id=b.user_id;"
+        exception "Unknown table"
+    }
 
 
     // 删除表分区
