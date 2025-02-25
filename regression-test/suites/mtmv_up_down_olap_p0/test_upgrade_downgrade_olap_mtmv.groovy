@@ -76,6 +76,7 @@ suite("test_upgrade_downgrade_olap_mtmv","p0,mtmv,restart_fe") {
 
     // 刷新整个mtmv，分区会被删除
     sql """refresh MATERIALIZED VIEW ${dropMtmvName2} auto"""
+    waitingMTMVTaskFinishedByMvName(dropMtmvName2)
     mtmv_part_res = sql """show partitions from ${dropMtmvName2}"""
     logger.info("mtmv_part_res:" + mtmv_part_res)
     assertTrue(mtmv_part_res.size() == 2)
