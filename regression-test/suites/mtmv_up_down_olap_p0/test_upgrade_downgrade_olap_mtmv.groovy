@@ -39,9 +39,10 @@ suite("test_upgrade_downgrade_olap_mtmv","p0,mtmv,restart_fe") {
     String dropMtmvName3 = """${suiteName}_dropMtmvName3"""
 
     def state_mtmv1 = sql """select State,RefreshState,SyncWithBaseTables from mv_infos('database'='${dbName}') where Name = '${dropMtmvName1}';"""
+    logger.info("state_mtmv1[0][2]:" + state_mtmv1[0][2])
     assertTrue(state_mtmv1[0][0] == "NORMAL")
     assertTrue(state_mtmv1[0][1] == "SUCCESS")
-    assertTrue(state_mtmv1[0][2] == 1)
+    assertTrue(state_mtmv1[0][2] as String == "1")
     def state_mtmv2 = sql """select State,RefreshState,SyncWithBaseTables from mv_infos('database'='${dbName}') where Name = '${dropMtmvName2}';"""
     assertTrue(state_mtmv2[0][0] == "NORMAL")
     assertTrue(state_mtmv2[0][1] == "SUCCESS")
