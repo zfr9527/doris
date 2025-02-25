@@ -117,6 +117,7 @@ suite("test_upgrade_downgrade_olap_mtmv","p0,mtmv,restart_fe") {
         insert into ${dropTableName1} values(1,"2017-01-15",1),(2,"2017-02-15",2),(3,"2017-03-15",3);
         """
     sql """refresh MATERIALIZED VIEW ${dropMtmvName1} auto"""
+    waitingMTMVTaskFinishedByMvName(dropMtmvName1)
 
 
     sql """drop table if exists `${dropTableName2}`"""
@@ -139,5 +140,6 @@ suite("test_upgrade_downgrade_olap_mtmv","p0,mtmv,restart_fe") {
         insert into ${dropTableName2} values(1,"2017-01-15",1),(2,"2017-02-15",2),(3,"2017-03-15",3);
         """
     sql """refresh MATERIALIZED VIEW ${dropMtmvName2} auto"""
+    waitingMTMVTaskFinishedByMvName(dropMtmvName2)
 
 }
