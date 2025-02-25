@@ -17,6 +17,7 @@
 
 suite("test_upgrade_downgrade_prepare_olap_mtmv","p0,mtmv,restart_fe") {
     String suiteName = "mtmv_up_down_olap"
+    String dbName = context.config.getDbNameByFile(context.file)
     String mvName = "${suiteName}_mtmv"
     String tableName = "${suiteName}_table"
     String tableName2 = "${suiteName}_table2"
