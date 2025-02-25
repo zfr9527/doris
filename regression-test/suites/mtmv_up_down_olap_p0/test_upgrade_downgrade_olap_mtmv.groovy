@@ -69,8 +69,9 @@ suite("test_upgrade_downgrade_olap_mtmv","p0,mtmv,restart_fe") {
     assertTrue(state_mtmv2[0][1] == "SUCCESS")
     assertTrue(state_mtmv2[0][2] == false)
     def mtmv_part_res = sql """show partitions from ${dropMtmvName2}"""
+    logger.info("mtmv_part_res[0][18]: " + mtmv_part_res[0][18])
     assertTrue(mtmv_part_res.size() == 3)
-    assertTrue(mtmv_part_res[0][18] == false)
+    assertTrue(mtmv_part_res[0][18] == "false")
     assertTrue(mtmv_part_res[0][19] == dropTableName2)
 
     def sql2 = "SELECT a.* FROM ${dropTableName2} a inner join ${dropTableName4} b on a.user_id=b.user_id;"
