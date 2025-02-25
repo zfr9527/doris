@@ -41,11 +41,11 @@ suite("test_upgrade_downgrade_olap_mtmv","p0,mtmv,restart_fe") {
     def state_mtmv1 = sql """select State,RefreshState,SyncWithBaseTables from mv_infos('database'='${dbName}') where Name = '${dropMtmvName1}';"""
     assertTrue(state_mtmv1[0][0] == "NORMAL")
     assertTrue(state_mtmv1[0][1] == "SUCCESS")
-    assertTrue(state_mtmv1[0][2] == "true")
+    assertTrue(state_mtmv1[0][2] == true)
     def state_mtmv2 = sql """select State,RefreshState,SyncWithBaseTables from mv_infos('database'='${dbName}') where Name = '${dropMtmvName2}';"""
     assertTrue(state_mtmv2[0][0] == "NORMAL")
     assertTrue(state_mtmv2[0][1] == "SUCCESS")
-    assertTrue(state_mtmv2[0][2] == "true")
+    assertTrue(state_mtmv2[0][2] == true)
 
 
     // 删除原表
@@ -53,7 +53,7 @@ suite("test_upgrade_downgrade_olap_mtmv","p0,mtmv,restart_fe") {
     state_mtmv1 = sql """select State,RefreshState,SyncWithBaseTables from mv_infos('database'='${dbName}') where Name = '${dropMtmvName1}';"""
     assertTrue(state_mtmv1[0][0] == "SCHEMA_CHANGE")
     assertTrue(state_mtmv1[0][1] == "SUCCESS")
-    assertTrue(state_mtmv1[0][2] == "false")
+    assertTrue(state_mtmv1[0][2] == false)
 
     def sql1 = "SELECT a.* FROM ${dropTableName1} a inner join ${dropTableName4} b on a.user_id=b.user_id;"
     mv_not_part_in(sql1, dropMtmvName1)
@@ -65,7 +65,7 @@ suite("test_upgrade_downgrade_olap_mtmv","p0,mtmv,restart_fe") {
     state_mtmv2 = sql """select State,RefreshState,SyncWithBaseTables from mv_infos('database'='${dbName}') where Name = '${dropMtmvName2}';"""
     assertTrue(state_mtmv2[0][0] == "NORMAL")
     assertTrue(state_mtmv2[0][1] == "SUCCESS")
-    assertTrue(state_mtmv2[0][2] == "false")
+    assertTrue(state_mtmv2[0][2] == false)
     def mtmv_part_res = sql """show partitions from ${dropMtmvName2}"""
     assertTrue(mtmv_part_res.size() == 3)
     assertTrue(mtmv_part_res[0][18] == false)
@@ -88,7 +88,7 @@ suite("test_upgrade_downgrade_olap_mtmv","p0,mtmv,restart_fe") {
     state_mtmv2 = sql """select State,RefreshState,SyncWithBaseTables from mv_infos('database'='${dbName}') where Name = '${dropMtmvName2}';"""
     assertTrue(state_mtmv2[0][0] == "NORMAL")
     assertTrue(state_mtmv2[0][1] == "SUCCESS")
-    assertTrue(state_mtmv2[0][2] == "true")
+    assertTrue(state_mtmv2[0][2] == true)
     mv_rewrite_success(sql2, dropMtmvName2)
 
     // 删除表之后新建mtmv
