@@ -85,7 +85,7 @@ suite("test_upgrade_downgrade_olap_mtmv","p0,mtmv,restart_fe") {
     assertTrue(state_mtmv2[0][2] == true)
     mv_rewrite_success(sql2, dropMtmvName2)
 
-    // 删除表之后新建mtmv
+    // 删除表之后可以新建mtmv
     sql """
         CREATE MATERIALIZED VIEW ${dropMtmvName3}
             REFRESH AUTO ON MANUAL
