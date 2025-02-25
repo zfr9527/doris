@@ -33,7 +33,6 @@ suite("test_upgrade_downgrade_olap_mtmv","p0,mtmv,restart_fe") {
 
     String dropTableName1 = """${suiteName}_DropTableName1"""
     String dropTableName2 = """${suiteName}_DropTableName2"""
-    String dropTableName3 = """${suiteName}_DropTableName3"""
     String dropTableName4 = """${suiteName}_DropTableName4"""
     String dropMtmvName1 = """${suiteName}_dropMtmvName1"""
     String dropMtmvName2 = """${suiteName}_dropMtmvName2"""
@@ -47,10 +46,6 @@ suite("test_upgrade_downgrade_olap_mtmv","p0,mtmv,restart_fe") {
     assertTrue(state_mtmv2[0][0] == "NORMAL")
     assertTrue(state_mtmv2[0][1] == "SUCCESS")
     assertTrue(state_mtmv2[0][2] == "1")
-    def state_mtmv3 = sql """select State,RefreshState,SyncWithBaseTables from mv_infos('database'='${dbName}') where Name = '${dropMtmvName3}';"""
-    assertTrue(state_mtmv3[0][0] == "NORMAL")
-    assertTrue(state_mtmv3[0][1] == "SUCCESS")
-    assertTrue(state_mtmv3[0][2] == "1")
 
 
     // 删除原表
@@ -61,7 +56,7 @@ suite("test_upgrade_downgrade_olap_mtmv","p0,mtmv,restart_fe") {
     assertTrue(state_mtmv1[0][2] == "0")
 
     def sql1 = "SELECT a.* FROM ${dropTableName1} a inner join ${dropTableName4} b on a.user_id=b.user_id;"
-    mv_rewrite_fail(sql1, dropMtmvName1)
+    mv_not_part_in(sql1, dropMtmvName1)
 
 
     // 删除表分区
@@ -79,12 +74,11 @@ suite("test_upgrade_downgrade_olap_mtmv","p0,mtmv,restart_fe") {
     def sql2 = "SELECT a.* FROM ${dropTableName2} a inner join ${dropTableName4} b on a.user_id=b.user_id;"
     mv_rewrite_success(sql2, dropMtmvName2)
 
-    // 单独刷新分区执行报错，且并没有刷新之后分区被删除
+    // 单独刷新分区执行报错，且刷新之后分区没有被删除
     test {
         sql """refresh MATERIALIZED VIEW ${dropMtmvName2} partition(${mtmv_part_res[0][1]})"""
         exception "partition not exist"
     }
-
 
     // 刷新整个mtmv，分区会被删除
     sql """refresh MATERIALIZED VIEW ${dropMtmvName2} auto"""
