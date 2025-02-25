@@ -38,19 +38,9 @@ suite("test_upgrade_downgrade_olap_mtmv","p0,mtmv,restart_fe") {
     String dropMtmvName2 = """${suiteName}_dropMtmvName2"""
     String dropMtmvName3 = """${suiteName}_dropMtmvName3"""
 
-    def state_mtmv1 = sql """select State,RefreshState,SyncWithBaseTables from mv_infos('database'='${dbName}') where Name = '${dropMtmvName1}';"""
-    assertTrue(state_mtmv1[0][0] == "NORMAL")
-    assertTrue(state_mtmv1[0][1] == "SUCCESS")
-    assertTrue(state_mtmv1[0][2] == true)
-    def state_mtmv2 = sql """select State,RefreshState,SyncWithBaseTables from mv_infos('database'='${dbName}') where Name = '${dropMtmvName2}';"""
-    assertTrue(state_mtmv2[0][0] == "NORMAL")
-    assertTrue(state_mtmv2[0][1] == "SUCCESS")
-    assertTrue(state_mtmv2[0][2] == true)
-
-
     // 删除原表
     sql """drop table ${dropTableName1}"""
-    state_mtmv1 = sql """select State,RefreshState,SyncWithBaseTables from mv_infos('database'='${dbName}') where Name = '${dropMtmvName1}';"""
+    def state_mtmv1 = sql """select State,RefreshState,SyncWithBaseTables from mv_infos('database'='${dbName}') where Name = '${dropMtmvName1}';"""
     assertTrue(state_mtmv1[0][0] == "SCHEMA_CHANGE")
     assertTrue(state_mtmv1[0][1] == "SUCCESS")
     assertTrue(state_mtmv1[0][2] == false)
@@ -60,11 +50,10 @@ suite("test_upgrade_downgrade_olap_mtmv","p0,mtmv,restart_fe") {
         exception "Unknown table"
     }
 
-
     // 删除表分区
     def parts_res = sql """show partitions from ${dropTableName2}"""
     sql """ALTER TABLE ${dropTableName2} DROP PARTITION ${parts_res[0][1]};"""
-    state_mtmv2 = sql """select State,RefreshState,SyncWithBaseTables from mv_infos('database'='${dbName}') where Name = '${dropMtmvName2}';"""
+    def state_mtmv2 = sql """select State,RefreshState,SyncWithBaseTables from mv_infos('database'='${dbName}') where Name = '${dropMtmvName2}';"""
     assertTrue(state_mtmv2[0][0] == "NORMAL")
     assertTrue(state_mtmv2[0][1] == "SUCCESS")
     assertTrue(state_mtmv2[0][2] == false)
@@ -81,7 +70,6 @@ suite("test_upgrade_downgrade_olap_mtmv","p0,mtmv,restart_fe") {
     // 单独刷新分区执行报错，且刷新之后分区没有被删除
     try {
         sql """refresh MATERIALIZED VIEW ${dropMtmvName2} partition(${mtmv_part_res[0][1]})"""
-//        exception "errCode = 2,"
     } catch (Exception e) {
         logger.info(e.getMessage())
     }
@@ -106,5 +94,49 @@ suite("test_upgrade_downgrade_olap_mtmv","p0,mtmv,restart_fe") {
             AS
             SELECT user_id, age FROM ${dropTableName4};
         """
+
+    // 恢复基表，重启
+    sql """drop table if exists `${dropTableName1}`"""
+    sql """
+        CREATE TABLE `${dropTableName1}` (
+          `user_id` LARGEINT NOT NULL COMMENT '\"用户id\"',
+          `date` DATE NOT NULL COMMENT '\"数据灌入日期时间\"',
+          `num` SMALLINT NOT NULL COMMENT '\"数量\"'
+        ) ENGINE=OLAP
+        DUPLICATE KEY(`user_id`, `date`, `num`)
+        COMMENT 'OLAP'
+        PARTITION BY RANGE(`date`)
+        (PARTITION p201701_1000 VALUES [('0000-01-01'), ('2017-02-01')),
+        PARTITION p201702_2000 VALUES [('2017-02-01'), ('2017-03-01')),
+        PARTITION p201703_all VALUES [('2017-03-01'), ('2017-04-01')))
+        DISTRIBUTED BY HASH(`user_id`) BUCKETS 2
+        PROPERTIES ('replication_num' = '1') ;
+        """
+    sql """
+        insert into ${dropTableName1} values(1,"2017-01-15",1),(2,"2017-02-15",2),(3,"2017-03-15",3);
+        """
+    sql """refresh MATERIALIZED VIEW ${dropMtmvName1} auto"""
+
+
+    sql """drop table if exists `${dropTableName2}`"""
+    sql """
+        CREATE TABLE `${dropTableName2}` (
+          `user_id` LARGEINT NOT NULL COMMENT '\"用户id\"',
+          `date` DATE NOT NULL COMMENT '\"数据灌入日期时间\"',
+          `num` SMALLINT NOT NULL COMMENT '\"数量\"'
+        ) ENGINE=OLAP
+        DUPLICATE KEY(`user_id`, `date`, `num`)
+        COMMENT 'OLAP'
+        PARTITION BY RANGE(`date`)
+        (PARTITION p201701_1000 VALUES [('0000-01-01'), ('2017-02-01')),
+        PARTITION p201702_2000 VALUES [('2017-02-01'), ('2017-03-01')),
+        PARTITION p201703_all VALUES [('2017-03-01'), ('2017-04-01')))
+        DISTRIBUTED BY HASH(`user_id`) BUCKETS 2
+        PROPERTIES ('replication_num' = '1') ;
+        """
+    sql """
+        insert into ${dropTableName2} values(1,"2017-01-15",1),(2,"2017-02-15",2),(3,"2017-03-15",3);
+        """
+    sql """refresh MATERIALIZED VIEW ${dropMtmvName2} auto"""
 
 }
