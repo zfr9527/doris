@@ -38,7 +38,7 @@ suite("test_upgrade_downgrade_olap_mtmv","p0,mtmv,restart_fe") {
     String dropMtmvName2 = """${suiteName}_dropMtmvName2"""
     String dropMtmvName3 = """${suiteName}_dropMtmvName3"""
 
-    // 删除原表
+    // drop table
     sql """drop table ${dropTableName1}"""
     def state_mtmv1 = sql """select State,RefreshState,SyncWithBaseTables from mv_infos('database'='${dbName}') where Name = '${dropMtmvName1}';"""
     assertTrue(state_mtmv1[0][0] == "SCHEMA_CHANGE")
@@ -50,7 +50,7 @@ suite("test_upgrade_downgrade_olap_mtmv","p0,mtmv,restart_fe") {
         exception "Unknown table"
     }
 
-    // 删除表分区
+    // drop partition
     def parts_res = sql """show partitions from ${dropTableName2}"""
     sql """ALTER TABLE ${dropTableName2} DROP PARTITION ${parts_res[0][1]};"""
     def state_mtmv2 = sql """select State,RefreshState,SyncWithBaseTables from mv_infos('database'='${dbName}') where Name = '${dropMtmvName2}';"""
@@ -67,14 +67,14 @@ suite("test_upgrade_downgrade_olap_mtmv","p0,mtmv,restart_fe") {
     def sql2 = "SELECT a.* FROM ${dropTableName2} a inner join ${dropTableName4} b on a.user_id=b.user_id;"
     mv_rewrite_success(sql2, dropMtmvName2)
 
-    // 单独刷新分区执行报错，且刷新之后分区没有被删除
+    // An error occurred when refreshing the partition individually, and the partition was not deleted after the refresh.
     try {
         sql """refresh MATERIALIZED VIEW ${dropMtmvName2} partition(${mtmv_part_res[0][1]})"""
     } catch (Exception e) {
         logger.info(e.getMessage())
     }
 
-    // 刷新整个mtmv，分区会被删除
+    // When refreshing the entire MTMV, the partition will be deleted.
     sql """refresh MATERIALIZED VIEW ${dropMtmvName2} auto"""
     waitingMTMVTaskFinishedByMvName(dropMtmvName2)
     mtmv_part_res = sql """show partitions from ${dropMtmvName2}"""
@@ -88,7 +88,7 @@ suite("test_upgrade_downgrade_olap_mtmv","p0,mtmv,restart_fe") {
     assertTrue(state_mtmv2[0][2] == true)
     mv_rewrite_success(sql2, dropMtmvName2)
 
-    // 删除表之后可以新建mtmv
+    // After deleting the table, you can create a new MTMV
     sql """
         CREATE MATERIALIZED VIEW ${dropMtmvName3}
             REFRESH AUTO ON MANUAL
@@ -98,7 +98,7 @@ suite("test_upgrade_downgrade_olap_mtmv","p0,mtmv,restart_fe") {
             SELECT user_id, age FROM ${dropTableName4};
         """
 
-    // 恢复基表，重启
+    // Restore the base table and restart.
     sql """drop table if exists `${dropTableName1}`"""
     sql """
         CREATE TABLE `${dropTableName1}` (
