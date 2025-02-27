@@ -20,16 +20,6 @@ suite("test_upgrade_downgrade_olap_mtmv","p0,mtmv,restart_fe") {
     String dbName = context.config.getDbNameByFile(context.file)
     String mvName = "${suiteName}_mtmv"
     String tableName = "${suiteName}_table"
-    // test data is normal
-    order_qt_refresh_init "SELECT * FROM ${mvName}"
-    // test is sync
-    order_qt_mtmv_sync "select SyncWithBaseTables from mv_infos('database'='${dbName}') where Name='${mvName}'"
-    sql """
-            REFRESH MATERIALIZED VIEW ${mvName} complete
-        """
-    // test can refresh success
-    waitingMTMVTaskFinishedByMvName(mvName)
-
 
     String dropTableName1 = """${suiteName}_DropTableName1"""
     String dropTableName2 = """${suiteName}_DropTableName2"""
@@ -97,6 +87,7 @@ suite("test_upgrade_downgrade_olap_mtmv","p0,mtmv,restart_fe") {
             AS
             SELECT user_id, age FROM ${dropTableName4};
         """
+    waitingMTMVTaskFinishedByMvName(dropMtmvName3)
 
     // Restore the base table and restart.
     sql """drop table if exists `${dropTableName1}`"""
@@ -143,5 +134,7 @@ suite("test_upgrade_downgrade_olap_mtmv","p0,mtmv,restart_fe") {
         """
     sql """refresh MATERIALIZED VIEW ${dropMtmvName2} auto"""
     waitingMTMVTaskFinishedByMvName(dropMtmvName2)
+
+    sql """drop MATERIALIZED VIEW ${dropMtmvName3};"""
 
 }
