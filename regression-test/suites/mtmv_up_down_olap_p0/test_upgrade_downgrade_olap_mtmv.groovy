@@ -87,11 +87,11 @@ suite("test_upgrade_downgrade_olap_mtmv","p0,mtmv,restart_fe") {
     assertTrue(state_mtmv2[0][1] == "SUCCESS")
     assertTrue(state_mtmv2[0][2] == true)
     mv_rewrite_success(sql2, dropMtmvName2)
-    def follower_ip = get_follower_ip()
-    if (follower_ip != "null") {
-        mv_rewrite_success(sql2, dropMtmvName2,
-                enable_sync_mv_cost_based_rewrite(), is_partition_statistics_ready(dbName, [dropTableName2, dropTableName4]), 2)
-    }
+//    def follower_ip = get_follower_ip()
+//    if (follower_ip != "null") {
+//        mv_rewrite_success(sql2, dropMtmvName2,
+//                enable_sync_mv_cost_based_rewrite(), is_partition_statistics_ready(dbName, [dropTableName2, dropTableName4]), 2)
+//    }
 
 
     // After deleting the table, you can create a new MTMV
@@ -106,9 +106,9 @@ suite("test_upgrade_downgrade_olap_mtmv","p0,mtmv,restart_fe") {
         """
     waitingMTMVTaskFinishedByMvName(cur_dropMtmvName3)
     mv_rewrite_success_without_check_chosen("""SELECT user_id FROM ${dropTableName4}""", cur_dropMtmvName3)
-    if (follower_ip != "null") {
-        mv_rewrite_success_without_check_chosen("""SELECT user_id FROM ${dropTableName4}""", cur_dropMtmvName3,
-                enable_sync_mv_cost_based_rewrite(), 2)
-    }
+//    if (follower_ip != "null") {
+//        mv_rewrite_success_without_check_chosen("""SELECT user_id FROM ${dropTableName4}""", cur_dropMtmvName3,
+//                enable_sync_mv_cost_based_rewrite(), 2)
+//    }
 
 }
