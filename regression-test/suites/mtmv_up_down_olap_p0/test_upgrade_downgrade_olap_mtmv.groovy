@@ -16,6 +16,8 @@
 // under the License.
 
 suite("test_upgrade_downgrade_olap_mtmv","p0,mtmv,restart_fe") {
+    sleep(3 * 60 * 1000)
+
     String suiteName = "mtmv_up_down_olap"
     String dbName = context.config.getDbNameByFile(context.file)
 
@@ -32,5 +34,7 @@ suite("test_upgrade_downgrade_olap_mtmv","p0,mtmv,restart_fe") {
             AS
             SELECT user_id, age FROM ${dropTableName4};
         """
+
+    sleep(3 * 60 * 1000)
 
 }
