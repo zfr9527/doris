@@ -9,7 +9,7 @@ suite("agg_negative_mv_test") {
     sql """
         CREATE TABLE `${tb_name}` (
         `col1` datetime NULL,
-        `col2` varchar(50) NULL,
+        `col2` varchar(60) NULL,
         `col3` int(11) NOT NULL,
         `col4` boolean NULL,
         `col5` string REPLACE NULL,
@@ -50,7 +50,7 @@ suite("agg_negative_mv_test") {
 
     def mv_name = """${prefix_str}_mv"""
     def no_mv_name = """no_${prefix_str}_mv"""
-    sql """create materialized view ${mv_name} as select col3, sum(col7) from ${tb_name} group by col3"""
+    sql """create materialized view ${mv_name} as select col3, sum(col7) from ${tb_name} group by col3 order by col3"""
 
     test {
         sql """create materialized view ${no_mv_name} as select col3, sum(col7) from ${tb_name} group by col3 having col3 > 1"""
@@ -59,8 +59,46 @@ suite("agg_negative_mv_test") {
 
     test {
         sql """create materialized view ${no_mv_name} as select col3, sum(col7) from ${tb_name} group by col3 limit 1"""
-        exception "LogicalHaving is not supported"
+        exception "LogicalTopN is not supported"
     }
 
+    test {
+        sql """create materialized view ${no_mv_name} as select col3, 1, sum(col7) from ${tb_name} group by col3"""
+        exception "The materialized view contain constant expr is disallowed"
+    }
+
+    test {
+        sql """create materialized view ${no_mv_name} as select col3, col3, sum(col7) from ${tb_name} group by col3"""
+        exception "The select expr is duplicated"
+    }
+
+    test {
+        sql """create materialized view ${no_mv_name} as select col3, sum(col7) / 1 from ${tb_name} group by col3"""
+        exception "materialized view's expr calculations cannot be included outside aggregate functions"
+    }
+
+    test {
+        sql """create materialized view ${no_mv_name} as select  sum(col7), col3 from ${tb_name} group by col3"""
+        exception "The aggregate column should be after none agg column"
+    }
+
+
+
+
+
+
+
+
+/*
+    create materialized view no_mv_agg_negative_mv as select col3, sum(col7) from mv_agg_negative_tb group by col3 order by col3
+
+    create materialized view no_mv_agg_negative_mv1 as select col3, sum(col7) from mv_agg_negative_tb group by col3 order by col3
+
+    create materialized view no_mv_agg_negative_mv1 as select col2, sum(col7) from mv_agg_negative_tb group by col2 order by col2
+
+    create materialized view no_mv_agg_negative_mv1 as select  sum(col7), col3 from mv_agg_negative_tb group by col3
+    The aggregate column should be after none agg column
+
+ */
 
 }
