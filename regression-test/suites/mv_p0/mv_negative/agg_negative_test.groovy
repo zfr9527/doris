@@ -12,7 +12,6 @@ suite("agg_negative_mv_test") {
         `col2` varchar(60) NULL,
         `col3` int(11) NOT NULL,
         `col4` boolean NULL,
-        `col16` ARRAY<int(11)> NULL,
         `col15` ipv4 NULL,
         `col5` string REPLACE NULL,
         `col6` ARRAY<int(11)> REPLACE NULL COMMENT "",
@@ -52,7 +51,7 @@ suite("agg_negative_mv_test") {
 
     def mv_name = """${prefix_str}_mv"""
     def no_mv_name = """no_${prefix_str}_mv"""
-    sql """create materialized view ${mv_name} as select col1, col2, col3,col15, sum(col7) from ${tb_name} where col1 = "2023-08-16 22:27:00" group by col3, col1, col2 order by col1, col2, col3, col15"""
+    sql """create materialized view ${mv_name} as select col1, col2, col3, col15, col6, sum(col7) from ${tb_name} where col1 = "2023-08-16 22:27:00" group by col3, col1, col2 order by col1, col2, col3, col15, col6"""
     // 验证col1,col2,col3是key列，sum col7不是key列
     // 这里可以搞一个复杂类型，看看能不能成为key列
 
