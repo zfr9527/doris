@@ -10,7 +10,7 @@ suite("agg_negative_mv_test") {
         CREATE TABLE `${tb_name}` (
         `col1` datetime NULL,
         `col2` varchar(20) NULL,
-        `col3` int(11) NOT NULL AUTO_INCREMENT,
+        `col3` bigint(11) NOT NULL AUTO_INCREMENT,
         `col4` boolean NULL,
         `col5` string REPLACE NULL,
         `col6` ARRAY<int(11)> REPLACE  NULL COMMENT "",
