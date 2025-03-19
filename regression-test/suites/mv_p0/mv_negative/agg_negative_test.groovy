@@ -10,8 +10,8 @@ suite("agg_negative_mv_test") {
         `col2` varchar(20) NULL,
         `col3` int(11) NULL,
         `col4` boolean NULL,
-        `col5` string NULL,
-        `col6` ARRAY<int(11)> NULL COMMENT "",
+        `col5` string REPLACE NULL,
+        `col6` ARRAY<int(11)> REPLACE  NULL COMMENT "",
         `col7` int(11) SUM NULL DEFAULT "0",
         `col8` int(11) min NULL DEFAULT "0",
         `col9` int(11) max NULL DEFAULT "0",
@@ -19,7 +19,7 @@ suite("agg_negative_mv_test") {
         `col11` bitmap BITMAP_UNION,
         `col12` agg_state<max_by(int not null,int)> generic,
         `col13` hll hll_union NOT NULL COMMENT "hll",
-        `col14` ipv4
+        `col14` ipv4 REPLACE NULL
         ) ENGINE=OLAP
         AGGREGATE KEY(`col1`, `col2`, `col3`, `col4`)
         COMMENT 'OLAP'
