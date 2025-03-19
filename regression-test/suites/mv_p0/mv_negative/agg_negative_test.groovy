@@ -5,7 +5,7 @@ suite("agg_negative_mv_test") {
     def tb_name = prefix_str + "tb"
 
     sql """set enable_agg_state=true;"""
-
+    sql """drop table if exists ${tb_name};"""
     sql """
         CREATE TABLE `${tb_name}` (
         `col1` datetime NULL,
