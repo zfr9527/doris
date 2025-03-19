@@ -24,7 +24,7 @@ suite("agg_negative_mv_test") {
         `col13` hll hll_union NOT NULL COMMENT "hll",
         `col14` ipv4 REPLACE NULL
         ) ENGINE=OLAP
-        AGGREGATE KEY(`col1`, `col2`, `col3`, `col4`)
+        AGGREGATE KEY(`col1`, `col2`, `col3`, `col4`, col15)
         COMMENT 'OLAP'
         DISTRIBUTED BY HASH(`col2`, `col3`) BUCKETS 2
         PROPERTIES (
