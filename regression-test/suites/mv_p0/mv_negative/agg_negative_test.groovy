@@ -24,7 +24,7 @@ suite("agg_negative_mv_test") {
         `col13` hll hll_union NOT NULL COMMENT "hll",
         `col14` ipv4 REPLACE NULL
         ) ENGINE=OLAP
-        AGGREGATE KEY(`col1`, `col2`, `col3`, `col4`, col15)
+        AGGREGATE KEY(`col1`, `col2`, `col3`, `col4`, `col15`)
         COMMENT 'OLAP'
         DISTRIBUTED BY HASH(`col2`, `col3`) BUCKETS 2
         PROPERTIES (
@@ -51,7 +51,7 @@ suite("agg_negative_mv_test") {
 
     def mv_name = """${prefix_str}_mv"""
     def no_mv_name = """no_${prefix_str}_mv"""
-    sql """create materialized view ${mv_name} as select col1, col2, col3, col15, col6, sum(col7) from ${tb_name} where col1 = "2023-08-16 22:27:00" group by col3, col1, col2 order by col1, col2, col3, col15, col6"""
+    sql """create materialized view ${mv_name} as select col1, col2, col3, col15, sum(col7) from ${tb_name} where col1 = "2023-08-16 22:27:00" group by col3, col1, col2, col15 order by col1, col2, col3, col15"""
     // 验证col1,col2,col3是key列，sum col7不是key列
     // 这里可以搞一个复杂类型，看看能不能成为key列
 
