@@ -11,7 +11,7 @@ suite("agg_negative_mv_test") {
         `col3` int(11) NULL,
         `col4` boolean NULL,
         `col5` string NULL,
-        `col6` ARRAY<int(11)> NULL COMMENT ""
+        `col6` ARRAY<int(11)> NULL COMMENT "",
         `col7` int(11) SUM NULL DEFAULT "0",
         `col8` int(11) min NULL DEFAULT "0",
         `col9` int(11) max NULL DEFAULT "0",
