@@ -1,7 +1,7 @@
 suite("agg_negative_mv_test") {
 
     String db = context.config.getDbNameByFile(context.file)
-    def prefix_str = "agg_negative_mv"
+    def prefix_str = "mv_agg_negative"
     def tb_name = prefix_str + "_tb"
 
     sql """set enable_agg_state=true;"""
@@ -48,11 +48,19 @@ suite("agg_negative_mv_test") {
             ("2024-08-17 22:27:00","ax2",3,1,"asd3",[1,2,3,4,6], 7, 8, 9, 10, to_bitmap(3), max_by_state(6,2), HLL_HASH(1000), "'0.0.1.0'"),
             ("2023-09-16 22:27:00","ax4",4,0,"asd2",[1,2,9,4,5], 11, 11, 11, 11, to_bitmap(4), max_by_state(3,1), HLL_HASH(1), "'0.10.0.0'");"""
 
-    def mv_name = """${prefix_str}_mv1"""
+    def mv_name = """${prefix_str}_mv"""
     def no_mv_name = """no_${prefix_str}_mv"""
     sql """create materialized view ${mv_name} as select col3, sum(col7) from ${tb_name} group by col3"""
-    sql """create materialized view ${no_mv_name} as select col3, sum(col7) from ${tb_name} group by col3 having col3 > 1"""
 
+    test {
+        sql """create materialized view ${no_mv_name} as select col3, sum(col7) from ${tb_name} group by col3 having col3 > 1"""
+        exception "LogicalHaving is not supported"
+    }
+
+    test {
+        sql """create materialized view ${no_mv_name} as select col3, sum(col7) from ${tb_name} group by col3 limit 1"""
+        exception "LogicalHaving is not supported"
+    }
 
 
 }
