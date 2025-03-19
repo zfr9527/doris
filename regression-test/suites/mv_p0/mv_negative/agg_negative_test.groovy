@@ -55,6 +55,8 @@ suite("agg_negative_mv_test") {
     // 验证col1,col2,col3是key列，sum col7不是key列
     // 这里可以搞一个复杂类型，看看能不能成为key列
 
+//    create materialized view mv_agg_negative_mv as select  col1, col2, col3, col4, col15, sum(col7) from mv_agg_negative_tb where col1 = "2023-08-16 22:27:00" group by col1, col2, col3, col4, col15 order by  col1, col2, col3, col4, col15
+//    create materialized view mv_agg_negative_mv as select  col1, col2, col3, sum(col7) from mv_agg_negative_tb where col1 = "2023-08-16 22:27:00" group by col1, col2, col3  order by  col1, col2, col3
 
     explain {
         sql("""select col1, col2, col3, sum(col7) from ${tb_name} where col1 = "2023-08-16 22:27:00" group by col3, col1, col2 order by col1, col2, col3""")
