@@ -2,7 +2,7 @@ suite("agg_negative_mv_test") {
 
     String db = context.config.getDbNameByFile(context.file)
     def prefix_str = "agg_negative_mv"
-    def tb_name = prefix_str + "tb"
+    def tb_name = prefix_str + "_tb"
 
     sql """set enable_agg_state=true;"""
     sql """drop table if exists ${tb_name};"""
@@ -10,7 +10,7 @@ suite("agg_negative_mv_test") {
         CREATE TABLE `${tb_name}` (
         `col1` datetime NULL,
         `col2` varchar(20) NULL,
-        `col3` int(11) NULL,
+        `col3` int(11) NULL AUTO_INCREMENT,
         `col4` boolean NULL,
         `col5` string REPLACE NULL,
         `col6` ARRAY<int(11)> REPLACE  NULL COMMENT "",
@@ -33,6 +33,10 @@ suite("agg_negative_mv_test") {
     sql """insert into ${tb_name} values 
             ("2023-08-16 22:27:00","ax",1,1,"asd",[1,2,3,4,5], 1, 1, 1, 1, to_bitmap(243), max_by_state(3,1), HLL_HASH(1), "'0.0.0.0'");"""
 
+    def mv_name = """${prefix_str}_mv1"""
+
+//    sql """"""
+//    sql """create materialized view ${mv_name} as select col3 from ${tb_name} group by col3;"""
 
 
 
