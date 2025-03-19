@@ -31,7 +31,7 @@ suite("agg_negative_mv_test") {
         );
         """
     sql """insert into ${tb_name} values 
-            ("2023-08-16 22:27:00","ax",1,1,"asd",[1,2,3,4,5], 1, 1, 1, 1, to_bitmap(243), HLL_UNION_AGG(1), "'0.0.0.0'");"""
+            ("2023-08-16 22:27:00","ax",1,1,"asd",[1,2,3,4,5], 1, 1, 1, 1, to_bitmap(243), max_by_state(3,1), HLL_HASH(1), "'0.0.0.0'");"""
 
 
 
