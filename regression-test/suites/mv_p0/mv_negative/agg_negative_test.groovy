@@ -4,6 +4,8 @@ suite("agg_negative_mv_test") {
     def prefix_str = "agg_negative_mv"
     def tb_name = prefix_str + "tb"
 
+    sql """set enable_agg_state=true;"""
+
     sql """
         CREATE TABLE `${tb_name}` (
         `col1` datetime NULL,
