@@ -51,7 +51,7 @@ suite("agg_negative_mv_test") {
 
     def mv_name = """${prefix_str}_mv"""
     def no_mv_name = """no_${prefix_str}_mv"""
-    sql """create materialized view ${mv_name} as select col1, col2, col3, sum(col7) from ${tb_name} group by col3, col1, col2, order by col1, col2, col3"""
+    sql """create materialized view ${mv_name} as select col1, col2, col3, sum(col7) from ${tb_name} group by col3, col1, col2 order by col1, col2, col3"""
     // 验证col1,col2,col3是key列，sum col7不是key列
     // 这里可以搞一个复杂类型，看看能不能成为key列
 
