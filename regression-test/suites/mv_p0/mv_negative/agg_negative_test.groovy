@@ -12,9 +12,10 @@ suite("agg_negative_mv_test") {
         `col2` varchar(60) NULL,
         `col3` int(11) NOT NULL,
         `col4` boolean NULL,
+        `col16` ARRAY<int(11)> NULL,
         `col15` ipv4 NULL,
         `col5` string REPLACE NULL,
-        `col6` ARRAY<int(11)> REPLACE  NULL COMMENT "",
+        `col6` ARRAY<int(11)> REPLACE NULL COMMENT "",
         `col7` int(11) SUM NULL DEFAULT "0",
         `col8` int(11) min NULL DEFAULT "0",
         `col9` int(11) max NULL DEFAULT "0",
@@ -51,11 +52,15 @@ suite("agg_negative_mv_test") {
 
     def mv_name = """${prefix_str}_mv"""
     def no_mv_name = """no_${prefix_str}_mv"""
-    sql """create materialized view ${mv_name} as select col1, col2, col3, sum(col7) from ${tb_name} group by col3, col1, col2 order by col1, col2, col3"""
+    sql """create materialized view ${mv_name} as select col1, col2, col3,col15, sum(col7) from ${tb_name} where col1 = "2023-08-16 22:27:00" group by col3, col1, col2 order by col1, col2, col3, col15"""
     // 验证col1,col2,col3是key列，sum col7不是key列
     // 这里可以搞一个复杂类型，看看能不能成为key列
 
 
+    explain {
+        sql("""select col1, col2, col3, sum(col7) from ${tb_name} where col1 = "2023-08-16 22:27:00" group by col3, col1, col2 order by col1, col2, col3""")
+        contains "${mv_name}(${mv_name})"
+    }
 
     test {
         sql """create materialized view ${no_mv_name} as select col3, sum(col7) from ${tb_name} group by col3 having col3 > 1"""
@@ -107,29 +112,5 @@ suite("agg_negative_mv_test") {
         exception """Aggregate function require same with slot aggregate type"""
     }
 
-
-
-
-
-
-
-
-
-//    create materialized view no_mv_agg_negative_mv as select col6, sum(col7) from mv_agg_negative_tb group by col6
-//    create materialized view no_mv_agg_negative_mv as select col14, sum(col7) from mv_agg_negative_tb group by col14
-
-
-
-/*
-    create materialized view no_mv_agg_negative_mv as select col3, sum(col7) from mv_agg_negative_tb group by col3 order by col3
-
-    create materialized view no_mv_agg_negative_mv1 as select col3, sum(col7) from mv_agg_negative_tb group by col3 order by col3
-
-    create materialized view no_mv_agg_negative_mv1 as select col2, sum(col7) from mv_agg_negative_tb group by col2 order by col2
-
-    create materialized view no_mv_agg_negative_mv1 as select  sum(col7), col3 from mv_agg_negative_tb group by col3
-    The aggregate column should be after none agg column
-
- */
 
 }
