@@ -7,9 +7,9 @@ suite("dup_negative_mv_test") {
     sql """drop table if exists ${tb_name};"""
     sql """
         CREATE TABLE `${tb_name}` (
-        `col1` datetime NULL,
+        `col1` datetime NULL ,
         `col2` varchar(60) NULL,
-        `col3` int(11) NOT NULL,
+        `col3` bigint(11) NOT NULL AUTO_INCREMENT,
         `col4` boolean NULL,
         `col15` ipv4 NULL,
         `col5` string NULL,

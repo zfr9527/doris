@@ -114,6 +114,8 @@ suite("mow_negative_mv_test") {
         exception """Aggregate function require same with slot aggregate type"""
     }
 
+//    create materialized view mv_mow_negative_mv2 as select col4, col1, col2, col3, col15, col5, case when col2 > 1 then 1 else 2 end from mv_mow_negative_tb;
+
 
 //    create materialized view mv_agg_negative_mv11 as select col3, col1, col2, col15, sum(col7) from mv_agg_negative_tb group by 1,2,3,4  order by  1,2,3,4
 //
