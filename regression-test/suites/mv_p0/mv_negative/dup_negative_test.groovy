@@ -4,7 +4,6 @@ suite("dup_negative_mv_test") {
     def prefix_str = "mv_dup_negative"
     def tb_name = prefix_str + "_tb"
 
-    sql """set enable_agg_state=true;"""
     sql """drop table if exists ${tb_name};"""
     sql """
         CREATE TABLE `${tb_name}` (
