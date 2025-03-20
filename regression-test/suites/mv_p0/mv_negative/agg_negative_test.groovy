@@ -114,4 +114,21 @@ suite("agg_negative_mv_test") {
     }
 
 
+    create materialized view mv_agg_negative_mv11 as select col3, col1, col2, col15, sum(col7) from mv_agg_negative_tb group by 1,2,3,4  order by  1,2,3,4
+
+
+    create materialized view mv_agg_negative_mv11 as select col3, col1, col2, col15, case when col2 > 1 then 1 else 2 end, sum(col7) from mv_agg_negative_tb group by 1,2,3,4,5  order by  1,2,3,4,5
+
+    create materialized view mv_agg_negative_mv12 as select col3, col1, col2, col15, sum(case when col2 > 1 then 1 else 2 end), sum(col7) from mv_agg_negative_tb group by 1,2,3,4  order by  1,2,3,4
+
+
+    create materialized view mv_agg_negative_mv11 as select col3, col1, col2, col15, sum(col7), count(*) from mv_agg_negative_tb group by 1,2,3,4  order by  1,2,3,4
+
+    create materialized view mv_agg_negative_mv14 as select col3, col1, col2, col15, sum(col7), bitmap_union(to_bitmap(case when col2 > 1 then 1 else 2 end)) from mv_agg_negative_tb group by 1,2,3,4  order by  1,2,3,4
+
+    create materialized view mv_agg_negative_mv14 as select col3, col1, col2, col15, sum(col7), bitmap_union(to_bitmap(case when col10 > 1 then 1 else 2 end)) from mv_agg_negative_tb group by 1,2,3,4  order by  1,2,3,4
+
+    create materialized view mv_agg_negative_mv14 as select case when col2 > 1 then 1 else 2 end, sum(col7), bitmap_union(to_bitmap(case when col10 > 1 then 1 else 2 end)) from mv_agg_negative_tb group by 1  order by  1
+
+
 }
