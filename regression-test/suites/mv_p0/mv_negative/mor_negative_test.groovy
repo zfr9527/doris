@@ -1,13 +1,13 @@
-suite("dup_negative_mv_test") {
+suite("mor_negative_mv_test") {
 
     String db = context.config.getDbNameByFile(context.file)
-    def prefix_str = "mv_dup_negative"
+    def prefix_str = "mv_mor_negative"
     def tb_name = prefix_str + "_tb"
 
     sql """drop table if exists ${tb_name};"""
     sql """
         CREATE TABLE `${tb_name}` (
-        `col1` datetime NULL ,
+        `col1` datetime NULL,
         `col2` varchar(60) NULL,
         `col3` bigint(11) NOT NULL AUTO_INCREMENT,
         `col4` boolean NULL,
@@ -22,11 +22,12 @@ suite("dup_negative_mv_test") {
         `col13` hll not NULL COMMENT "hll",
         `col14` ipv4 NULL
         ) ENGINE=OLAP
-        DUPLICATE KEY(`col1`, `col2`, `col3`, `col4`, `col15`)
+        unique KEY(`col1`, `col2`, `col3`, `col4`, `col15`)
         COMMENT 'OLAP'
         DISTRIBUTED BY HASH(`col2`, `col3`) BUCKETS 2
         PROPERTIES (
-        "replication_allocation" = "tag.location.default: 1"
+        "replication_allocation" = "tag.location.default: 1",
+        "enable_unique_key_merge_on_write" = "false"
         );
         """
     sql """insert into ${tb_name} values 
@@ -49,16 +50,14 @@ suite("dup_negative_mv_test") {
 
     def mv_name = """${prefix_str}_mv"""
     def no_mv_name = """no_${prefix_str}_mv"""
-//    sql """create materialized view ${mv_name} as select col4, col1, col2, col3, col15, sum(col7) from ${tb_name} where col1 = "2023-08-16 22:27:00" group by col4, col1, col2, col3, col15 order by col4, col1, col2, col3, col15"""
-    sql """create materialized view ${mv_name} as select col4, col1, col2, col3, col15, sum(col7) from ${tb_name} group by col4, col1, col2, col3, col15 order by col4, col1, col2, col3, col15"""
+    sql """create materialized view ${mv_name} as select col4, col1, col2, col3, col15, sum(col7) from ${tb_name} where col1 = '2023-08-16 22:27:00'"""
     // 验证col1,col2,col3是key列，sum col7不是key列
+    def desc_res = sql """desc ${tb_name} all;"""
+    
     // 这里可以搞一个复杂类型，看看能不能成为key列
 
 //    create materialized view mv_agg_negative_mv as select  col1, col2, col3, col4, col15, sum(col7) from mv_agg_negative_tb where col1 = "2023-08-16 22:27:00" group by col1, col2, col3, col4, col15 order by  col1, col2, col3, col4, col15
 //    create materialized view mv_agg_negative_mv as select  col1, col2, col3, sum(col7) from mv_agg_negative_tb where col1 = "2023-08-16 22:27:00" group by col1, col2, col3  order by  col1, col2, col3
-// 自增列
-//    create materialized view mv_dup_negative_mv as select col4, col1, col2, col3, col15, sum(col7) from mv_dup_negative_tb group by col4, col1, col2, col3, col15 order by col4, col1, col2, col3, col15
-
 
     explain {
         sql("""select col1, col2, col3, sum(col7) from ${tb_name} where col1 = "2023-08-16 22:27:00" group by col3, col1, col2 order by col1, col2, col3""")
@@ -114,6 +113,8 @@ suite("dup_negative_mv_test") {
         sql """create materialized view ${no_mv_name} as select col3, min(col7) from ${tb_name} group by col3"""
         exception """Aggregate function require same with slot aggregate type"""
     }
+
+//    create materialized view mv_mow_negative_mv2 as select col4, col1, col2, col3, col15, col5, case when col2 > 1 then 1 else 2 end from mv_mow_negative_tb;
 
 
 //    create materialized view mv_agg_negative_mv11 as select col3, col1, col2, col15, sum(col7) from mv_agg_negative_tb group by 1,2,3,4  order by  1,2,3,4
