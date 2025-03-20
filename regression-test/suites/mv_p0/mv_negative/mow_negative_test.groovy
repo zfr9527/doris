@@ -1,4 +1,4 @@
-suite("agg_negative_mv_test") {
+suite("mow_negative_mv_test") {
 
     String db = context.config.getDbNameByFile(context.file)
     def prefix_str = "mv_mow_negative"
