@@ -1,7 +1,7 @@
-suite("agg_negative_mv_test") {
+suite("dup_negative_mv_test") {
 
     String db = context.config.getDbNameByFile(context.file)
-    def prefix_str = "mv_agg_negative"
+    def prefix_str = "mv_dup_negative"
     def tb_name = prefix_str + "_tb"
 
     sql """set enable_agg_state=true;"""
@@ -24,7 +24,7 @@ suite("agg_negative_mv_test") {
         `col13` hll hll_union NOT NULL COMMENT "hll",
         `col14` ipv4 REPLACE NULL
         ) ENGINE=OLAP
-        AGGREGATE KEY(`col1`, `col2`, `col3`, `col4`, `col15`)
+        DUPLICATE KEY(`col1`, `col2`, `col3`, `col4`, `col15`)
         COMMENT 'OLAP'
         DISTRIBUTED BY HASH(`col2`, `col3`) BUCKETS 2
         PROPERTIES (
