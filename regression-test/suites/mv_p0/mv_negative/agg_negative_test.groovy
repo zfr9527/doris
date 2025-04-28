@@ -56,7 +56,7 @@ suite("agg_negative_mv_test") {
     // 验证col1,col2,col3是key列，sum col7不是key列
     def desc_res = sql """desc ${tb_name} all;"""
     for (int i = 0; i < desc_res.size(); i++) {
-        if (desc_res[i][0] == "mv_agg_negative_mv") {
+        if (desc_res[i][0] == mv_name) {
             for (int j = i; j < i+6; j++) {
                 if (desc_res[j][2] != "mva_SUM__CAST(`col7` AS bigint)") {
                     assertTrue(desc_res[j][6] == "true")

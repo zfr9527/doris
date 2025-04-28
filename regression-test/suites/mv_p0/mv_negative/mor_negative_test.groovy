@@ -12,10 +12,10 @@ suite("mor_negative_mv_test") {
         `col3` bigint(11) NOT NULL ,
         `col4` boolean NULL,
         `col15` ipv4 NULL,
+        `col8` int(11) NULL DEFAULT "0",
         `col5` string NULL,
         `col6` ARRAY<int(11)> NULL COMMENT "",
         `col7` bigint(11) NOT NULL AUTO_INCREMENT,
-        `col8` int(11) NULL DEFAULT "0",
         `col9` int(11) NULL DEFAULT "0",
         `col10` int(11) NULL,
         `col11` bitmap NOT NULL,
@@ -50,19 +50,39 @@ suite("mor_negative_mv_test") {
 
     def mv_name = """${prefix_str}_mv"""
     def no_mv_name = """no_${prefix_str}_mv"""
-    sql """create materialized view ${mv_name} as select col4, col1, col2, col3, col15, sum(col7) from ${tb_name} where col1 = '2023-08-16 22:27:00' order by col4, col1, col2, col3, col15"""
+    sql """create materialized view ${mv_name} as select col4, col1, col2, col3, col15 from ${tb_name} where col1 = '2023-08-16 22:27:00' order by col4, col1, col2, col3, col15"""
+    waitingMVTaskFinishedByMvName(db, tb_name, mv_name)
+    // 验证col4, col1, col2, col3, col15是key列
+    def desc_res = sql """desc ${tb_name} all;"""
+    for (int i = 0; i < desc_res.size(); i++) {
+        if (desc_res[i][0] == mv_name) {
+            for (int j = i; j < i+5; j++) {
+                assertTrue(desc_res[j][6] == "true")
+            }
+            break
+        }
+    }
+
+    explain {
+        sql("""select col1, col2, col3, sum(col3) from ${tb_name} where col1 = "2023-08-16 22:27:00" group by col3, col1, col2 order by col1, col2, col3""")
+        contains "(${mv_name})"
+    }
 
 
+    test {
+        sql """create materialized view mv_mor_negative_mv_1 as select col4, col1, col2, col3, col15, col7 from mv_mor_negative_tb where col1 = '2023-08-16 22:27:00' order by col4, col1, col2, col3, col15, col7"""
+        exception "The materialized view can not involved auto increment column"
+    }
 //
 //
-//    create materialized view mv_mor_negative_mv as select col4, col1, col2, col3, col15 from mv_mor_negative_tb where col1 = '2023-08-16 22:27:00' order by col4, col1, col2, col3, col15
+
 //
 //
-//    create materialized view mv_mor_negative_mv as select col4, col1, col2, col3, col15, col7 from mv_mor_negative_tb where col1 = '2023-08-16 22:27:00' order by col4, col1, col2, col3, col15, col7
+//    create materialized view mv_mor_negative_mv_1 as select col4, col1, col2, col3, col15, col7 from mv_mor_negative_tb where col1 = '2023-08-16 22:27:00' order by col4, col1, col2, col3, col15, col7
 //
 //    create materialized view mv_mor_negative_mv as select col4, col1, col2, col3, col15 from mv_mor_negative_tb where col1 = '2023-08-16 22:27:00' order by col4, col1, col2, col3, col15
     // 验证col1,col2,col3是key列，sum col7不是key列
-    def desc_res = sql """desc ${tb_name} all;"""
+
     
     // 这里可以搞一个复杂类型，看看能不能成为key列
 
