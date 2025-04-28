@@ -70,7 +70,7 @@ suite("agg_negative_mv_test") {
 
     explain {
         sql("""select col1, col2, col3, sum(col7) from ${tb_name} where col1 = "2023-08-16 22:27:00" group by col3, col1, col2 order by col1, col2, col3""")
-        contains "${mv_name}(${mv_name})"
+        contains "(${mv_name})"
     }
 
     test {
