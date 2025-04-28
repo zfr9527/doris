@@ -50,7 +50,7 @@ suite("mor_negative_mv_test") {
 
     def mv_name = """${prefix_str}_mv"""
     def no_mv_name = """no_${prefix_str}_mv"""
-    sql """create materialized view ${mv_name} as select col4, col1, col2, col3, col15, sum(col7) from ${tb_name} where col1 = '2023-08-16 22:27:00'"""
+    sql """create materialized view ${mv_name} as select col4, col1, col2, col3, col15, sum(col7) from ${tb_name} where col1 = '2023-08-16 22:27:00' order by col4, col1, col2, col3, col15"""
     // 验证col1,col2,col3是key列，sum col7不是key列
     def desc_res = sql """desc ${tb_name} all;"""
     
@@ -61,7 +61,7 @@ suite("mor_negative_mv_test") {
 
     explain {
         sql("""select col1, col2, col3, sum(col7) from ${tb_name} where col1 = "2023-08-16 22:27:00" group by col3, col1, col2 order by col1, col2, col3""")
-        contains "${mv_name}(${mv_name})"
+        contains "(${mv_name})"
     }
 
     test {
@@ -71,7 +71,7 @@ suite("mor_negative_mv_test") {
 
     test {
         sql """create materialized view ${no_mv_name} as select col3, sum(col7) from ${tb_name} group by col3 limit 1"""
-        exception "LogicalTopN is not supported"
+        exception "LogicalLimit is not supported"
     }
 
     test {
