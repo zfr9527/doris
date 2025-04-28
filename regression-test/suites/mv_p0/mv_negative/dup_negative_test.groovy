@@ -7,15 +7,15 @@ suite("dup_negative_mv_test") {
     sql """drop table if exists ${tb_name};"""
     sql """
         CREATE TABLE `${tb_name}` (
-        `col1` datetime NULL ,
+        `col1` datetime NULL,
         `col2` varchar(60) NULL,
-        `col3` bigint(11) NOT NULL AUTO_INCREMENT,
+        `col3` bigint(11) NOT NULL,
         `col4` boolean NULL,
         `col15` ipv4 NULL,
+        `col8` int(11) NULL DEFAULT "0",
         `col5` string NULL,
         `col6` ARRAY<int(11)> NULL COMMENT "",
-        `col7` int(11) NULL DEFAULT "0",
-        `col8` int(11) NULL DEFAULT "0",
+        `col7` bigint(11) NOT NULL AUTO_INCREMENT,
         `col9` int(11) NULL DEFAULT "0",
         `col10` int(11) NULL,
         `col11` bitmap NOT NULL,
@@ -49,8 +49,27 @@ suite("dup_negative_mv_test") {
 
     def mv_name = """${prefix_str}_mv"""
     def no_mv_name = """no_${prefix_str}_mv"""
+
+
+    sql """create materialized view ${mv_name} as select col4, col1, col2, col3, col15, sum(col8) from ${tb_name} where col1 = "2023-08-16 22:27:00" group by col4, col1, col2, col3, col15 order by col4, col1, col2, col3, col15"""
+    waitingMVTaskFinishedByMvName(db, tb_name, mv_name)
+    // 验证col1,col2,col3是key列，sum col7不是key列
+    def desc_res = sql """desc ${tb_name} all;"""
+    for (int i = 0; i < desc_res.size(); i++) {
+        if (desc_res[i][0] == mv_name) {
+            for (int j = i; j < i+6; j++) {
+                if (desc_res[j][2] != "mva_SUM__CAST(`col7` AS bigint)") {
+                    assertTrue(desc_res[j][6] == "true")
+                } else {
+                    assertTrue(desc_res[j][6] == "false")
+                }
+            }
+            break
+        }
+    }
+
 //    sql """create materialized view ${mv_name} as select col4, col1, col2, col3, col15, sum(col7) from ${tb_name} where col1 = "2023-08-16 22:27:00" group by col4, col1, col2, col3, col15 order by col4, col1, col2, col3, col15"""
-    sql """create materialized view ${mv_name} as select col4, col1, col2, col3, col15, sum(col7) from ${tb_name} group by col4, col1, col2, col3, col15 order by col4, col1, col2, col3, col15"""
+//    sql """create materialized view ${mv_name} as select col4, col1, col2, col3, col15, sum(col7) from ${tb_name} where col1 = "2023-08-16 22:27:00" group by col4, col1, col2, col3, col15 order by col4, col1, col2, col3, col15"""
     // 验证col1,col2,col3是key列，sum col7不是key列
     // 这里可以搞一个复杂类型，看看能不能成为key列
 

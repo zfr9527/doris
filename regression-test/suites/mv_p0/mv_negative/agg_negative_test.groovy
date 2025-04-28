@@ -73,10 +73,11 @@ suite("agg_negative_mv_test") {
         contains "(${mv_name})"
     }
 
-//    test {
-//        sql """create materialized view ${no_mv_name} as select col3, sum(col7) from ${tb_name} group by col3 having col3 > 1"""
-//        exception "LogicalHaving is not supported"
-//    }
+    // 预期不能创建来着
+    test {
+        sql """create materialized view ${no_mv_name} as select col3, sum(col7) from ${tb_name} group by col3 having col3 > 1"""
+        exception "LogicalHaving is not supported"
+    }
 
     test {
         sql """create materialized view ${no_mv_name} as select col3, sum(col7) from ${tb_name} group by col3 limit 1"""
