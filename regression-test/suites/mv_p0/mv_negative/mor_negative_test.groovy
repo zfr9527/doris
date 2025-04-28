@@ -14,7 +14,7 @@ suite("mor_negative_mv_test") {
         `col15` ipv4 NULL,
         `col5` string NULL,
         `col6` ARRAY<int(11)> NULL COMMENT "",
-        `col7` int(11) NULL DEFAULT "0" AUTO_INCREMENT,
+        `col7` bigint(11) NOT NULL AUTO_INCREMENT,
         `col8` int(11) NULL DEFAULT "0",
         `col9` int(11) NULL DEFAULT "0",
         `col10` int(11) NULL,
