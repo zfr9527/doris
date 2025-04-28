@@ -80,7 +80,7 @@ suite("agg_negative_mv_test") {
 
     test {
         sql """create materialized view ${no_mv_name} as select col3, sum(col7) from ${tb_name} group by col3 limit 1"""
-        exception "LogicalTopN is not supported"
+        exception "LogicalLimit is not supported"
     }
 
     test {
