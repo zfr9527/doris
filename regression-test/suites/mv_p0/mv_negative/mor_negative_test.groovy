@@ -9,12 +9,12 @@ suite("mor_negative_mv_test") {
         CREATE TABLE `${tb_name}` (
         `col1` datetime NULL,
         `col2` varchar(60) NULL,
-        `col3` bigint(11) NOT NULL AUTO_INCREMENT,
+        `col3` bigint(11) NOT NULL ,
         `col4` boolean NULL,
         `col15` ipv4 NULL,
         `col5` string NULL,
         `col6` ARRAY<int(11)> NULL COMMENT "",
-        `col7` int(11) NULL DEFAULT "0",
+        `col7` int(11) NULL DEFAULT "0" AUTO_INCREMENT,
         `col8` int(11) NULL DEFAULT "0",
         `col9` int(11) NULL DEFAULT "0",
         `col10` int(11) NULL,
@@ -51,6 +51,16 @@ suite("mor_negative_mv_test") {
     def mv_name = """${prefix_str}_mv"""
     def no_mv_name = """no_${prefix_str}_mv"""
     sql """create materialized view ${mv_name} as select col4, col1, col2, col3, col15, sum(col7) from ${tb_name} where col1 = '2023-08-16 22:27:00' order by col4, col1, col2, col3, col15"""
+
+
+//
+//
+//    create materialized view mv_mor_negative_mv as select col4, col1, col2, col3, col15 from mv_mor_negative_tb where col1 = '2023-08-16 22:27:00' order by col4, col1, col2, col3, col15
+//
+//
+//    create materialized view mv_mor_negative_mv as select col4, col1, col2, col3, col15, col7 from mv_mor_negative_tb where col1 = '2023-08-16 22:27:00' order by col4, col1, col2, col3, col15, col7
+//
+//    create materialized view mv_mor_negative_mv as select col4, col1, col2, col3, col15 from mv_mor_negative_tb where col1 = '2023-08-16 22:27:00' order by col4, col1, col2, col3, col15
     // 验证col1,col2,col3是key列，sum col7不是key列
     def desc_res = sql """desc ${tb_name} all;"""
     
