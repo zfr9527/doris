@@ -59,9 +59,9 @@ suite("agg_negative_mv_test") {
         if (desc_res[i][0] == "mv_agg_negative_mv") {
             for (int j = i; j < i+6; j++) {
                 if (desc_res[j][2] != "mva_SUM__CAST(`col7` AS bigint)") {
-                    assertTrue(desc_res[j][6] == true)
+                    assertTrue(desc_res[j][6] == "true")
                 } else {
-                    assertTrue(desc_res[j][6] == false)
+                    assertTrue(desc_res[j][6] == "false")
                 }
             }
             break
