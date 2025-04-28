@@ -9,7 +9,7 @@ suite("mor_negative_mv_test") {
         CREATE TABLE `${tb_name}` (
         `col1` datetime NULL,
         `col2` varchar(60) NULL,
-        `col3` bigint(11) NOT NULL ,
+        `col3` bigint(11) NOT NULL,
         `col4` boolean NULL,
         `col15` ipv4 NULL,
         `col8` int(11) NULL DEFAULT "0",
@@ -52,7 +52,6 @@ suite("mor_negative_mv_test") {
     def no_mv_name = """no_${prefix_str}_mv"""
     sql """create materialized view ${mv_name} as select col4, col1, col2, col3, col15 from ${tb_name} where col1 = '2023-08-16 22:27:00' order by col4, col1, col2, col3, col15"""
     waitingMVTaskFinishedByMvName(db, tb_name, mv_name)
-    // 验证col4, col1, col2, col3, col15是key列
     def desc_res = sql """desc ${tb_name} all;"""
     for (int i = 0; i < desc_res.size(); i++) {
         if (desc_res[i][0] == mv_name) {
@@ -73,95 +72,86 @@ suite("mor_negative_mv_test") {
         sql """create materialized view mv_mor_negative_mv_1 as select col4, col1, col2, col3, col15, col7 from mv_mor_negative_tb where col1 = '2023-08-16 22:27:00' order by col4, col1, col2, col3, col15, col7"""
         exception "The materialized view can not involved auto increment column"
     }
-//
-//
 
-//
-//
-//    create materialized view mv_mor_negative_mv_1 as select col4, col1, col2, col3, col15, col7 from mv_mor_negative_tb where col1 = '2023-08-16 22:27:00' order by col4, col1, col2, col3, col15, col7
-//
-//    create materialized view mv_mor_negative_mv as select col4, col1, col2, col3, col15 from mv_mor_negative_tb where col1 = '2023-08-16 22:27:00' order by col4, col1, col2, col3, col15
-    // 验证col1,col2,col3是key列，sum col7不是key列
-
-    
-    // 这里可以搞一个复杂类型，看看能不能成为key列
-
-//    create materialized view mv_agg_negative_mv as select  col1, col2, col3, col4, col15, sum(col7) from mv_agg_negative_tb where col1 = "2023-08-16 22:27:00" group by col1, col2, col3, col4, col15 order by  col1, col2, col3, col4, col15
-//    create materialized view mv_agg_negative_mv as select  col1, col2, col3, sum(col7) from mv_agg_negative_tb where col1 = "2023-08-16 22:27:00" group by col1, col2, col3  order by  col1, col2, col3
-
-    explain {
-        sql("""select col1, col2, col3, sum(col7) from ${tb_name} where col1 = "2023-08-16 22:27:00" group by col3, col1, col2 order by col1, col2, col3""")
-        contains "(${mv_name})"
+    test {
+        sql """create materialized view mv_mor_negative_mv_1 as select col4, col1, col2, col3, col15, col8 from mv_mor_negative_tb where col1 = '2023-08-16 22:27:00' group by col4, col1, col2, col3, col15, col8 order by col4, col1, col2, col3, col15, col8"""
+        exception "The materialized view of unique table must not has grouping columns"
     }
 
     test {
-        sql """create materialized view ${no_mv_name} as select col3, sum(col7) from ${tb_name} group by col3 having col3 > 1"""
+        sql """create materialized view mv_mor_negative_mv_2 as select col4, col1, col2, col3, col15, col8, sum(col3) from mv_mor_negative_tb where col1 = '2023-08-16 22:27:00' group by col4, col1, col2, col3, col15, col8 order by col4, col1, col2, col3, col15, col8"""
+        exception "The materialized view of unique table must not has grouping columns"
+    }
+
+    sql """create materialized view mv_mor_negative_mv_3 as select col4, col1, col2, col3, col15, col8 from mv_mor_negative_tb where col1 = '2023-08-16 22:27:00' order by col4, col1, col2, col3, col15, col8"""
+
+
+    // 这个可以创建?
+    test {
+        sql """create materialized view mv_mor_negative_mv_4 as select col4, col1, col2, col3, col15 from mv_mor_negative_tb having col3 > 1"""
         exception "LogicalHaving is not supported"
     }
 
+
     test {
-        sql """create materialized view ${no_mv_name} as select col3, sum(col7) from ${tb_name} group by col3 limit 1"""
+        sql """create materialized view mv_mor_negative_mv_1 as select col4, col1, col2, col3, col15 from mv_mor_negative_tb limit 1"""
         exception "LogicalLimit is not supported"
     }
 
     test {
-        sql """create materialized view ${no_mv_name} as select col3, 1, sum(col7) from ${tb_name} group by col3"""
+        sql """create materialized view mv_mor_negative_mv_1 as select col4, col1, col2, col3, col15, 1 from mv_mor_negative_tb"""
         exception "The materialized view contain constant expr is disallowed"
     }
 
     test {
-        sql """create materialized view ${no_mv_name} as select col3, col3, sum(col7) from ${tb_name} group by col3"""
+        sql """create materialized view mv_mor_negative_mv_1 as select col4, col1, col2, col3, col15, col3 from mv_mor_negative_tb"""
         exception "The select expr is duplicated"
     }
 
-    test {
-        sql """create materialized view ${no_mv_name} as select col3, sum(col7) / 1 from ${tb_name} group by col3"""
-        exception "materialized view's expr calculations cannot be included outside aggregate functions"
-    }
+    // 这个居然可以创建？
+
+    sql """create materialized view mv_mor_negative_mv_5 as select col4, col1, col2, col3, col15, col3 / (cast(1 as decimal)) from mv_mor_negative_tb;"""
+
+
 
     test {
-        sql """create materialized view ${no_mv_name} as select  sum(col7), col3 from ${tb_name} group by col3"""
-        exception "The aggregate column should be after none agg column"
+        sql """create materialized view mv_mor_negative_mv_6 as select col3 from mv_mor_negative_tb"""
+        exception "The materialized view of uniq table must contain all key columns"
     }
 
-    test {
-        sql """create materialized view ${no_mv_name} as select col1, col2, col3 from ${tb_name} order by col1, col2, col3;"""
-        exception """agg mv must has group by clause"""
-    }
+
 
     test {
-        sql """create materialized view ${no_mv_name} as select col1, col2, col3, sum(col7) from ${tb_name} group by col3, col1, col2 order by col3, col1, col2"""
+        sql """create materialized view mv_mor_negative_mv_6 as select col4, col1, col2, col3, col15 from mv_mor_negative_tb order by col1, col2, col3, col4, col15"""
         exception "The order of columns in order by clause must be same as the order of columnsin select list"
     }
 
+
     test {
-        sql """create materialized view ${no_mv_name} as select sum(col3) from ${tb_name}"""
+        sql """create materialized view mv_mor_negative_mv_1 as select sum(col3) from mv_mor_negative_tb"""
         exception """The materialized view must contain at least one key column"""
     }
 
     test {
-        sql """create materialized view ${no_mv_name} as select col3, min(col7) from ${tb_name} group by col3"""
+        sql """create materialized view mv_mor_negative_mv_1 as select col3, min(col7) from mv_mor_negative_tb group by col3"""
         exception """Aggregate function require same with slot aggregate type"""
     }
 
-//    create materialized view mv_mow_negative_mv2 as select col4, col1, col2, col3, col15, col5, case when col2 > 1 then 1 else 2 end from mv_mow_negative_tb;
+    test {
+        sql """create materialized view mv_mor_negative_mv_1 as select col3, col1, col2, col15, case when col2 > 1 then 1 else 2 end from mv_mor_negative_tb order by 1,2,3,4,5"""
+        exception """only support the single column or function expr. Error column: CASE WHEN"""
+    }
 
+    test {
+        sql """create materialized view mv_mor_negative_mv_1 as select col1, bitmap_union(to_bitmap(col3)) from mv_mor_negative_tb group by col1;"""
+        exception "The materialized view of unique table must not has grouping columns"
+    }
 
-//    create materialized view mv_agg_negative_mv11 as select col3, col1, col2, col15, sum(col7) from mv_agg_negative_tb group by 1,2,3,4  order by  1,2,3,4
-//
-//
-//    create materialized view mv_agg_negative_mv11 as select col3, col1, col2, col15, case when col2 > 1 then 1 else 2 end, sum(col7) from mv_agg_negative_tb group by 1,2,3,4,5  order by  1,2,3,4,5
-//
-//    create materialized view mv_agg_negative_mv12 as select col3, col1, col2, col15, sum(case when col2 > 1 then 1 else 2 end), sum(col7) from mv_agg_negative_tb group by 1,2,3,4  order by  1,2,3,4
-//
-//
-//    create materialized view mv_agg_negative_mv11 as select col3, col1, col2, col15, sum(col7), count(*) from mv_agg_negative_tb group by 1,2,3,4  order by  1,2,3,4
-//
-//    create materialized view mv_agg_negative_mv14 as select col3, col1, col2, col15, sum(col7), bitmap_union(to_bitmap(case when col2 > 1 then 1 else 2 end)) from mv_agg_negative_tb group by 1,2,3,4  order by  1,2,3,4
-//
-//    create materialized view mv_agg_negative_mv14 as select col3, col1, col2, col15, sum(col7), bitmap_union(to_bitmap(case when col10 > 1 then 1 else 2 end)) from mv_agg_negative_tb group by 1,2,3,4  order by  1,2,3,4
-//
-//    create materialized view mv_agg_negative_mv14 as select case when col2 > 1 then 1 else 2 end, sum(col7), bitmap_union(to_bitmap(case when col10 > 1 then 1 else 2 end)) from mv_agg_negative_tb group by 1  order by  1
+    test {
+        sql """create materialized view mv_mor_negative_mv_7 as select bitmap_union(col11) from mv_mor_negative_tb"""
+        exception "Aggregate function require same with slot aggregate type"
+    }
+
 
 
 }
