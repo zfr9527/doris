@@ -53,12 +53,12 @@ suite("dup_negative_mv_test") {
 
     sql """create materialized view ${mv_name} as select col4, col1, col2, col3, col15, sum(col8) from ${tb_name} where col1 = "2023-08-16 22:27:00" group by col4, col1, col2, col3, col15 order by col4, col1, col2, col3, col15"""
     waitingMVTaskFinishedByMvName(db, tb_name, mv_name)
-    // 验证col1,col2,col3是key列，sum col7不是key列
+
     def desc_res = sql """desc ${tb_name} all;"""
     for (int i = 0; i < desc_res.size(); i++) {
         if (desc_res[i][0] == mv_name) {
             for (int j = i; j < i+6; j++) {
-                if (desc_res[j][2] != "mva_SUM__CAST(`col7` AS bigint)") {
+                if (desc_res[j][2] != "mva_SUM__CAST(`col8` AS bigint)") {
                     assertTrue(desc_res[j][6] == "true")
                 } else {
                     assertTrue(desc_res[j][6] == "false")
@@ -68,49 +68,44 @@ suite("dup_negative_mv_test") {
         }
     }
 
-//    sql """create materialized view ${mv_name} as select col4, col1, col2, col3, col15, sum(col7) from ${tb_name} where col1 = "2023-08-16 22:27:00" group by col4, col1, col2, col3, col15 order by col4, col1, col2, col3, col15"""
-//    sql """create materialized view ${mv_name} as select col4, col1, col2, col3, col15, sum(col7) from ${tb_name} where col1 = "2023-08-16 22:27:00" group by col4, col1, col2, col3, col15 order by col4, col1, col2, col3, col15"""
-    // 验证col1,col2,col3是key列，sum col7不是key列
-    // 这里可以搞一个复杂类型，看看能不能成为key列
-
-//    create materialized view mv_agg_negative_mv as select  col1, col2, col3, col4, col15, sum(col7) from mv_agg_negative_tb where col1 = "2023-08-16 22:27:00" group by col1, col2, col3, col4, col15 order by  col1, col2, col3, col4, col15
-//    create materialized view mv_agg_negative_mv as select  col1, col2, col3, sum(col7) from mv_agg_negative_tb where col1 = "2023-08-16 22:27:00" group by col1, col2, col3  order by  col1, col2, col3
-// 自增列
-//    create materialized view mv_dup_negative_mv as select col4, col1, col2, col3, col15, sum(col7) from mv_dup_negative_tb group by col4, col1, col2, col3, col15 order by col4, col1, col2, col3, col15
-
-
     explain {
-        sql("""select col1, col2, col3, sum(col7) from ${tb_name} where col1 = "2023-08-16 22:27:00" group by col3, col1, col2 order by col1, col2, col3""")
-        contains "${mv_name}(${mv_name})"
+        sql("""select col1, col2, col3, sum(col8) from ${tb_name} where col1 = "2023-08-16 22:27:00" group by col3, col1, col2 order by col1, col2, col3""")
+        contains "(${mv_name})"
     }
 
     test {
-        sql """create materialized view ${no_mv_name} as select col3, sum(col7) from ${tb_name} group by col3 having col3 > 1"""
+        sql """create materialized view mv_mor_negative_mv_1 as select col4, col1, col2, col3, col15, col7 from mv_mor_negative_tb where col1 = '2023-08-16 22:27:00' order by col4, col1, col2, col3, col15, col7"""
+        exception "The materialized view can not involved auto increment column"
+    }
+
+    // 预期不能创建来着
+    test {
+        sql """create materialized view ${no_mv_name} as select col3, sum(col8) from ${tb_name} group by col3 having col3 > 1"""
         exception "LogicalHaving is not supported"
     }
 
     test {
-        sql """create materialized view ${no_mv_name} as select col3, sum(col7) from ${tb_name} group by col3 limit 1"""
-        exception "LogicalTopN is not supported"
+        sql """create materialized view ${no_mv_name} as select col3, sum(col8) from ${tb_name} group by col3 limit 1"""
+        exception "LogicalLimit is not supported"
     }
 
     test {
-        sql """create materialized view ${no_mv_name} as select col3, 1, sum(col7) from ${tb_name} group by col3"""
+        sql """create materialized view ${no_mv_name} as select col3, 1, sum(col8) from ${tb_name} group by col3"""
         exception "The materialized view contain constant expr is disallowed"
     }
 
     test {
-        sql """create materialized view ${no_mv_name} as select col3, col3, sum(col7) from ${tb_name} group by col3"""
+        sql """create materialized view ${no_mv_name} as select col3, col3, sum(col8) from ${tb_name} group by col3"""
         exception "The select expr is duplicated"
     }
 
     test {
-        sql """create materialized view ${no_mv_name} as select col3, sum(col7) / 1 from ${tb_name} group by col3"""
+        sql """create materialized view ${no_mv_name} as select col3, sum(col8) / 1 from ${tb_name} group by col3"""
         exception "materialized view's expr calculations cannot be included outside aggregate functions"
     }
 
     test {
-        sql """create materialized view ${no_mv_name} as select  sum(col7), col3 from ${tb_name} group by col3"""
+        sql """create materialized view ${no_mv_name} as select  sum(col8), col3 from ${tb_name} group by col3"""
         exception "The aggregate column should be after none agg column"
     }
 
@@ -120,7 +115,12 @@ suite("dup_negative_mv_test") {
     }
 
     test {
-        sql """create materialized view ${no_mv_name} as select col1, col2, col3, sum(col7) from ${tb_name} group by col3, col1, col2 order by col3, col1, col2"""
+        sql """create materialized view ${no_mv_name} as select col1, col2, col3, sum(col8) from ${tb_name} group by col3, col1, col2 order by col3, col1, col2"""
+        exception "The order of columns in order by clause must be same as the order of columnsin select list"
+    }
+
+    test {
+        sql """create materialized view ${no_mv_name} as select col1, col2, col3, sum(col8) from ${tb_name} group by col1, col2, col3 order by col3, col1, col2"""
         exception "The order of columns in order by clause must be same as the order of columnsin select list"
     }
 
@@ -130,26 +130,40 @@ suite("dup_negative_mv_test") {
     }
 
     test {
-        sql """create materialized view ${no_mv_name} as select col3, min(col7) from ${tb_name} group by col3"""
+        sql """create materialized view ${no_mv_name} as select col3, min(col8) from ${tb_name} group by col3"""
         exception """Aggregate function require same with slot aggregate type"""
     }
 
+    test {
+        sql """create materialized view ${no_mv_name} as select col3, col1, col2, col15, case when col2 > 1 then 1 else 2 end, sum(col8) from ${tb_name} group by 1,2,3,4,5 order by 1,2,3,4,5"""
+        exception """only support the single column or function expr. Error column: CASE WHEN"""
+    }
 
-//    create materialized view mv_agg_negative_mv11 as select col3, col1, col2, col15, sum(col7) from mv_agg_negative_tb group by 1,2,3,4  order by  1,2,3,4
-//
-//
-//    create materialized view mv_agg_negative_mv11 as select col3, col1, col2, col15, case when col2 > 1 then 1 else 2 end, sum(col7) from mv_agg_negative_tb group by 1,2,3,4,5  order by  1,2,3,4,5
-//
-//    create materialized view mv_agg_negative_mv12 as select col3, col1, col2, col15, sum(case when col2 > 1 then 1 else 2 end), sum(col7) from mv_agg_negative_tb group by 1,2,3,4  order by  1,2,3,4
-//
-//
-//    create materialized view mv_agg_negative_mv11 as select col3, col1, col2, col15, sum(col7), count(*) from mv_agg_negative_tb group by 1,2,3,4  order by  1,2,3,4
-//
-//    create materialized view mv_agg_negative_mv14 as select col3, col1, col2, col15, sum(col7), bitmap_union(to_bitmap(case when col2 > 1 then 1 else 2 end)) from mv_agg_negative_tb group by 1,2,3,4  order by  1,2,3,4
-//
-//    create materialized view mv_agg_negative_mv14 as select col3, col1, col2, col15, sum(col7), bitmap_union(to_bitmap(case when col10 > 1 then 1 else 2 end)) from mv_agg_negative_tb group by 1,2,3,4  order by  1,2,3,4
-//
-//    create materialized view mv_agg_negative_mv14 as select case when col2 > 1 then 1 else 2 end, sum(col7), bitmap_union(to_bitmap(case when col10 > 1 then 1 else 2 end)) from mv_agg_negative_tb group by 1  order by  1
+    test {
+        sql """create materialized view ${no_mv_name} as select col3, col1, col2, col15, sum(case when col2 > 1 then 1 else 2 end) from ${tb_name} group by 1,2,3,4  order by  1,2,3,4"""
+        exception """isKey must same with all slot"""
+    }
 
+    test {
+        sql """create materialized view ${no_mv_name} as select col3, col1, col2, col15, sum(col8), count(col3) from ${tb_name} group by 1,2,3,4  order by  1,2,3,4"""
+        exception """isKey must same with all slot"""
+    }
+
+    test {
+        sql """create materialized view ${no_mv_name} as select col3, col1, col2, col15, sum(col8), bitmap_union(to_bitmap(case when col2 > 1 then 1 else 2 end)) from ${tb_name} group by 1,2,3,4  order by  1,2,3,4"""
+        exception """isKey must same with all slot"""
+    }
+
+    // 这个异常信息我不理解
+    test {
+        sql """create materialized view ${no_mv_name} as select col3, col1, col2, col15, sum(col8), bitmap_union(to_bitmap(case when col10 > 1 then 1 else 2 end)) from ${tb_name} group by 1,2,3,4  order by  1,2,3,4"""
+        exception """only allow col10#10 as bitmap_union's param"""
+    }
+
+    sql """create materialized view ${mv_name}_1 as select col3, col1, col2, col15, sum(col8) from ${tb_name} group by 1,2,3,4  order by  1,2,3,4"""
+    waitingMVTaskFinishedByMvName(db, tb_name, "${mv_name}_1")
+
+    sql """create materialized view ${mv_name}_2 as select col1, bitmap_union(col11) from ${tb_name} group by col1;"""
+    waitingMVTaskFinishedByMvName(db, tb_name, "${mv_name}_2")
 
 }

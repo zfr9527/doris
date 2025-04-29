@@ -158,7 +158,6 @@ suite("agg_negative_mv_test") {
     sql """create materialized view ${mv_name}_1 as select col3, col1, col2, col15, sum(col7) from ${tb_name} group by 1,2,3,4  order by  1,2,3,4"""
     waitingMVTaskFinishedByMvName(db, tb_name, "${mv_name}_1")
 
-    // 可以用bitmap_union吗？
     sql """create materialized view ${mv_name}_2 as select col1, bitmap_union(col11) from ${tb_name} group by col1;"""
     waitingMVTaskFinishedByMvName(db, tb_name, "${mv_name}_2")
 

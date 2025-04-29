@@ -67,7 +67,6 @@ suite("mor_negative_mv_test") {
         contains "(${mv_name})"
     }
 
-
     test {
         sql """create materialized view mv_mor_negative_mv_1 as select col4, col1, col2, col3, col15, col7 from mv_mor_negative_tb where col1 = '2023-08-16 22:27:00' order by col4, col1, col2, col3, col15, col7"""
         exception "The materialized view can not involved auto increment column"
@@ -83,15 +82,11 @@ suite("mor_negative_mv_test") {
         exception "The materialized view of unique table must not has grouping columns"
     }
 
-    sql """create materialized view mv_mor_negative_mv_3 as select col4, col1, col2, col3, col15, col8 from mv_mor_negative_tb where col1 = '2023-08-16 22:27:00' order by col4, col1, col2, col3, col15, col8"""
-
-
     // 这个可以创建?
     test {
         sql """create materialized view mv_mor_negative_mv_4 as select col4, col1, col2, col3, col15 from mv_mor_negative_tb having col3 > 1"""
         exception "LogicalHaving is not supported"
     }
-
 
     test {
         sql """create materialized view mv_mor_negative_mv_1 as select col4, col1, col2, col3, col15 from mv_mor_negative_tb limit 1"""
@@ -108,24 +103,15 @@ suite("mor_negative_mv_test") {
         exception "The select expr is duplicated"
     }
 
-    // 这个居然可以创建？
-
-    sql """create materialized view mv_mor_negative_mv_5 as select col4, col1, col2, col3, col15, col3 / (cast(1 as decimal)) from mv_mor_negative_tb;"""
-
-
-
     test {
         sql """create materialized view mv_mor_negative_mv_6 as select col3 from mv_mor_negative_tb"""
         exception "The materialized view of uniq table must contain all key columns"
     }
 
-
-
     test {
         sql """create materialized view mv_mor_negative_mv_6 as select col4, col1, col2, col3, col15 from mv_mor_negative_tb order by col1, col2, col3, col4, col15"""
         exception "The order of columns in order by clause must be same as the order of columnsin select list"
     }
-
 
     test {
         sql """create materialized view mv_mor_negative_mv_1 as select sum(col3) from mv_mor_negative_tb"""
@@ -151,6 +137,10 @@ suite("mor_negative_mv_test") {
         sql """create materialized view mv_mor_negative_mv_7 as select bitmap_union(col11) from mv_mor_negative_tb"""
         exception "Aggregate function require same with slot aggregate type"
     }
+
+    sql """create materialized view mv_mor_negative_mv_3 as select col4, col1, col2, col3, col15, col8 from mv_mor_negative_tb where col1 = '2023-08-16 22:27:00' order by col4, col1, col2, col3, col15, col8"""
+
+    sql """create materialized view mv_mor_negative_mv_5 as select col4, col1, col2, col3, col15, col3 / (cast(1 as decimal)) from mv_mor_negative_tb;"""
 
 
 
