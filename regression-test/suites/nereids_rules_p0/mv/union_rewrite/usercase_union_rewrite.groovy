@@ -117,7 +117,7 @@ suite ("usercase_union_rewrite") {
         BUILD IMMEDIATE REFRESH AUTO ON MANUAL 
         partition by(o_orderdate) 
         DISTRIBUTED BY RANDOM BUCKETS 2 
-        PROPERTIES ('replication_num' = '1') 
+        PROPERTIES ('grace_period' = '31536000', 'replication_num' = '1') 
         AS  
         ${mv_sql}
         """

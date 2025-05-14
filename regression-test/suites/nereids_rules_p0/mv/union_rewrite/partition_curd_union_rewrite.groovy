@@ -154,7 +154,7 @@ suite ("partition_curd_union_rewrite") {
         BUILD IMMEDIATE REFRESH AUTO ON MANUAL
         partition by(l_shipdate)
         DISTRIBUTED BY RANDOM BUCKETS 2
-        PROPERTIES ('replication_num' = '1') 
+        PROPERTIES ('replication_num' = '1', 'grace_period' = '31536000') 
         AS 
         ${mv_def_sql}
         """

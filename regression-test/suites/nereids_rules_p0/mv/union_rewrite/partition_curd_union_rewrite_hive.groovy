@@ -32,7 +32,7 @@ suite ("partition_curd_union_rewrite_hive") {
         BUILD IMMEDIATE REFRESH AUTO ON MANUAL 
         partition by(l_shipdate)
         DISTRIBUTED BY RANDOM BUCKETS 2 
-        PROPERTIES ('replication_num' = '1') 
+        PROPERTIES ('grace_period' = '31536000', 'replication_num' = '1') 
         AS  
         ${mv_sql}
         """
@@ -200,7 +200,7 @@ sql """alter table ${lineitem_tb_name} modify column l_comment set stats ('row_c
             BUILD IMMEDIATE REFRESH AUTO ON MANUAL
             partition by(l_shipdate)
             DISTRIBUTED BY RANDOM BUCKETS 2
-            PROPERTIES ('replication_num' = '1') 
+            PROPERTIES ('grace_period' = '31536000', 'replication_num' = '1') 
             AS 
             ${mv_def_sql}
             """
