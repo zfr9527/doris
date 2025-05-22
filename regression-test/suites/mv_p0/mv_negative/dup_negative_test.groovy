@@ -126,11 +126,6 @@ suite("dup_negative_mv_test") {
     }
 
     test {
-        sql """create materialized view ${no_mv_name} as select col1, col2, col3 from ${tb_name} order by col1, col2, col3;"""
-        exception """agg mv must has group by clause"""
-    }
-
-    test {
         sql """create materialized view ${no_mv_name} as select col1, col2, col3, sum(col8) from ${tb_name} group by col3, col1, col2 order by col3, col1, col2"""
         exception "The order of columns in order by clause must be same as the order of columnsin select list"
     }
@@ -180,5 +175,8 @@ suite("dup_negative_mv_test") {
 
     sql """create materialized view ${mv_name}_2 as select col1, bitmap_union(col11) from ${tb_name} group by col1;"""
     waitingMVTaskFinishedByMvName(db, tb_name, "${mv_name}_2")
+
+    sql """create materialized view ${mv_name}_3 as select col1, col2, col3 from ${tb_name} order by col1, col2, col3;"""
+    waitingMVTaskFinishedByMvName(db, tb_name, "${mv_name}_3")
 
 }
