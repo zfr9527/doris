@@ -91,7 +91,7 @@ suite("dup_negative_mv_test") {
     }
 
     test {
-        sql """create materialized view mv_mor_negative_mv_1 as select col4, col1, col2, col3, col15, col7 from mv_mor_negative_tb where col1 = '2023-08-16 22:27:00' order by col4, col1, col2, col3, col15, col7"""
+        sql """create materialized view ${no_mv_name} as select col4, col1, col2, col3, col15, col7 from ${tb_name} where col1 = '2023-08-16 22:27:00' order by col4, col1, col2, col3, col15, col7"""
         exception "The materialized view can not involved auto increment column"
     }
 
