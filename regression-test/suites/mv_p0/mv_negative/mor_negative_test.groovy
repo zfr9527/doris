@@ -150,6 +150,7 @@ suite("mor_negative_mv_test") {
         exception "The materialized view of unique table must not has grouping columns"
     }
 
+    //
     test {
         sql """create materialized view ${no_mv_name} as select bitmap_union(col11) from ${tb_name}"""
         exception "Aggregate function require same with slot aggregate type"
