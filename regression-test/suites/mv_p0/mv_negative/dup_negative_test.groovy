@@ -95,7 +95,6 @@ suite("dup_negative_mv_test") {
         exception "The materialized view can not involved auto increment column"
     }
 
-    // 预期不能创建来着
     test {
         sql """create materialized view ${no_mv_name} as select col3, sum(col8) from ${tb_name} group by col3 having col3 > 1"""
         exception "LogicalHaving is not supported"
@@ -171,10 +170,9 @@ suite("dup_negative_mv_test") {
         exception """isKey must same with all slot"""
     }
 
-    // 这个异常信息我不理解
     test {
         sql """create materialized view ${no_mv_name} as select col3, col1, col2, col15, sum(col8), bitmap_union(to_bitmap(case when col10 > 1 then 1 else 2 end)) from ${tb_name} group by 1,2,3,4  order by  1,2,3,4"""
-        exception """only allow col10#10 as bitmap_union's param"""
+        exception """only allow single column as bitmap_union's param"""
     }
 
     sql """create materialized view ${mv_name}_1 as select col3, col1, col2, col15, sum(col8) from ${tb_name} group by 1,2,3,4  order by  1,2,3,4"""
