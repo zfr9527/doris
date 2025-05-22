@@ -141,11 +141,6 @@ suite("dup_negative_mv_test") {
     }
 
     test {
-        sql """create materialized view ${no_mv_name} as select col3, min(col8) from ${tb_name} group by col3"""
-        exception """Aggregate function require same with slot aggregate type"""
-    }
-
-    test {
         sql """create materialized view ${no_mv_name} as select col3, col1, col2, col15, case when col2 > 1 then 1 else 2 end, sum(col8) from ${tb_name} group by 1,2,3,4,5 order by 1,2,3,4,5"""
         exception """only support the single column or function expr. Error column: CASE WHEN"""
     }
@@ -178,5 +173,8 @@ suite("dup_negative_mv_test") {
 
     sql """create materialized view ${mv_name}_3 as select col1, col2, col3 from ${tb_name} order by col1, col2, col3;"""
     waitingMVTaskFinishedByMvName(db, tb_name, "${mv_name}_3")
+
+    sql """create materialized view ${mv_name}_4 as select col3, min(col8) from ${tb_name} group by col3"""
+    waitingMVTaskFinishedByMvName(db, tb_name, "${mv_name}_4")
 
 }
