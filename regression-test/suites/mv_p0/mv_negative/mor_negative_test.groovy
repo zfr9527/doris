@@ -134,6 +134,7 @@ suite("mor_negative_mv_test") {
         exception """The materialized view must contain at least one key column"""
     }
 
+    //
     test {
         sql """create materialized view ${no_mv_name} as select col3, min(col7) from ${tb_name} group by col3"""
         exception """Aggregate function require same with slot aggregate type"""
