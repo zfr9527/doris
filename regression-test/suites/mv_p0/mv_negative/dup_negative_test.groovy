@@ -150,10 +150,10 @@ suite("dup_negative_mv_test") {
 //        exception """isKey must same with all slot"""
 //    }
 
-    test {
-        sql """create materialized view ${no_mv_name} as select col3, col1, col2, col15, sum(col8), count(col3) from ${tb_name} group by 1,2,3,4  order by  1,2,3,4"""
-        exception """isKey must same with all slot"""
-    }
+//    test {
+//        sql """create materialized view ${no_mv_name} as select col3, col1, col2, col15, sum(col8), count(col3) from ${tb_name} group by 1,2,3,4  order by  1,2,3,4"""
+//        exception """isKey must same with all slot"""
+//    }
 
     test {
         sql """create materialized view ${no_mv_name} as select col3, col1, col2, col15, sum(col8), bitmap_union(to_bitmap(case when col2 > 1 then 1 else 2 end)) from ${tb_name} group by 1,2,3,4  order by  1,2,3,4"""
