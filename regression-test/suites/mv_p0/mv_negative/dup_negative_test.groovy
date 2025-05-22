@@ -183,7 +183,7 @@ suite("dup_negative_mv_test") {
     waitingMVTaskFinishedByMvName(db, tb_name, "${mv_name}_4")
 
     sql """create materialized view ${mv_name}_5 as select col3, col1, col2, col15, sum(col8), bitmap_union(to_bitmap(case when col10 > 1 then 1 else 2 end)) from ${tb_name} group by 1,2,3,4  order by  1,2,3,4"""
-    waitingMVTaskFinishedByMvName(db, tb_name, "${mv_name}_8")
+    waitingMVTaskFinishedByMvName(db, tb_name, "${mv_name}_5")
 
 
 }
