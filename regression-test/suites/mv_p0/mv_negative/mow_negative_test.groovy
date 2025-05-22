@@ -153,7 +153,7 @@ suite("mow_negative_mv_test") {
 
     test {
         sql """create materialized view ${no_mv_name} as select bitmap_union(col11) from ${tb_name}"""
-        exception "Aggregate function require same with slot aggregate type"
+        exception "The materialized view must contain at least one key column"
     }
 
     sql """create materialized view ${mv_name}_1 as select col4, col1, col2, col3, col15, col8 from ${tb_name} where col1 = '2023-08-16 22:27:00' order by col4, col1, col2, col3, col15, col8"""
