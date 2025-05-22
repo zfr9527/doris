@@ -147,6 +147,11 @@ suite("agg_negative_mv_test") {
     }
 
     test {
+        sql """create materialized view ${no_mv_name} as select min(col8),col3 from ${tb_name} group by col3"""
+        exception """The aggregate column should be after none agg column"""
+    }
+
+    test {
         sql """create materialized view ${no_mv_name} as select col3, col1, col2, col15, case when col2 > 1 then 1 else 2 end, sum(col7) from ${tb_name} group by 1,2,3,4,5 order by 1,2,3,4,5"""
         exception """only support the single column or function expr. Error column: CASE WHEN"""
     }

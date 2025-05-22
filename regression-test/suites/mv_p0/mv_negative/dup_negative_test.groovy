@@ -145,6 +145,11 @@ suite("dup_negative_mv_test") {
         exception """only support the single column or function expr. Error column: CASE WHEN"""
     }
 
+    test {
+        sql """create materialized view ${mv_name}_4 as select min(col8), col3 from ${tb_name} group by col3"""
+        exception """The aggregate column should be after none agg column"""
+    }
+
 //    test {
 //        sql """create materialized view ${no_mv_name} as select col3, col1, col2, col15, sum(case when col2 > 1 then 1 else 2 end) from ${tb_name} group by 1,2,3,4  order by  1,2,3,4"""
 //        exception """isKey must same with all slot"""
@@ -155,15 +160,15 @@ suite("dup_negative_mv_test") {
 //        exception """isKey must same with all slot"""
 //    }
 
-    test {
-        sql """create materialized view ${no_mv_name} as select col3, col1, col2, col15, sum(col8), bitmap_union(to_bitmap(case when col2 > 1 then 1 else 2 end)) from ${tb_name} group by 1,2,3,4  order by  1,2,3,4"""
-        exception """isKey must same with all slot"""
-    }
-
-    test {
-        sql """create materialized view ${no_mv_name} as select col3, col1, col2, col15, sum(col8), bitmap_union(to_bitmap(case when col10 > 1 then 1 else 2 end)) from ${tb_name} group by 1,2,3,4  order by  1,2,3,4"""
-        exception """only allow single column as bitmap_union's param"""
-    }
+//    test {
+//        sql """create materialized view ${no_mv_name} as select col3, col1, col2, col15, sum(col8), bitmap_union(to_bitmap(case when col2 > 1 then 1 else 2 end)) from ${tb_name} group by 1,2,3,4  order by  1,2,3,4"""
+//        exception """isKey must same with all slot"""
+//    }
+//
+//    test {
+//        sql """create materialized view ${no_mv_name} as select col3, col1, col2, col15, sum(col8), bitmap_union(to_bitmap(case when col10 > 1 then 1 else 2 end)) from ${tb_name} group by 1,2,3,4  order by  1,2,3,4"""
+//        exception """only allow single column as bitmap_union's param"""
+//    }
 
     sql """create materialized view ${mv_name}_1 as select col3, col1, col2, col15, sum(col8) from ${tb_name} group by 1,2,3,4  order by  1,2,3,4"""
     waitingMVTaskFinishedByMvName(db, tb_name, "${mv_name}_1")
@@ -174,7 +179,11 @@ suite("dup_negative_mv_test") {
     sql """create materialized view ${mv_name}_3 as select col1, col2, col3 from ${tb_name} order by col1, col2, col3;"""
     waitingMVTaskFinishedByMvName(db, tb_name, "${mv_name}_3")
 
-    sql """create materialized view ${mv_name}_4 as select col3, min(col8) from ${tb_name} group by col3"""
+    sql """create materialized view ${mv_name}_4 as select col3, col1, col2, col15, sum(case when col2 > 1 then 1 else 2 end) from ${tb_name} group by 1,2,3,4  order by  1,2,3,4"""
     waitingMVTaskFinishedByMvName(db, tb_name, "${mv_name}_4")
+
+    sql """create materialized view ${mv_name}_5 as select col3, col1, col2, col15, sum(col8), bitmap_union(to_bitmap(case when col10 > 1 then 1 else 2 end)) from ${tb_name} group by 1,2,3,4  order by  1,2,3,4"""
+    waitingMVTaskFinishedByMvName(db, tb_name, "${mv_name}_8")
+
 
 }
