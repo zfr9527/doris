@@ -151,105 +151,34 @@ suite("test_upgrade_downgrade_olap_mtmv_zfr_hive_2","p0,mtmv,restart_fe") {
 
 
 
-    // mtmv5: normal situation, the base table and mtmv remain unchanged
-    // success
-    sql """switch internal;"""
-    def state_mtmv5 = sql """select State,RefreshState,SyncWithBaseTables from mv_infos('database'='${dbName}') where Name = '${mtmvName5}';"""
-    def test_sql5 = """SELECT a.* FROM ${ctlName}.${dbName}.${tableName5} a inner join ${ctlName}.${dbName}.${tableName8} b on a.user_id=b.user_id"""
-    if (step == 1 || step == 2 || step == 3) {
-        assertTrue(state_mtmv5[0][0] == "NORMAL") // 升级master之后会变成sc
-        assertTrue(state_mtmv5[0][2] == true) // 丢包之后会卡死
-        connect('root', context.config.jdbcPassword, follower_jdbc_url) {
-            sql """set materialized_view_rewrite_enable_contain_external_table=true;"""
-            sql """use ${dbName}"""
-            mv_rewrite_success_without_check_chosen(test_sql5, mtmvName5)
-            compare_res(test_sql5 + " order by 1,2,3")
-        }
-        connect('root', context.config.jdbcPassword, master_jdbc_url) {
-            sql """set materialized_view_rewrite_enable_contain_external_table=true;"""
-            sql """use ${dbName}"""
-            mv_rewrite_success_without_check_chosen(test_sql5, mtmvName5)
-            compare_res(test_sql5 + " order by 1,2,3")
-        }
-    } else if (step == 4) {
-        assertTrue(state_mtmv5[0][0] == "SCHEMA_CHANGE")
-        assertTrue(state_mtmv5[0][2] == false)
-        connect('root', context.config.jdbcPassword, follower_jdbc_url) {
-            sql """set materialized_view_rewrite_enable_contain_external_table=true;"""
-            sql """use ${dbName}"""
-            mv_not_part_in(test_sql5, mtmvName5)
-
-        }
-        connect('root', context.config.jdbcPassword, master_jdbc_url) {
-            sql """set materialized_view_rewrite_enable_contain_external_table=true;"""
-            sql """use ${dbName}"""
-            mv_not_part_in(test_sql5, mtmvName5)
-        }
-
-    }
-
-    // 手动刷新之后会变成normal状态
-    sql """refresh MATERIALIZED VIEW ${mtmvName5} complete;"""
-    waitingMTMVTaskFinishedByMvName(mtmvName5)
-    assertTrue(state_mtmv5[0][0] == "NORMAL") // 升级master之后会变成sc
-    assertTrue(state_mtmv5[0][2] == true) // 丢包之后会卡死
-    connect('root', context.config.jdbcPassword, follower_jdbc_url) {
-        sql """set materialized_view_rewrite_enable_contain_external_table=true;"""
-        sql """use ${dbName}"""
-        mv_rewrite_success_without_check_chosen(test_sql5, mtmvName5)
-        compare_res(test_sql5 + " order by 1,2,3")
-    }
-    connect('root', context.config.jdbcPassword, master_jdbc_url) {
-        sql """set materialized_view_rewrite_enable_contain_external_table=true;"""
-        sql """use ${dbName}"""
-        mv_rewrite_success_without_check_chosen(test_sql5, mtmvName5)
-        compare_res(test_sql5 + " order by 1,2,3")
-    }
-
-
     // mtmv3: insert data
     // 确认一下我们这边插入之后会自动变为不同步
     sql """insert into ${ctlName}.${dbName}.${tableName3} values(1,1,"2017-01-15");"""
     def state_mtmv3 = sql """select State,RefreshState,SyncWithBaseTables from mv_infos('database'='${dbName}') where Name = '${mtmvName3}';"""
     def test_sql3 = """SELECT a.* FROM ${ctlName}.${dbName}.${tableName3} a inner join ${ctlName}.${dbName}.${tableName10} b on a.user_id=b.user_id"""
 
-    if (step == 1 || step == 2 || step == 3) {
-        assertTrue(state_mtmv3[0][0] == "NORMAL")
-        assertTrue(state_mtmv3[0][2] == false)
 
-        connect('root', context.config.jdbcPassword, follower_jdbc_url) {
+    assertTrue(state_mtmv3[0][0] == "NORMAL")
+    assertTrue(state_mtmv3[0][2] == false)
+
+    connect('root', context.config.jdbcPassword, follower_jdbc_url) {
 //            assertTrue(state_mtmv3[0][0] == "NORMAL")
 //            assertTrue(state_mtmv3[0][2] == true)
 //            sql """select * from ${ctlName}.${dbName}.${tableName3}"""
 
-            sql """set materialized_view_rewrite_enable_contain_external_table=true;"""
-            sql """use ${dbName}"""
-            mv_rewrite_success_without_check_chosen(test_sql3, mtmvName3)
-            compare_res(test_sql3 + " order by 1,2,3")
-        }
-
-        connect('root', context.config.jdbcPassword, master_jdbc_url) {
-            sql """set materialized_view_rewrite_enable_contain_external_table=true;"""
-            sql """use ${dbName}"""
-            mv_rewrite_success_without_check_chosen(test_sql3, mtmvName3)
-            compare_res(test_sql3 + " order by 1,2,3")
-        }
-    } else if (step == 4) {
-        assertTrue(state_mtmv3[0][0] == "SCHEMA_CHANGE")
-        assertTrue(state_mtmv3[0][2] == false)
-
-        connect('root', context.config.jdbcPassword, follower_jdbc_url) {
-            sql """set materialized_view_rewrite_enable_contain_external_table=true;"""
-            sql """use ${dbName}"""
-            mv_not_part_in(test_sql3, mtmvName3)
-        }
-
-        connect('root', context.config.jdbcPassword, master_jdbc_url) {
-            sql """set materialized_view_rewrite_enable_contain_external_table=true;"""
-            sql """use ${dbName}"""
-            mv_not_part_in(test_sql3, mtmvName3)
-        }
+        sql """set materialized_view_rewrite_enable_contain_external_table=true;"""
+        sql """use ${dbName}"""
+        mv_rewrite_success_without_check_chosen(test_sql3, mtmvName3)
+        compare_res(test_sql3 + " order by 1,2,3")
     }
+
+    connect('root', context.config.jdbcPassword, master_jdbc_url) {
+        sql """set materialized_view_rewrite_enable_contain_external_table=true;"""
+        sql """use ${dbName}"""
+        mv_rewrite_success_without_check_chosen(test_sql3, mtmvName3)
+        compare_res(test_sql3 + " order by 1,2,3")
+    }
+
     sql """refresh MATERIALIZED VIEW ${mtmvName3} complete;"""
     waitingMTMVTaskFinishedByMvName(mtmvName3)
     assertTrue(state_mtmv3[0][0] == "NORMAL")

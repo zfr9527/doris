@@ -57,6 +57,22 @@ suite("test_upgrade_downgrade_prepare_olap_mtmv_zfr_hive_2","p0,mtmv,restart_fe"
     sql """
         insert into ${tableName1} values (1,1,"2017-01-15"),(2,2,"2017-02-15"),(3,3,"2017-03-15"),(4,4,"2017-04-15"),(5,5,"2017-05-15"),(6,6,"2017-06-15"),(7,7,"2017-07-15"),(8,8,"2017-08-15"),(9,9,"2017-09-15"),(10,10,"2017-10-15"),(11,11,"2017-11-15"),(12,12,"2017-12-15");
         """
+//
+//    insert into `mtmv_up_down_olap_hive_ctl`.`regression_test_mv_zfr_up_down_hive_2`.`mtmv_up_down_olap_hive_tb1` values (14,14,"2017-01-15");
+//
+//    insert into `mtmv_up_down_olap_hive_ctl`.`regression_test_mv_zfr_up_down_hive_2`.`mtmv_up_down_olap_hive_tb2` values (13,13,"2017-01-15");
+//
+//    SELECT
+//    `mtmv_up_down_olap_hive_ctl`.`regression_test_mv_zfr_up_down_hive_2`.`a`.`user_id`,
+//    `mtmv_up_down_olap_hive_ctl`.`regression_test_mv_zfr_up_down_hive_2`.`a`.`num`,
+//    `mtmv_up_down_olap_hive_ctl`.`regression_test_mv_zfr_up_down_hive_2`.`a`.`date`
+//    FROM
+//    `mtmv_up_down_olap_hive_ctl`.`regression_test_mv_zfr_up_down_hive_2`.`mtmv_up_down_olap_hive_tb1` `a`
+//    left join
+//    `mtmv_up_down_olap_hive_ctl`.`regression_test_mv_zfr_up_down_hive_2`.`mtmv_up_down_olap_hive_tb10` `b`
+//    on
+//    `mtmv_up_down_olap_hive_ctl`.`regression_test_mv_zfr_up_down_hive_2`.`a`.`user_id`=`mtmv_up_down_olap_hive_ctl`.`regression_test_mv_zfr_up_down_hive_2`.`b`.`user_id`
+//
 
     sql """
         CREATE TABLE `${tableName2}` (
@@ -72,6 +88,7 @@ suite("test_upgrade_downgrade_prepare_olap_mtmv_zfr_hive_2","p0,mtmv,restart_fe"
     sql """
         insert into ${tableName2} values (1,1,"2017-01-15"),(2,2,"2017-02-15"),(3,3,"2017-03-15"),(4,4,"2017-04-15"),(5,5,"2017-05-15"),(6,6,"2017-06-15"),(7,7,"2017-07-15"),(8,8,"2017-08-15"),(9,9,"2017-09-15"),(10,10,"2017-10-15"),(11,11,"2017-11-15"),(12,12,"2017-12-15");
         """
+    insert into mtmv_up_down_olap_hive_tb2 values (13,13,"2017-01-15");
 
     sql """
         CREATE TABLE `${tableName3}` (
