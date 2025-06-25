@@ -157,43 +157,46 @@ suite("test_upgrade_downgrade_olap_mtmv_zfr_hive_2","p0,mtmv,restart_fe") {
     def state_mtmv3 = sql """select State,RefreshState,SyncWithBaseTables from mv_infos('database'='${dbName}') where Name = '${mtmvName3}';"""
     def test_sql3 = """SELECT a.* FROM ${ctlName}.${dbName}.${tableName3} a left join ${ctlName}.${dbName}.${tableName10} b on a.user_id=b.user_id"""
 
-
-    assertTrue(state_mtmv3[0][0] == "NORMAL")
-    assertTrue(state_mtmv3[0][2] == false)
-
     connect('root', context.config.jdbcPassword, follower_jdbc_url) {
-//            assertTrue(state_mtmv3[0][0] == "NORMAL")
-//            assertTrue(state_mtmv3[0][2] == true)
-//            sql """select * from ${ctlName}.${dbName}.${tableName3}"""
-
+        state_mtmv3 = sql """select State,RefreshState,SyncWithBaseTables from mv_infos('database'='${dbName}') where Name = '${mtmvName3}';"""
+        assertTrue(state_mtmv3[0][0] == "NORMAL")
+        assertTrue(state_mtmv3[0][2] == false)
         sql """set materialized_view_rewrite_enable_contain_external_table=true;"""
         sql """use ${dbName}"""
-        mv_rewrite_success_without_check_chosen(test_sql3, mtmvName3)
+        mv_rewrite_success(test_sql3, mtmvName3)
         compare_res(test_sql3 + " order by 1,2,3")
     }
 
     connect('root', context.config.jdbcPassword, master_jdbc_url) {
+        state_mtmv3 = sql """select State,RefreshState,SyncWithBaseTables from mv_infos('database'='${dbName}') where Name = '${mtmvName3}';"""
+        assertTrue(state_mtmv3[0][0] == "NORMAL")
+        assertTrue(state_mtmv3[0][2] == false)
+
         sql """set materialized_view_rewrite_enable_contain_external_table=true;"""
         sql """use ${dbName}"""
-        mv_rewrite_success_without_check_chosen(test_sql3, mtmvName3)
+        mv_rewrite_success(test_sql3, mtmvName3)
         compare_res(test_sql3 + " order by 1,2,3")
     }
 
     sql """refresh MATERIALIZED VIEW ${mtmvName3} complete;"""
     waitingMTMVTaskFinishedByMvName(mtmvName3)
-    assertTrue(state_mtmv3[0][0] == "NORMAL")
-    assertTrue(state_mtmv3[0][2] == true)
     connect('root', context.config.jdbcPassword, follower_jdbc_url) {
+        state_mtmv3 = sql """select State,RefreshState,SyncWithBaseTables from mv_infos('database'='${dbName}') where Name = '${mtmvName3}';"""
+        assertTrue(state_mtmv3[0][0] == "NORMAL")
+        assertTrue(state_mtmv3[0][2] == true)
         sql """set materialized_view_rewrite_enable_contain_external_table=true;"""
         sql """use ${dbName}"""
-        mv_rewrite_success_without_check_chosen(test_sql3, mtmvName3)
+        mv_rewrite_success(test_sql3, mtmvName3)
         compare_res(test_sql3 + " order by 1,2,3")
     }
 
     connect('root', context.config.jdbcPassword, master_jdbc_url) {
+        state_mtmv3 = sql """select State,RefreshState,SyncWithBaseTables from mv_infos('database'='${dbName}') where Name = '${mtmvName3}';"""
+        assertTrue(state_mtmv3[0][0] == "NORMAL")
+        assertTrue(state_mtmv3[0][2] == true)
         sql """set materialized_view_rewrite_enable_contain_external_table=true;"""
         sql """use ${dbName}"""
-        mv_rewrite_success_without_check_chosen(test_sql3, mtmvName3)
+        mv_rewrite_success(test_sql3, mtmvName3)
         compare_res(test_sql3 + " order by 1,2,3")
     }
 
