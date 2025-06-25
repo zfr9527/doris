@@ -155,7 +155,7 @@ suite("test_upgrade_downgrade_olap_mtmv_zfr_hive_2","p0,mtmv,restart_fe") {
     // 确认一下我们这边插入之后会自动变为不同步
     sql """insert into ${ctlName}.${dbName}.${tableName3} values(1,1,"2017-01-15");"""
     def state_mtmv3 = sql """select State,RefreshState,SyncWithBaseTables from mv_infos('database'='${dbName}') where Name = '${mtmvName3}';"""
-    def test_sql3 = """SELECT a.* FROM ${ctlName}.${dbName}.${tableName3} a inner join ${ctlName}.${dbName}.${tableName10} b on a.user_id=b.user_id"""
+    def test_sql3 = """SELECT a.* FROM ${ctlName}.${dbName}.${tableName3} a left join ${ctlName}.${dbName}.${tableName10} b on a.user_id=b.user_id"""
 
 
     assertTrue(state_mtmv3[0][0] == "NORMAL")
