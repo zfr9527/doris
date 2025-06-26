@@ -214,7 +214,7 @@ suite("test_upgrade_downgrade_prepare_olap_mtmv_zfr_hive_2","p0,mtmv,restart_fe"
             DISTRIBUTED BY RANDOM BUCKETS 2
             PROPERTIES ('replication_num' = '1')
             AS
-            SELECT a.* FROM ${ctlName}.${dbName}.${tableName1} a left join ${ctlName}.${dbName}.${tableName10} b on a.user_id=b.user_id;
+            SELECT a.date as date, a.user_id, a.num FROM ${ctlName}.${dbName}.${tableName1} a left join ${ctlName}.${dbName}.${tableName10} b on a.user_id=b.user_id;
         """
     waitingMTMVTaskFinishedByMvName(mtmvName1)
 
@@ -225,7 +225,7 @@ suite("test_upgrade_downgrade_prepare_olap_mtmv_zfr_hive_2","p0,mtmv,restart_fe"
             DISTRIBUTED BY RANDOM BUCKETS 2
             PROPERTIES ('replication_num' = '1')
             AS
-            SELECT a.* FROM ${ctlName}.${dbName}.${tableName2} a inner join ${ctlName}.${dbName}.${tableName10} b on a.user_id=b.user_id;
+            SELECT a.date as date, a.user_id, a.num FROM ${ctlName}.${dbName}.${tableName2} a inner join ${ctlName}.${dbName}.${tableName10} b on a.user_id=b.user_id;
         """
     waitingMTMVTaskFinishedByMvName(mtmvName2)
 
@@ -236,7 +236,7 @@ suite("test_upgrade_downgrade_prepare_olap_mtmv_zfr_hive_2","p0,mtmv,restart_fe"
             DISTRIBUTED BY RANDOM BUCKETS 2
             PROPERTIES ('replication_num' = '1')
             AS
-            SELECT a.* FROM ${ctlName}.${dbName}.${tableName3} a left join ${ctlName}.${dbName}.${tableName10} b on a.user_id=b.user_id;
+            SELECT a.date as date, a.user_id, a.num FROM ${ctlName}.${dbName}.${tableName3} a left join ${ctlName}.${dbName}.${tableName10} b on a.user_id=b.user_id;
         """
     waitingMTMVTaskFinishedByMvName(mtmvName3)
 
@@ -247,7 +247,7 @@ suite("test_upgrade_downgrade_prepare_olap_mtmv_zfr_hive_2","p0,mtmv,restart_fe"
             DISTRIBUTED BY RANDOM BUCKETS 2
             PROPERTIES ('replication_num' = '1')
             AS
-            SELECT a.* FROM ${ctlName}.${dbName}.${tableName9} a inner join ${ctlName}.${dbName}.${tableName4} b on a.user_id=b.user_id;
+            SELECT a.date as date, a.user_id, a.num FROM ${ctlName}.${dbName}.${tableName9} a inner join ${ctlName}.${dbName}.${tableName4} b on a.user_id=b.user_id;
         """
     waitingMTMVTaskFinishedByMvName(mtmvName4)
 
@@ -258,7 +258,7 @@ suite("test_upgrade_downgrade_prepare_olap_mtmv_zfr_hive_2","p0,mtmv,restart_fe"
             DISTRIBUTED BY RANDOM BUCKETS 2
             PROPERTIES ('replication_num' = '1')
             AS
-            SELECT a.* FROM ${ctlName}.${dbName}.${tableName5} a inner join ${ctlName}.${dbName}.${tableName8} b on a.user_id=b.user_id;
+            SELECT a.date as date, a.user_id, a.num FROM ${ctlName}.${dbName}.${tableName5} a inner join ${ctlName}.${dbName}.${tableName8} b on a.user_id=b.user_id;
         """
     waitingMTMVTaskFinishedByMvName(mtmvName5)
 
@@ -269,7 +269,7 @@ suite("test_upgrade_downgrade_prepare_olap_mtmv_zfr_hive_2","p0,mtmv,restart_fe"
             DISTRIBUTED BY RANDOM BUCKETS 2
             PROPERTIES ('replication_num' = '1')
             AS
-            SELECT a.* FROM ${ctlName}.${dbName}.${tableName6} a inner join ${ctlName}.${dbName}.${tableName7} b on a.user_id=b.user_id;
+            SELECT a.date as date, a.user_id, a.num FROM ${ctlName}.${dbName}.${tableName6} a inner join ${ctlName}.${dbName}.${tableName7} b on a.user_id=b.user_id;
         """
     waitingMTMVTaskFinishedByMvName(mtmvName6)
 
