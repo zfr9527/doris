@@ -59,6 +59,10 @@ suite("test_upgrade_downgrade_prepare_olap_mtmv_zfr_hive_2","p0,mtmv,restart_fe"
         """
 //
 //    insert into `mtmv_up_down_olap_hive_ctl`.`regression_test_mv_zfr_up_down_hive_2`.`mtmv_up_down_olap_hive_tb1` values (14,14,"2017-01-15");
+
+//    insert into mtmv_up_down_olap_hive_tb1 values (14,14,"2017-01-15");
+//
+//    insert into mtmv_up_down_olap_hive_tb1 PARTITION(`date`='2018-01-15') values (14,14)
 //
 //    insert into `mtmv_up_down_olap_hive_ctl`.`regression_test_mv_zfr_up_down_hive_2`.`mtmv_up_down_olap_hive_tb2` values (1,1,"2017-01-15");
 //

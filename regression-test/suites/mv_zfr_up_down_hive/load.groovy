@@ -127,6 +127,8 @@ suite("test_upgrade_downgrade_prepare_olap_mtmv_zfr_hive","p0,mtmv,restart_fe") 
     hive_docker """insert into ${dbName}.${tableName2} PARTITION(dt='2017-11-15') values (11,11)"""
     hive_docker """insert into ${dbName}.${tableName2} PARTITION(dt='2017-12-15') values (12,12)"""
 
+    insert into mtmv_up_down_olap_hive_tb2 PARTITION(dt='2018-01-15') values (13,13)
+
 
     hive_docker """
         CREATE TABLE ${dbName}.${tableName3} (
