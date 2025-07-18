@@ -40,11 +40,11 @@ Usage: $0 <options>
      --load-parallel <num>  set the parallel number to load data, default is the 50% of CPU cores
 
   All valid components:
-    mysql,pg,oracle,sqlserver,clickhouse,es,hive2,hive3,iceberg,iceberg-rest,hudi,trino,kafka,mariadb,db2,oceanbase,lakesoul,kerberos,ranger,polaris
+    mysql,pg,oracle,sqlserver,clickhouse,es,hive2,hive3,iceberg,iceberg-rest,hudi,trino,kafka,mariadb,db2,oceanbase,lakesoul,kerberos,ranger,polaris,ldap
   "
     exit 1
 }
-DEFAULT_COMPONENTS="mysql,es,hive2,hive3,pg,oracle,sqlserver,clickhouse,mariadb,iceberg,db2,oceanbase,kerberos,minio"
+DEFAULT_COMPONENTS="mysql,es,hive2,hive3,pg,oracle,sqlserver,clickhouse,mariadb,iceberg,db2,oceanbase,kerberos,minio,ldap"
 ALL_COMPONENTS="${DEFAULT_COMPONENTS},hudi,trino,kafka,spark,lakesoul,ranger,polaris"
 COMPONENTS=$2
 HELP=0
@@ -168,6 +168,7 @@ RUN_KERBEROS=0
 RUN_MINIO=0
 RUN_RANGER=0
 RUN_POLARIS=0
+RUN_LDAP=0
 
 RESERVED_PORTS="65535"
 
@@ -217,6 +218,8 @@ for element in "${COMPONENTS_ARR[@]}"; do
         RUN_RANGER=1
     elif [[ "${element}"x == "polaris"x ]]; then
         RUN_POLARIS=1
+    elif [[ "${element}"x == "ldap"x ]]; then
+        RUN_LDAP=1
     else
         echo "Invalid component: ${element}"
         usage
@@ -696,6 +699,18 @@ start_iceberg_rest() {
     fi
 }
 
+start_ldap() {
+    echo "RUN_LDAP"
+    cp "${ROOT}"/docker-compose/ldap/ldap.yaml.tpl "${ROOT}"/docker-compose/ldap/ldap.yaml
+    sed -i "s/doris--/${CONTAINER_UID}/g" "${ROOT}"/docker-compose/ldap/ldap.yaml
+    sudo docker compose -f "${ROOT}"/docker-compose/ldap/ldap.yaml --env-file "${ROOT}"/docker-compose/ldap/ldap.env down
+    if [[ "${STOP}" -ne 1 ]]; then
+        sudo rm -rf "${ROOT}"/docker-compose/ldap/data
+        sudo mkdir -p "${ROOT}"/docker-compose/ldap/data
+        sudo docker compose -f "${ROOT}"/docker-compose/ldap/ldap.yaml --env-file "${ROOT}"/docker-compose/ldap/ldap.env up -d --wait
+    fi
+}
+
 echo "starting dockers in parallel"
 
 reserve_ports
@@ -823,6 +838,11 @@ fi
 if [[ "${RUN_RANGER}" -eq 1 ]]; then
     start_ranger > start_ranger.log 2>&1 &
     pids["ranger"]=$!
+fi
+
+if [[ "${RUN_LDAP}" -eq 1 ]]; then
+    start_ldap > start_ldap.log 2>&1 &
+    pids["ldap"]=$!
 fi
 echo "waiting all dockers starting done"
 

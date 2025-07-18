@@ -1888,6 +1888,328 @@ class Suite implements GroovyInterceptable {
         return debugPoint
     }
 
+    def runLdapProcessBuilder = { def cmdList ->
+        def processBuilder = new ProcessBuilder(cmdList)
+        logger.info("CurrentLdapCmd: ${cmdList.join(' ')}")
+
+        def proc = processBuilder.start()
+        def outputStream = new StringBuilder()
+        def errorStream = new StringBuilder()
+        def outputThread = Thread.start {
+            outputStream << proc.inputStream.getText('UTF-8')
+        }
+        def errorThread = Thread.start {
+            errorStream << proc.errorStream.getText('UTF-8')
+        }
+
+        def exitCode = proc.waitFor()
+        outputThread.join()
+        errorThread.join()
+
+        def output = outputStream.toString()
+        def errorOutput = errorStream.toString()
+
+        logger.info("output: " + output)
+        logger.info("errorOutput" + errorOutput)
+        logger.info("exitCode: " + exitCode)
+
+        return [output, errorOutput, exitCode]
+    }
+
+    // Check if the target member exists in a specific group.
+    def checkMemberExistFromEntry = { def ldapUrl, def bindDn, def password, def groupDn, def memberDn ->
+        def sLdapUrl = ldapUrl.toString()
+        def sBindDn = bindDn.toString()
+        def sPassword = password.toString()
+        def sGroupDn = groupDn.toString()
+
+        def cmdList = [
+                "ldapsearch",
+                "-H", sLdapUrl,
+                "-D", sBindDn,
+                "-w", sPassword,
+                "-b", sGroupDn,
+                "-s", "base",
+                "member"
+        ]
+
+        def (output, errorOutput, exitCode) = runLdapProcessBuilder(cmdList)
+
+        if (exitCode != 0) {
+            logger.error("LDAP search failed. Exit Code: $exitCode. Error: $errorOutput")
+            return false
+        }
+
+        def targetLine = "member: ${memberDn}"
+        if (output.toString().contains(targetLine)) {
+            logger.info("Success: Group '$groupDn' contains member '$memberDn'.")
+            return true
+        } else {
+            logger.info("Failure: Member '$memberDn' not found in Group '$groupDn'. Output: $output")
+            return false
+        }
+    }
+
+    // Check if the DN entry exists
+    def checkLdapEntryExist = { def ldapUrl, def bindDn, def password, def dn ->
+        def sLdapUrl = ldapUrl.toString()
+        def sBindDn = bindDn.toString()
+        def sPassword = password.toString()
+        def sDn = dn.toString()
+
+        def cmdList = [
+                "ldapsearch",
+                "-H", sLdapUrl,
+                "-D", sBindDn,
+                "-w", sPassword,
+                "-b", sDn,
+                "-s", "base",
+                "-LLL",
+                "objectClass=*"
+        ]
+
+        def (output, errorOutput, exitCode) = runLdapProcessBuilder(cmdList)
+
+        if (exitCode == 0) {
+            if (output.contains("dn: $dn")) {
+                logger.info("success find dn: '$dn'。")
+                return true
+            }
+        }
+
+        logger.info("can't find dn: '$dn'。")
+        return false
+    }
+
+    // Move a member from src group to dst group
+    def moveLdapEntry = { def ldapUrl, def bindDn, def password, def srcLdifContent, def dstLdifContent, def ldifContent ->
+        // Check if the original group exists.
+        if (!checkLdapEntryExist(ldapUrl, bindDn, password, srcLdifContent)) {
+            logger.info("The srcLdifContent: ${srcLdifContent} not exist, please check it")
+            assert false
+        }
+        // Check if the destination group exists.
+        if (!checkLdapEntryExist(ldapUrl, bindDn, password, dstLdifContent)) {
+            logger.info("The dstLdifContent: ${dstLdifContent} not exist, please check it")
+            assert false
+        }
+
+        def sLdapUrl = ldapUrl.toString()
+        def sBindDn = bindDn.toString()
+        def sPassword = password.toString()
+        def sModrdnLdif = ldifContent.toString()
+
+        def cleanModrdnLdif = sModrdnLdif.readLines().collect { it.trim() }.join('\n')
+        def ldapModrdnCommandBase = "ldapmodify -x -H ${sLdapUrl} -D \"${sBindDn}\" -w \"${sPassword}\""
+        def fullBashCommand = """
+                |cat <<EOF | ${ldapModrdnCommandBase}
+                |${cleanModrdnLdif}
+                |EOF""".stripMargin()
+        def cmdList = [
+                "bash",
+                "-c",
+                fullBashCommand
+        ]
+
+        def (output, errorOutput, exitCode) = runLdapProcessBuilder(cmdList)
+
+        if (exitCode == 0) {
+            logger.info("success ldap move operation.")
+            return true
+        }
+        logger.warning("Ldap move failed. Exit Code: ${exitCode}. Stderr: ${errorOutput}")
+        assert false
+    }
+
+    // Add a member to the group
+    def addMemberToEntry = { def ldapUrl, def bindDn, def password, def groupDn, def memberDn ->
+        // Check if the group exists; if it does, proceed; otherwise, return a "does not exist" error
+        if (!checkLdapEntryExist(ldapUrl, bindDn, password, groupDn)) {
+            logger.info("add member, check group but the group:${groupDn} not exists")
+            return false
+        }
+        // Check if the member exists; if it does, return an error; otherwise, proceed with execution.
+        if (checkMemberExistFromEntry(ldapUrl, bindDn, password, groupDn, memberDn)) {
+            logger.info("add member, check member: ${memberDn} but the member already exists in group: ${groupDn}")
+            return false
+        }
+
+        def sLdapUrl = ldapUrl.toString()
+        def sBindDn = bindDn.toString()
+        def sPassword = password.toString()
+        def sLdifContent = """
+            dn: ${groupDn}
+            changetype: modify
+            add: member
+            member: ${memberDn}"""
+
+        def cleanLdifContent = sLdifContent.readLines().collect { it.trim() }.join('\n')
+        def ldapAddCommandBase = "ldapadd -x -H ${sLdapUrl} -D \"${sBindDn}\" -w \"${sPassword}\""
+        def fullBashCommand = """
+                |cat <<EOF | ${ldapAddCommandBase}
+                |${cleanLdifContent}
+                |EOF""".stripMargin()
+
+        def cmdList = [
+                "bash",
+                "-c",
+                fullBashCommand
+        ]
+
+        def (output, errorOutput, exitCode) = runLdapProcessBuilder(cmdList)
+
+        if (exitCode == 0) {
+            logger.info("success ldap dn")
+            return true
+        }
+        logger.warning("AddldapMember for DN failed. Exit Code: ${exitCode}. Stderr: ${errorOutput}")
+        assert false
+    }
+
+    // Delete a member from the group
+    def deleteMemberToEntry = { def ldapUrl, def bindDn, def password, def groupDn, def memberDn ->
+        if (!checkLdapEntryExist(ldapUrl, bindDn, password, groupDn)) {
+            logger.info("delete member, check group: ${groupDn} but the group not exists")
+            return false
+        }
+        if (!checkMemberExistFromEntry(ldapUrl, bindDn, password, groupDn, memberDn)) {
+            logger.info("delete member, check member: ${memberDn} but the member not exists")
+            return false
+        }
+
+        def sLdapUrl = ldapUrl.toString()
+        def sBindDn = bindDn.toString()
+        def sPassword = password.toString()
+        def sLdifContent = """
+            dn: ${groupDn}
+            changetype: modify
+            delete: member
+            member: ${memberDn}"""
+
+        def cleanLdifContent = sLdifContent.readLines().collect { it.trim() }.join('\n')
+        def ldapAddCommandBase = "ldapadd -x -H ${sLdapUrl} -D \"${sBindDn}\" -w \"${sPassword}\""
+        def fullBashCommand = """
+                |cat <<EOF | ${ldapAddCommandBase}
+                |${cleanLdifContent}
+                |EOF""".stripMargin()
+
+        def cmdList = [
+                "bash",
+                "-c",
+                fullBashCommand
+        ]
+
+        def (output, errorOutput, exitCode) = runLdapProcessBuilder(cmdList)
+
+        if (exitCode == 0) {
+            logger.info("success ldap dn")
+            return true
+        }
+        logger.warning("deleteldapMember for DN failed. Exit Code: ${exitCode}. Stderr: ${errorOutput}")
+        assert false
+    }
+
+    // Add a dn to ldap server
+    def addLdapEntry = { def ldapUrl, def bindDn, def password, def ldifContent ->
+        if (checkLdapEntryExist(ldapUrl, bindDn, password, ldifContent)) {
+            return true
+        }
+        def sLdapUrl = ldapUrl.toString()
+        def sBindDn = bindDn.toString()
+        def sPassword = password.toString()
+        def sLdifContent = ldifContent.toString()
+
+        def cleanLdifContent = sLdifContent.readLines().collect { it.trim() }.join('\n')
+        def ldapAddCommandBase = "ldapadd -x -H ${sLdapUrl} -D \"${sBindDn}\" -w \"${sPassword}\""
+        def fullBashCommand = """
+                |cat <<EOF | ${ldapAddCommandBase}
+                |${cleanLdifContent}
+                |EOF""".stripMargin()
+
+        def cmdList = [
+                "bash",
+                "-c",
+                fullBashCommand
+        ]
+
+        def (output, errorOutput, exitCode) = runLdapProcessBuilder(cmdList)
+
+        if (exitCode == 0) {
+            logger.info("success ldap dn")
+            return true
+        }
+        logger.warning("Addldap for DN failed. Exit Code: ${exitCode}. Stderr: ${errorOutput}")
+        assert false
+    }
+
+    // Delete a dn from ldap server
+    def deleteLdapEntry = { def ldapUrl, def bindDn, def password, def dnToDelete ->
+        if (!checkLdapEntryExist(ldapUrl, bindDn, password, dnToDelete)) {
+            return true
+        }
+        def sLdapUrl = ldapUrl.toString()
+        def sBindDn = bindDn.toString()
+        def sPassword = password.toString()
+        def sDnToDelete = dnToDelete.toString()
+
+        def cmdList = [
+                "ldapdelete",
+                "-x",
+                "-r",
+                "-H", sLdapUrl,
+                "-D", sBindDn,
+                "-w", sPassword,
+                sDnToDelete
+        ]
+
+        def (output, errorOutput, exitCode) = runLdapProcessBuilder(cmdList)
+
+        if (exitCode == 0) {
+            logger.info("delete success dn: '$dnToDelete'。")
+            return true
+        }
+        logger.warning("ldapdelete for DN '$dnToDelete' failed. Exit Code: ${exitCode}. Stderr: ${errorOutput}")
+        assert false
+    }
+
+    // Modify member name
+    def modifyEntryName = { def ldapUrl, def bindDn, def password, def dn, def newName ->
+        if (!checkLdapEntryExist(ldapUrl, bindDn, password, dn)) {
+            logger.info("modify name: check dn: ${dn} not exists")
+            return false
+        }
+        def sLdapUrl = ldapUrl.toString()
+        def sBindDn = bindDn.toString()
+        def sPassword = password.toString()
+        def sLdifContent = """
+            dn: ${dn}
+            changetype: modrdn
+            newrdn: cn=${newName}
+            deleteoldrdn: 1"""
+
+        def cleanLdifContent = sLdifContent.readLines().collect { it.trim() }.join('\n')
+        def ldapAddCommandBase = "ldapmodify -x -H ${sLdapUrl} -D \"${sBindDn}\" -w \"${sPassword}\""
+        def fullBashCommand = """
+                |cat <<EOF | ${ldapAddCommandBase}
+                |${cleanLdifContent}
+                |EOF""".stripMargin()
+
+        def cmdList = [
+                "bash",
+                "-c",
+                fullBashCommand
+        ]
+
+        def (output, errorOutput, exitCode) = runLdapProcessBuilder(cmdList)
+
+        if (exitCode == 0) {
+            logger.info("success ldap dn")
+            return true
+        }
+        logger.warning("modifyEntryName for DN failed. Exit Code: ${exitCode}. Stderr: ${errorOutput}")
+        assert false
+    }
+
     def waitingMTMVTaskFinishedByMvName = { mvName, dbName = context.dbName ->
         Thread.sleep(2000);
         String showTasks = "select TaskId,JobId,JobName,MvId,Status,MvName,MvDatabaseName,ErrorMsg from tasks('type'='mv') where MvDatabaseName = '${dbName}' and MvName = '${mvName}' order by CreateTime ASC"
