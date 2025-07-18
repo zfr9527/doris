@@ -280,3 +280,14 @@ icebergS3TablesCatalog = ""
 enableExternalHudiTest = false
 // The properties string of hudi catalog
 hudiEmrCatalog = ""
+
+
+
+enableLdapTest = false
+ldapHost = "127.0.0.1"
+ldapPort = 389
+ldapUser = "cn=admin,dc=example,dc=com"
+ldapPassword = "password"
+ldapBaseDn = "dc=example,dc=com"
+ldapFilter = "(&(objectClass=person)(uid=test))"
+ldapFilePath = "regression-test/conf/select_db_ldap_test.ldif"
