@@ -1,4 +1,3 @@
-
 # Licensed to the Apache Software Foundation (ASF) under one
 # or more contributor license agreements.  See the NOTICE file
 # distributed with this work for additional information
@@ -22,29 +21,29 @@ services:
   openldap:
     image: osixia/openldap:1.5.0
     container_name: doris--openldap
-    hostname: openldap
+    hostname: ${LDAP_HOST_NAME}
     ports:
-      - "389:389"
-      - "636:636"
+      - "${LDAP_HOST_PORT}:389"
+      - "${LDAPS_HOST_PORT}:636"
     volumes:
       - ./data:/var/lib/ldap
       - ./slapd.d:/etc/ldap/slapd.d
     environment:
-      - LDAP_ORGANISATION="Apache Doris"
-      - LDAP_DOMAIN="doris.apache.org"
-      - LDAP_ADMIN_PASSWORD="admin_password"
-      - LDAP_CONFIG_PASSWORD="config_password"
+      - LDAP_ORGANISATION=${LDAP_ORGANISATION}
+      - LDAP_DOMAIN=${LDAP_DOMAIN}
+      - LDAP_ADMIN_PASSWORD=${LDAP_ADMIN_PASSWORD}
+      - LDAP_CONFIG_PASSWORD=${LDAP_CONFIG_PASSWORD}
     networks:
       - ldap-net
 
   phpldapadmin:
     image: osixia/phpldapadmin:0.9.0
     container_name: doris--phpldapadmin
-    hostname: phpldapadmin
+    hostname: ${PHPLDAPADMIN_HOST_NAME}
     ports:
-      - "8088:80"
+      - "${PHPLDAPADMIN_HOST_PORT}:80"
     environment:
-      - PHPLDAPADMIN_LDAP_HOSTS=openldap
+      - PHPLDAPADMIN_LDAP_HOSTS=${PHPLDAPADMIN_LDAP_HOSTS}
       - PHPLDAPADMIN_HTTPS=false
     depends_on:
       - openldap
