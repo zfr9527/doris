@@ -562,6 +562,9 @@ public class NereidsPlanner extends Planner {
 
     @Override
     public String getExplainString(ExplainOptions explainOptions) {
+        if (getConnectContext().getSessionVariable().enableExplainNone) {
+            return "";
+        }
         ExplainLevel explainLevel = getExplainLevel(explainOptions);
         String plan = "";
         String mvSummary = "";
@@ -688,6 +691,14 @@ public class NereidsPlanner extends Planner {
     @VisibleForTesting
     public CascadesContext getCascadesContext() {
         return cascadesContext;
+    }
+
+    public ConnectContext getConnectContext() {
+        return cascadesContext == null ? ConnectContext.get() : cascadesContext.getConnectContext();
+    }
+
+    public StatementContext getStatementContext() {
+        return statementContext;
     }
 
     public static PhysicalProperties buildInitRequireProperties() {
