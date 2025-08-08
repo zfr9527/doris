@@ -2220,8 +2220,8 @@ public class SessionVariable implements Serializable, Writable {
     public String detailShapePlanNodes = "";
 
     @VariableMgr.VarAttr(name = ENABLE_EXPLAIN_NONE, needForward = true, description = {
-            "执行explain命令，但不打印explain结果",
-            "execute explain command and return nothing"
+        "执行explain命令，但不打印explain结果",
+        "execute explain command and return nothing"
     })
     public boolean enableExplainNone = false;
 
