@@ -248,27 +248,7 @@ SELECT a, dt, c FROM key_1_special_fixed_range_date_part WHERE (dt BETWEEN '2023
 
 
      */
-    def sql2_1 = """SELECT * FROM key_1_special_fixed_range_date_part
-        WHERE dt BETWEEN '2023-01-01 00:00:00' AND '2023-05-01 00:00:00'
-        AND a IS NOT NULL
-        AND c IS NOT NULL;"""
-    def sql2_2 = """SELECT * FROM key_1_special_fixed_range_date_part
-        WHERE (dt BETWEEN '2023-06-01 00:00:00' AND '2023-07-01 00:00:00')
-           OR !(a <=> 10);"""
-    def sql2_3 = """SELECT * FROM key_1_special_fixed_range_date_part
-        WHERE dt < (CASE WHEN a > 5 THEN '2023-09-01 00:00:00' ELSE '2023-02-01 00:00:00' END);"""
-    def sql2_4 = """SELECT * FROM key_1_special_fixed_range_date_part
-        WHERE dt IS NULL;"""
-    def sql2_5 = """SELECT * FROM key_1_special_fixed_range_date_part
-        WHERE TIMESTAMPDIFF(SECOND, '2023-01-01 00:00:00', dt) > 15778463;"""
-    def sql2_6 = """SELECT * FROM key_1_special_fixed_range_date_part
-        WHERE dt < ADDDATE('2023-04-01 00:00:00', DATEDIFF('2023-05-15', '2023-04-01'));"""
-    def sql2_7 = """SELECT * FROM key_1_special_fixed_range_date_part
-        WHERE FROM_UNIXTIME(UNIX_TIMESTAMP(dt)) = '2023-06-01 00:00:00';"""
-    def sql2_8 = """EXPLAIN SELECT * FROM key_1_special_fixed_range_date_part
-        WHERE a > 0 AND c = '111';"""
-    def sql2_9 = """EXPLAIN SELECT * FROM key_1_special_fixed_range_date_part
-        WHERE a > 10 OR c IS NULL;"""
+
 
 
     sql """create table key_1_fixed_range_int_part (a int, dt datetime, c varchar(100)) duplicate key(a)
@@ -375,30 +355,7 @@ SELECT a, dt, c FROM key_1_fixed_range_int_part WHERE a BETWEEN 1050 AND 1350;
 
      */
 
-    def sql3_1 = """
-        EXPLAIN SELECT * FROM key_1_fixed_range_int_part WHERE a = 100;
-        
-        EXPLAIN SELECT * FROM key_1_fixed_range_int_part WHERE a BETWEEN 250 AND 350;
-        
-        EXPLAIN SELECT * FROM key_1_fixed_range_int_part WHERE a > 900;
-        
-        EXPLAIN SELECT * FROM key_1_fixed_range_int_part WHERE a <= 150;
-        
-        EXPLAIN SELECT * FROM key_1_fixed_range_int_part WHERE a IN (100, 200, 300);
-        
-        EXPLAIN SELECT * FROM key_1_fixed_range_int_part WHERE a = 100 * 5 + 100;
-        
-        EXPLAIN SELECT * FROM key_1_fixed_range_int_part WHERE ABS(a - 200) < 50;
-        
-        EXPLAIN SELECT * FROM key_1_fixed_range_int_part WHERE FLOOR(a / 100) = 4;
-        
-        
-        EXPLAIN SELECT * FROM key_1_fixed_range_int_part WHERE (a > 200 AND a < 300) OR a = 900;
-        
-        EXPLAIN SELECT * FROM key_1_fixed_range_int_part WHERE (a >= 600 AND a <= 700) OR c = 'something';
-        
-        EXPLAIN SELECT * FROM key_1_fixed_range_int_part WHERE a > 1150;
-        """
+
 
 
     sql """create table key_1_special_fixed_range_int_part (a int, dt datetime, c varchar(100)) duplicate key(a)
@@ -501,34 +458,7 @@ SELECT a, dt, c FROM key_1_special_fixed_range_int_part WHERE a BETWEEN 1050 AND
 
      */
 
-    def sql4_1 = """
-EXPLAIN SELECT * FROM key_1_special_fixed_range_int_part
-WHERE a > IF(c IS NULL, 500, 100)
-AND dt IS NOT NULL;
 
-EXPLAIN SELECT * FROM key_1_special_fixed_range_int_part
-WHERE a < (CASE WHEN a > 500 THEN 1000 ELSE 200 END)
-   OR a <=> 1250;
-   
-   
-   EXPLAIN SELECT * FROM key_1_special_fixed_range_int_part
-WHERE a >= POW(2, 8) + 100 AND NOT (a > 900);
-
-EXPLAIN SELECT * FROM key_1_special_fixed_range_int_part
-WHERE (a BETWEEN 150 AND 599 AND dt IS NOT NULL)
-   OR (a BETWEEN 650 AND 699 AND dt IS NOT NULL);
-   
-   
-   EXPLAIN SELECT * FROM key_1_special_fixed_range_int_part
-WHERE (a BETWEEN 250 AND 299)
-   OR (a BETWEEN 1250 AND 1299 AND c <=> 'test_value')
-   OR a = 1500;
-   
-   EXPLAIN SELECT * FROM key_1_special_fixed_range_int_part
-WHERE a < IF(a > 500, IF(a < 800, 800, 1000), 200);
-
-
-"""
 
 
 
