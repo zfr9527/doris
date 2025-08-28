@@ -77,8 +77,11 @@ SELECT a, dt, c FROM key_1_fixed_list_int_part WHERE a + 5 = 10;
 -- 在 CASE WHEN 表达式中，分区裁剪通常会失效，期望全表扫描
 SELECT a, dt, c FROM key_1_fixed_list_int_part WHERE a = CASE WHEN c = 'test' THEN 10 ELSE 5 END;
 
-// 这个剔除了NULL分区没扫描
--- `MOD` 运算，结果依赖于 a 的值，通常无法进行分区裁剪，期望全表扫描
+// 这个剔除了NULL分区没扫描。默认null分区不被扫描
+空分区有1个意思：一个是分区没有数据，一行数据都没有
+NULL分区就是用来存包含NULL值的分区。里面到底有没有数据不一定
+
+-- `MOD` 运算，结果依赖于 a 的值，通常无法进行分区裁剪，期望全表扫描。  这个没有问题。  这个函数不好用，因为没有支持常量折叠
 SELECT a, dt, c FROM key_1_fixed_list_int_part WHERE MOD(a, 3) = 1;
 
 -- 可裁剪条件和不可裁剪条件通过 AND 连接，期望只扫描 p_1, p_2, p_3
@@ -95,7 +98,7 @@ SELECT a, dt, c FROM key_1_fixed_list_int_part WHERE a NOT IN (5);
 -- != 同样相当于一个排除性的 IN 列表，期望扫描除 p_6 之外的所有分区
 SELECT a, dt, c FROM key_1_fixed_list_int_part WHERE a != 6;
 
-// 实际p1没有扫描
+// 实际p1没有扫描， 这个没有问题
 -- 查询同时满足 a 在特定列表中，且a+5满足特定条件，且c不为空
 -- 期望只扫描 p_1, p_2, p_3, p_4, p_5
 SELECT a, dt, c FROM key_1_fixed_list_int_part
@@ -231,8 +234,8 @@ WHERE (dt IN ('2023-01-01 00:00:00', '2023-05-01 00:00:00', '2023-09-01 00:00:00
     sql """create table key_1_fixed_list_varchar_part (a int, dt datetime, c varchar(100)) duplicate key(a)
         PARTITION BY LIST(c)
         (
-            PARTITION `p_NULL` VALUES IN ((NULL)),
-            PARTITION `p_NULL_2` VALUES IN ("NULL"),
+            PARTITION `p_NULL` VALUES IN ((NULL)), // NULL分区
+            PARTITION `p_NULL_2` VALUES IN ("NULL"), // 普通分区
             PARTITION `p_1` VALUES IN ("111"),
             PARTITION `p_2` VALUES IN ("222"),
             PARTITION `p_3` VALUES IN ("333"),
@@ -278,11 +281,11 @@ SELECT a, dt, c FROM key_1_fixed_list_varchar_part WHERE c IN ('222', 'kkk');
 -- 查询分区中的 NULL 值，期望只扫描 p_NULL
 SELECT a, dt, c FROM key_1_fixed_list_varchar_part WHERE c IS NULL;
 
-// 实际只扫描了一个分区
+// 实际只扫描了一个分区，upper支持了常量折叠，所以可以实现分区裁剪
 -- 将c转换为大写后进行匹配，期望全表扫描
 SELECT a, dt, c FROM key_1_fixed_list_varchar_part WHERE UPPER(c) = 'JJJ';
 
-// 实际只扫描了分区名称长度为3的分区
+// 实际只扫描了分区名称长度为3的分区，这个也没有问题
 -- 检查字符串长度，期望全表扫描
 SELECT a, dt, c FROM key_1_fixed_list_varchar_part WHERE LENGTH(c) = 3;
 

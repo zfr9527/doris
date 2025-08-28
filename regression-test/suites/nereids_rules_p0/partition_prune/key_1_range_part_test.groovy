@@ -85,14 +85,14 @@ SELECT a, dt, c FROM key_1_fixed_range_date_part WHERE date_trunc('month', dt) =
 -- 结合 BETWEEN，查询 2023年4月到5月的数据，期望扫描 p_202304 和 p_202305
 SELECT a, dt, c FROM key_1_fixed_range_date_part WHERE date_trunc('month', dt) BETWEEN '2023-04-01 00:00:00' AND '2023-05-01 00:00:00';
 
-// 这两个都多了max和min分区
+// 这两个都多了max和min分区， mark
 -- dt 加上一个月后等于 2023-11-15，那么 dt 应该是 2023-10-15，期望扫描 p_202310
 SELECT a, dt, c FROM key_1_fixed_range_date_part WHERE date_add(dt, INTERVAL 1 MONTH) = '2023-11-15 10:00:00';
 
 -- dt 减去两个月后大于 2023-03-10，那么 dt 应该大于 2023-05-10，期望扫描 p_202305, p_202306, ..., p_max
 SELECT a, dt, c FROM key_1_fixed_range_date_part WHERE date_sub(dt, INTERVAL 2 MONTH) > '2023-03-10 00:00:00';
 
-//这个是继承了monotonic类的函数，但是不知道为什么扫描了所有分区而不是单个分区
+//这个是继承了monotonic类的函数，但是不知道为什么扫描了所有分区而不是单个分区   mark
 -- dt 和 2023-04-01 的天数差为 10，那么 dt 应该为 2023-04-11，期望扫描 p_202304
 SELECT a, dt, c FROM key_1_fixed_range_date_part WHERE datediff(dt, '2023-04-01 00:00:00') = 10;
 
@@ -106,7 +106,7 @@ SELECT a, dt, c FROM key_1_fixed_range_date_part WHERE date(dt) = '2023-09-05';
 -- ToDate 函数，期望扫描 p_202301
 SELECT a, dt, c FROM key_1_fixed_range_date_part WHERE to_date(dt) = '2023-01-20';
 
-// 这个也扫描了两个分区
+// 这个也扫描了两个分区 mark
 -- 查询 last_day(dt) 等于 2023年3月的最后一天，期望扫描 p_202303
 SELECT a, dt, c FROM key_1_fixed_range_date_part WHERE last_day(dt) = '2023-03-31 00:00:00';
 
@@ -114,7 +114,7 @@ SELECT a, dt, c FROM key_1_fixed_range_date_part WHERE last_day(dt) = '2023-03-3
 -- OR 的一个分支可裁剪，另一个分支不可裁剪，期望全表扫描
 SELECT a, dt, c FROM key_1_fixed_range_date_part WHERE date_trunc('month', dt) = '2023-08-01' OR a > 100;
 
-// 这个比预期多扫描了一个6月
+// 这个比预期多扫描了一个6月     mark
 -- dt 的范围由两个函数决定，期望扫描 p_202307 和 p_202308
 SELECT a, dt, c FROM key_1_fixed_range_date_part WHERE date_add(dt, INTERVAL 1 MONTH) BETWEEN '2023-08-01' AND '2023-09-01';
 
@@ -123,8 +123,14 @@ SELECT a, dt, c FROM key_1_fixed_range_date_part WHERE date_add(dt, INTERVAL 1 M
 SELECT a, dt, c FROM key_1_fixed_range_date_part WHERE dt != '2023-07-05 12:00:00' AND dt > '2023-07-01' AND dt < '2023-08-01';
 
 // 这个只扫描了min分区。有个问题是前后两个条件交换之后仍然只扫描了一个分区，所以程序内部是有一个什么判断的因子仍然可以定位到满足dt的只有一个分区？
+// 这个没有问题
 -- 复杂的 IS NULL / IS NOT NULL 条件，期望全表扫描
 SELECT a, dt, c FROM key_1_fixed_range_date_part WHERE (dt IS NULL OR dt < '2023-01-01') AND NOT (dt IS NULL);
+(a or b)  and c
+(a and c) or (b and c)
+false or (b and c)
+dt < '2023-01-01' and dt is not null
+
 SELECT a, dt, c FROM key_1_fixed_range_date_part WHERE NOT (dt IS NULL) and (dt IS NULL OR dt < '2023-01-01');
 
 SELECT a, dt, c FROM key_1_fixed_range_date_part WHERE (dt IS NULL OR dt < '2023-01-01');
@@ -137,6 +143,8 @@ SELECT a, dt, c FROM key_1_fixed_range_date_part WHERE CAST(dt AS DATE) = '2023-
 
 -- 嵌套 OR，期望全表扫描，这个我不太确定
 SELECT a, dt, c FROM key_1_fixed_range_date_part WHERE (dt BETWEEN '2023-05-01' AND '2023-05-31' OR a = 1) AND (dt > '2023-06-15' OR c LIKE 'pattern');
+(a or b) and (c or d)
+因为b不是分区列，所以所有分区数据可能都为true，所以变成a or true,所以变成true
 
      */
 
@@ -188,11 +196,10 @@ SELECT a, dt, c FROM key_1_special_fixed_range_date_part WHERE dt = '2023-06-01 
 -- 查询分区 p_202306 的上边界（不包含），期望扫描 p_202306
 SELECT a, dt, c FROM key_1_special_fixed_range_date_part WHERE dt < '2023-08-01 00:00:00' AND dt >= '2023-07-31 23:59:59';
 
-// 这个为什么世纪扫描的是p_202302分区
 -- 截断到月，查询 2023年3月的数据，期望扫描 p_202303
 SELECT a, dt, c FROM key_1_special_fixed_range_date_part WHERE date_trunc('month', dt) = '2023-03-01 00:00:00';
 
-// 这个实际上扫描了5月和6月
+// 这个实际上扫描了5月和6月   mark
 -- 结合 BETWEEN，查询 2023年6月和7月的数据，期望扫描 p_202306和07
 SELECT a, dt, c FROM key_1_special_fixed_range_date_part WHERE date_trunc('month', dt) BETWEEN '2023-06-01 00:00:00' AND '2023-07-01 00:00:00';
 
@@ -224,14 +231,14 @@ SELECT a, dt, c FROM key_1_special_fixed_range_date_part WHERE last_day(dt) = '2
 SELECT a, dt, c FROM key_1_special_fixed_range_date_part WHERE date_trunc('month', dt) = '2023-08-01' OR a > 100;
 
 // 实际上为啥扫描的是5和6，还有max
--- dt 的范围由两个函数决定，期望扫描 p_202306 和 p_202309
+-- dt 的范围由两个函数决定，期望扫描 p_202306
 SELECT a, dt, c FROM key_1_special_fixed_range_date_part WHERE date_add(dt, INTERVAL 1 MONTH) BETWEEN '2023-07-01' AND '2023-09-01';
 
 
 -- `!=` 不等于条件，结合日期函数，期望只裁剪到分区 p_202306
 SELECT a, dt, c FROM key_1_special_fixed_range_date_part WHERE dt != '2023-07-05 12:00:00' AND dt > '2023-07-01' AND dt < '2023-08-01';
 
-// 这个只扫描了min分区
+// 这个只扫描了min分区， 这个不是问题
 -- 复杂的 IS NULL / IS NOT NULL 条件，期望全表扫描
 SELECT a, dt, c FROM key_1_special_fixed_range_date_part WHERE (dt IS NULL OR dt < '2023-01-01') AND NOT (dt IS NULL);
 
@@ -242,9 +249,10 @@ explain sELECT a, dt, c FROM key_1_special_fixed_range_date_part WHERE CAST(dt A
 -- 嵌套 OR，期望全表扫描，因为 OR 逻辑无法精确裁剪
 SELECT a, dt, c FROM key_1_special_fixed_range_date_part WHERE (dt BETWEEN '2023-05-01' AND '2023-05-31' OR a = 1) AND (dt > '2023-06-15' OR c LIKE 'pattern');
 
-// 实际扫描了5月
+// 实际扫描了5月，这个没有问题
 -- 新增用例：嵌套 AND，期望扫描 ？
 SELECT a, dt, c FROM key_1_special_fixed_range_date_part WHERE (dt BETWEEN '2023-05-01' AND '2023-05-31') AND (dt > '2023-06-15' OR c LIKE 'pattern');
+a and (b or c)
 
 
      */
@@ -254,32 +262,32 @@ SELECT a, dt, c FROM key_1_special_fixed_range_date_part WHERE (dt BETWEEN '2023
     sql """create table key_1_fixed_range_int_part (a int, dt datetime, c varchar(100)) duplicate key(a)
     partition by range(a) (
         PARTITION p_min VALUES [(-2147483648), (0)),
-        PARTITION p_0_100 VALUES [(0), (100)),
-        PARTITION p_100_200 VALUES [(100), (200)),
-        PARTITION p_200_300 VALUES [(200), (300)),
-        PARTITION p_300_400 VALUES [(300), (400)),
-        PARTITION p_400_500 VALUES [(400), (500)),
-        PARTITION p_500_600 VALUES [(500), (600)),
-        PARTITION p_600_700 VALUES [(600), (700)),
-        PARTITION p_700_800 VALUES [(700), (800)),
-        PARTITION p_800_900 VALUES [(800), (900)),
-        PARTITION p_900_1000 VALUES [(900), (1000)),
-        PARTITION p_1000_1100 VALUES [(1000), (1100)),
-        PARTITION p_max VALUES [(1300), (2147483647))
+        PARTITION p_0_10 VALUES [(0), (10)),
+        PARTITION p_10_20 VALUES [(10), (20)),
+        PARTITION p_20_30 VALUES [(20), (30)),
+        PARTITION p_30_40 VALUES [(30), (40)),
+        PARTITION p_40_50 VALUES [(40), (50)),
+        PARTITION p_50_60 VALUES [(50), (60)),
+        PARTITION p_60_70 VALUES [(60), (70)),
+        PARTITION p_70_80 VALUES [(70), (80)),
+        PARTITION p_80_90 VALUES [(80), (90)),
+        PARTITION p_90_100 VALUES [(90), (100)),
+        PARTITION p_100_110 VALUES [(100), (110)),
+        PARTITION p_max VALUES [(130), (2147483647))
     ) distributed by hash(a) properties("replication_num"="1");"""
     sql """insert into key_1_fixed_range_int_part values 
             (-10000, "2021-01-01 00:00:00", "000"),
             (0, "2021-01-01 00:00:00", "000"),
-            (100, "2023-01-01 00:00:00", "111"),
-            (200, "2023-02-01 00:00:00", "222"),
-            (300, "2023-03-01 00:00:00", "333"),
-            (400, "2023-04-01 00:00:00", "444"),
-            (500, "2023-05-01 00:00:00", "555"),
-            (600, "2023-06-01 00:00:00", "666"),
-            (700, "2023-07-01 00:00:00", "777"),
-            (800, "2023-08-01 00:00:00", "888"),
-            (900, "2023-09-01 00:00:00", "999"),
-            (1000, "2023-10-01 00:00:00", "jjj"),
+            (10, "2023-01-01 00:00:00", "111"),
+            (20, "2023-02-01 00:00:00", "222"),
+            (30, "2023-03-01 00:00:00", "333"),
+            (40, "2023-04-01 00:00:00", "444"),
+            (50, "2023-05-01 00:00:00", "555"),
+            (60, "2023-06-01 00:00:00", "666"),
+            (70, "2023-07-01 00:00:00", "777"),
+            (80, "2023-08-01 00:00:00", "888"),
+            (90, "2023-09-01 00:00:00", "999"),
+            (100, "2023-10-01 00:00:00", "jjj"),
             (500000, "2024-12-01 00:00:00", "aaa"),
             (null, null, null),
             (1, null, null),
@@ -289,69 +297,65 @@ SELECT a, dt, c FROM key_1_special_fixed_range_date_part WHERE (dt BETWEEN '2023
     /*
 
 
-    -- 查询单个分区，期望只扫描 p_200_300
-SELECT a, dt, c FROM key_1_fixed_range_int_part WHERE a = 250;
+    -- 查询单个分区，期望只扫描 p_20_30
+SELECT a, dt, c FROM key_1_fixed_range_int_part WHERE a = 25;
 
--- 查询一个完整分区，期望只扫描 p_500_600
-SELECT a, dt, c FROM key_1_fixed_range_int_part WHERE a >= 500 AND a < 600;
+-- 查询一个完整分区，期望只扫描 p_50_60
+SELECT a, dt, c FROM key_1_fixed_range_int_part WHERE a >= 50 AND a < 60;
 
--- 查询两个完整分区，期望扫描 p_400_500 和 p_500_600
-SELECT a, dt, c FROM key_1_fixed_range_int_part WHERE a BETWEEN 450 AND 550;
+-- 查询两个完整分区，期望扫描 p_40_50 和 p_50_60
+SELECT a, dt, c FROM key_1_fixed_range_int_part WHERE a BETWEEN 45 AND 55;
 
--- 查询分区 p_100_200 的下边界，期望扫描 p_100_200
-SELECT a, dt, c FROM key_1_fixed_range_int_part WHERE a = 100;
+-- 查询分区 p_100_200 的下边界，期望扫描 p_10_20
+SELECT a, dt, c FROM key_1_fixed_range_int_part WHERE a = 10;
 
--- 查询分区 p_100_200 的上边界（不包含），期望扫描 p_100_200
-SELECT a, dt, c FROM key_1_fixed_range_int_part WHERE a < 200 AND a >= 199;
+-- 查询分区 p_100_200 的上边界（不包含），期望扫描 p_10_20
+SELECT a, dt, c FROM key_1_fixed_range_int_part WHERE a < 20 AND a >= 19;
 
-// 这个实际上是全表扫描？
--- a 加上 100 等于 350，那么 a 应该是 250，期望扫描 p_200_300
-SELECT a, dt, c FROM key_1_fixed_range_int_part WHERE a + 100 = 350;
+-- a 加上 100 等于 350，那么 a 应该是 250，期望扫描 p_20_30
+SELECT a, dt, c FROM key_1_fixed_range_int_part WHERE a + 10 = 35;
 
-// 这个也是全表扫描？
--- a 减去 50 大于 800，那么 a 应该大于 850，期望扫描 p_800_900, p_900_1000, p_1000_1100, p_max
-SELECT a, dt, c FROM key_1_fixed_range_int_part WHERE a - 50 > 800;
+-- a 减去 50 大于 800，那么 a 应该大于 850，期望扫描 p_80_90, p_90_100, p_100_110, p_max， p_min
+SELECT a, dt, c FROM key_1_fixed_range_int_part WHERE a - 5 > 80;
 
 
--- 在 CASE WHEN 表达式中，分区裁剪通常会失效，期望全表扫描？
-SELECT a, dt, c FROM key_1_fixed_range_int_part WHERE CASE WHEN c = 'test' THEN a > 900 ELSE a < 100 END;
+-- 在 CASE WHEN 表达式中，分区裁剪通常会失效，期望全表扫描
+SELECT a, dt, c FROM key_1_fixed_range_int_part WHERE CASE WHEN c = 'test' THEN a > 90 ELSE a < 10 END;
 
-// 全表扫描？
+// 全表扫描
 EXPLAIN SELECT * FROM key_1_fixed_range_int_part
-WHERE a > IF(c IS NULL, 500, 100)
+WHERE a > IF(c IS NULL, 50, 10)
 AND dt IS NOT NULL;
 
-// 10/13 (p_min,p_0_100,p_100_200,p_500_600,p_600_700,p_700_800,p_800_900,p_900_1000,p_1000_1100,p_max) ？？？
 EXPLAIN SELECT * FROM key_1_fixed_range_int_part
-WHERE a < (CASE WHEN a > 500 THEN 1000 ELSE 200 END)
-   OR a <=> 1250
+WHERE a < (CASE WHEN a > 50 THEN 100 ELSE 20 END)
+   OR a <=> 125
 
 -- `MOD` 运算，结果依赖于 a 的值，通常无法进行分区裁剪，期望全表扫描
-SELECT a, dt, c FROM key_1_fixed_range_int_part WHERE MOD(a, 100) = 50;
+SELECT a, dt, c FROM key_1_fixed_range_int_part WHERE MOD(a, 10) = 5;
 
-// 实际上是全表扫描？
+// 多扫描了一个max分区
 -- `ABS` 函数，期望扫描 p_min 和 p_0_100
-SELECT a, dt, c FROM key_1_fixed_range_int_part WHERE ABS(a) < 100;
+SELECT a, dt, c FROM key_1_fixed_range_int_part WHERE ABS(a) < 10;
 
-// 实际上扫描了partitions=8/13 (p_min,p_0_100,p_100_200,p_200_300,p_300_400,p_400_500,p_500_600,p_600_700)
+// 实际上扫描了8/13 (p_min,p_0_10,p_10_20,p_20_30,p_30_40,p_40_50,p_50_60,p_60_70)
 -- 两个可裁剪条件通过 AND 连接，期望扫描 p_500_600
-SELECT a, dt, c FROM key_1_fixed_range_int_part WHERE (a > 550 OR c = 'something') AND a < 650;
+SELECT a, dt, c FROM key_1_fixed_range_int_part WHERE (a > 55 OR c = 'something') AND a < 65;
 
 -- OR 的一个分支可裁剪，另一个分支不可裁剪，期望全表扫描
-SELECT a, dt, c FROM key_1_fixed_range_int_part WHERE a > 900 OR c LIKE 'test%';
+SELECT a, dt, c FROM key_1_fixed_range_int_part WHERE a > 90 OR c LIKE 'test%';
 
 -- `!=` 不等于条件，结合算术运算，期望只裁剪到分区 p_200_300
-SELECT a, dt, c FROM key_1_fixed_range_int_part WHERE a != 250 AND a >= 200 AND a < 300;
+SELECT a, dt, c FROM key_1_fixed_range_int_part WHERE a != 25 AND a >= 20 AND a < 30;
 
-// 这个sql只扫描了min分区
 -- 复杂的 IS NULL / IS NOT NULL 条件，期望全表扫描
 SELECT a, dt, c FROM key_1_fixed_range_int_part WHERE (a IS NULL OR a < 0) AND NOT (a IS NULL);
 
 -- 查询分区范围空隙中的值，期望不扫描任何分区（空集）
-SELECT a, dt, c FROM key_1_fixed_range_int_part WHERE a BETWEEN 1100 AND 1299;
+SELECT a, dt, c FROM key_1_fixed_range_int_part WHERE a BETWEEN 110 AND 129;
 
 -- 查询跨越分区空隙的值，期望扫描 p_1000_1100 和 p_max
-SELECT a, dt, c FROM key_1_fixed_range_int_part WHERE a BETWEEN 1050 AND 1350;
+SELECT a, dt, c FROM key_1_fixed_range_int_part WHERE a BETWEEN 105 AND 135;
 
      */
 
@@ -361,24 +365,24 @@ SELECT a, dt, c FROM key_1_fixed_range_int_part WHERE a BETWEEN 1050 AND 1350;
     sql """create table key_1_special_fixed_range_int_part (a int, dt datetime, c varchar(100)) duplicate key(a)
     partition by range(a) (
         PARTITION p_min VALUES [(-2147483648), (0)),
-        PARTITION p_0_100 VALUES [(0), (100)),
-        PARTITION p_100_200 VALUES [(100), (200)),
-        PARTITION p_300_600 VALUES [(300), (600)),
-        PARTITION p_700_800 VALUES [(700), (900)),
-        PARTITION p_900_1000 VALUES [(900), (1000)),
-        PARTITION p_1000_1100 VALUES [(1000), (1100)),
-        PARTITION p_1200_1300 VALUES [(1200), (1300)),
-        PARTITION p_max VALUES [(1300), (2147483647))
+        PARTITION p_0_10 VALUES [(0), (10)),
+        PARTITION p_10_20 VALUES [(10), (20)),
+        PARTITION p_30_60 VALUES [(30), (60)),
+        PARTITION p_70_80 VALUES [(70), (90)),
+        PARTITION p_90_100 VALUES [(90), (100)),
+        PARTITION p_100_110 VALUES [(100), (110)),
+        PARTITION p_120_130 VALUES [(120), (130)),
+        PARTITION p_max VALUES [(130), (2147483647))
     ) distributed by hash(a) properties("replication_num"="1");"""
     sql """insert into key_1_special_fixed_range_int_part values 
             (-10000, "2021-01-01 00:00:00", "000"),
             (0, "2021-01-01 00:00:00", "000"),
-            (100, "2023-01-01 00:00:00", "111"),
-            (300, "2023-02-01 00:00:00", "222"),
-            (700, "2023-03-01 00:00:00", "333"),
-            (900, "2023-04-01 00:00:00", "444"),
-            (1000, "2023-05-01 00:00:00", "555"),
-            (1200, "2023-06-01 00:00:00", "666"),
+            (10, "2023-01-01 00:00:00", "111"),
+            (30, "2023-02-01 00:00:00", "222"),
+            (70, "2023-03-01 00:00:00", "333"),
+            (90, "2023-04-01 00:00:00", "444"),
+            (100, "2023-05-01 00:00:00", "555"),
+            (120, "2023-06-01 00:00:00", "666"),
             (500000, "2024-12-01 00:00:00", "aaa"),
             (null, null, null),
             (1, null, null),
@@ -387,74 +391,74 @@ SELECT a, dt, c FROM key_1_fixed_range_int_part WHERE a BETWEEN 1050 AND 1350;
     sql """analyze table key_1_special_fixed_range_int_part with sync;"""
 
     /*
-    -- 查询单个分区，期望只扫描 p_300_600
-SELECT a, dt, c FROM key_1_special_fixed_range_int_part WHERE a = 450;
+    -- 查询单个分区，期望只扫描 p_30_60
+SELECT a, dt, c FROM key_1_special_fixed_range_int_part WHERE a = 45;
 
 -- 查询一个完整分区，期望只扫描 p_300_600
-SELECT a, dt, c FROM key_1_special_fixed_range_int_part WHERE a >= 300 AND a < 600;
+SELECT a, dt, c FROM key_1_special_fixed_range_int_part WHERE a >= 30 AND a < 60;
 
 -- 查询两个完整分区，期望扫描 p_900_1000 和 p_1000_1100
-SELECT a, dt, c FROM key_1_special_fixed_range_int_part WHERE a BETWEEN 950 AND 1050;
+SELECT a, dt, c FROM key_1_special_fixed_range_int_part WHERE a BETWEEN 95 AND 105;
 
 
 -- 查询分区 p_300_600 的下边界，期望扫描 p_300_600
-SELECT a, dt, c FROM key_1_special_fixed_range_int_part WHERE a = 300;
+SELECT a, dt, c FROM key_1_special_fixed_range_int_part WHERE a = 30;
 
 -- 查询分区 p_700_800 的上边界（不包含），期望扫描 p_700_800
-SELECT a, dt, c FROM key_1_special_fixed_range_int_part WHERE a < 900 AND a >= 899;
+SELECT a, dt, c FROM key_1_special_fixed_range_int_part WHERE a < 90 AND a >= 89;
 
-// 实际上全表扫描？
 -- a 加上 100 等于 450，那么 a 应该是 350，期望扫描 p_300_600
-SELECT a, dt, c FROM key_1_special_fixed_range_int_part WHERE a + 100 = 450;
+SELECT a, dt, c FROM key_1_special_fixed_range_int_part WHERE a + 10 = 45;
 
-// 实际上全表扫描？
+// 实际上7/9 (p_min,p_30_60,p_70_80,p_90_100,p_100_110,p_120_130,p_max)       mark
 -- a 减去 50 大于 800，那么 a 应该大于 850，期望扫描 p_700_800, p_900_1000, p_1000_1100, p_1200_1300, p_max
-SELECT a, dt, c FROM key_1_special_fixed_range_int_part WHERE a - 50 > 800;
+SELECT a, dt, c FROM key_1_special_fixed_range_int_part WHERE a - 5 > 80;
 
 
 -- 在 CASE WHEN 表达式中，分区裁剪通常会失效，期望全表扫描
-SELECT a, dt, c FROM key_1_special_fixed_range_int_part WHERE CASE WHEN c = 'test' THEN a > 900 ELSE a < 100 END;
+SELECT a, dt, c FROM key_1_special_fixed_range_int_part WHERE CASE WHEN c = 'test' THEN a > 90 ELSE a < 10 END;
 
-// 全表扫描？
+// 全表扫描
 EXPLAIN SELECT * FROM key_1_special_fixed_range_int_part
-WHERE a > IF(c IS NULL, 500, 100)
+WHERE a > IF(c IS NULL, 50, 10)
 AND dt IS NOT NULL;
 
-// 全表扫描？
+// 全表扫描  8/9 (p_min,p_0_10,p_10_20,p_30_60,p_70_80,p_90_100,p_120_130,p_max)
 EXPLAIN SELECT * FROM key_1_special_fixed_range_int_part
-WHERE a < (CASE WHEN a > 500 THEN 1000 ELSE 200 END)
-   OR a <=> 1250
+WHERE a < (CASE WHEN a > 50 THEN 100 ELSE 20 END)
+   OR a <=> 125
 
 -- `MOD` 运算，结果依赖于 a 的值，通常无法进行分区裁剪，期望全表扫描
-SELECT a, dt, c FROM key_1_special_fixed_range_int_part WHERE MOD(a, 100) = 50;
+SELECT a, dt, c FROM key_1_special_fixed_range_int_part WHERE MOD(a, 10) = 5;
 
-// 实际上全表扫描？
+
+// 实际上5/9 (p_min,p_0_10,p_30_60,p_70_80,p_max) mark
 -- `ABS` 函数，期望扫描 p_min 和 p_0_100
-SELECT a, dt, c FROM key_1_special_fixed_range_int_part WHERE ABS(a) < 100;
+SELECT a, dt, c FROM key_1_special_fixed_range_int_part WHERE ABS(a) < 10;
 
-// 实际上扫描了五个分区，5/9 (p_min,p_0_100,p_100_200,p_300_600,p_700_800)
--- 两个可裁剪条件通过 AND 连接，期望扫描 p_700_800
-SELECT a, dt, c FROM key_1_special_fixed_range_int_part WHERE (a > 750 OR c = 'something') AND a < 850;
+
+-- 两个可裁剪条件通过 AND 连接，期望扫描 5/9 (p_min,p_0_10,p_10_20,p_30_60,p_70_80)
+SELECT a, dt, c FROM key_1_special_fixed_range_int_part WHERE (a > 75 OR c = 'something') AND a < 85;
 
 -- OR 的一个分支可裁剪，另一个分支不可裁剪，期望全表扫描
-SELECT a, dt, c FROM key_1_special_fixed_range_int_part WHERE a > 900 OR c LIKE 'test%';
+SELECT a, dt, c FROM key_1_special_fixed_range_int_part WHERE a > 90 OR c LIKE 'test%';
 
 
 -- `!=` 不等于条件，结合算术运算，期望只裁剪到分区 p_300_600
-SELECT a, dt, c FROM key_1_special_fixed_range_int_part WHERE a != 450 AND a >= 300 AND a < 600;
+SELECT a, dt, c FROM key_1_special_fixed_range_int_part WHERE a != 45 AND a >= 30 AND a < 60;
 
 // 实际上只扫描了min分区？
 -- 复杂的 IS NULL / IS NOT NULL 条件，期望全表扫描
 SELECT a, dt, c FROM key_1_special_fixed_range_int_part WHERE (a IS NULL OR a < 0) AND NOT (a IS NULL);
 
 -- 查询分区范围空隙中的值，期望不扫描任何分区（空集）
-SELECT a, dt, c FROM key_1_special_fixed_range_int_part WHERE a BETWEEN 600 AND 699;
+SELECT a, dt, c FROM key_1_special_fixed_range_int_part WHERE a BETWEEN 60 AND 69;
 
 -- 查询分区范围空隙中的值，期望不扫描任何分区（空集）
-SELECT a, dt, c FROM key_1_special_fixed_range_int_part WHERE a = 650;
+SELECT a, dt, c FROM key_1_special_fixed_range_int_part WHERE a = 65;
 
--- 查询跨越分区空隙的值，期望扫描 p_1000_1100 和 p_1200_1300
-SELECT a, dt, c FROM key_1_special_fixed_range_int_part WHERE a BETWEEN 1050 AND 1250;
+-- 查询跨越分区空隙的值，期望扫描 2/9 (p_100_110,p_120_130)
+SELECT a, dt, c FROM key_1_special_fixed_range_int_part WHERE a BETWEEN 105 AND 125;
 
      */
 
