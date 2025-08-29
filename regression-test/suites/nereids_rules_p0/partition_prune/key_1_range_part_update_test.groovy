@@ -123,6 +123,15 @@ SELECT a, dt, c FROM key_1_special_fixed_range_date_part WHERE (dt BETWEEN '2023
 -- 1/11 (p_202308)
 SELECT a, dt, c FROM key_1_special_fixed_range_date_part WHERE (dt BETWEEN '2023-08-01' AND '2023-08-31') AND (dt > '2023-06-15' OR c LIKE 'pattern');
 
+-- 1/11 (p_202306)
+SELECT *
+FROM key_1_special_fixed_range_date_part
+WHERE IF(dt BETWEEN '2023-06-01 00:00:00' AND '2023-07-01 00:00:00', TRUE, FALSE);
+
+-- 1/11 (p_202306)
+SELECT *
+FROM key_1_special_fixed_range_date_part
+WHERE IF(DATE(dt) = DATE_SUB('2023-07-15 00:00:00', INTERVAL 1 MONTH), TRUE, FALSE);
 
      */
 
@@ -227,6 +236,23 @@ SELECT a, dt, c FROM key_1_special_fixed_range_int_part WHERE a = 65;
 
 -- 5/10 (p_60_70,p_70_80,p_90_100,p_100_110,p_120_130)
 SELECT a, dt, c FROM key_1_special_fixed_range_int_part WHERE a BETWEEN 65 AND 125;
+
+
+-- 7/10 (p_30_60,p_60_70,p_70_80,p_90_100,p_100_110,p_120_130,p_max)
+SELECT *
+FROM key_1_special_fixed_range_int_part
+WHERE CASE WHEN a >= 45 THEN TRUE ELSE FALSE END;
+
+-- 7/10 (p_min,p_30_60,p_70_80,p_90_100,p_100_110,p_120_130,p_max)
+SELECT *
+FROM key_1_special_fixed_range_int_part
+WHERE (CASE WHEN a < 50 THEN a + 10 ELSE a / 2 END) > 40;
+
+
+-- 9/10 (p_min,p_0_10,p_10_20,p_60_70,p_70_80,p_90_100,p_100_110,p_120_130,p_max)  mark2
+SELECT *
+FROM key_1_special_fixed_range_int_part
+WHERE IF(a < 20 OR a > 60, TRUE, FALSE);
 
      */
 

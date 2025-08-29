@@ -124,6 +124,26 @@ WHERE a IN (
 -- 期望扫描 p_1, p_5, p_9, p_12
 SELECT a, dt, c FROM key_1_fixed_list_int_part
 WHERE (a IN (1, 5, 9, 12)) AND (MOD(a, 2) = 1 OR a > 10);
+
+
+-- 3/13 (p_10,p_11,p_12)
+SELECT *
+FROM key_1_fixed_list_int_part
+WHERE CASE WHEN a > 9 THEN 1 ELSE 0 END = 1;
+
+-- 4/13 (p_1,p_2,p_11,p_12)
+SELECT *
+FROM key_1_fixed_list_int_part
+WHERE IF(a IN (1, 2) OR a > 10, TRUE, FALSE);
+
+-- 12/13 (p_1,p_2,p_3,p_4,p_5,p_6,p_7,p_8,p_9,p_10,p_11,p_12)
+-- 看上去没有裁剪，mark2
+SELECT *
+FROM key_1_fixed_list_int_part
+WHERE (CASE WHEN a > 5 THEN a ELSE a * 2 END) % 4 = 0;
+a > 5 and a % 4 = 0
+or
+a <= 5 and a % 2 = 0
      */
 
 
@@ -227,6 +247,20 @@ WHERE dt IN (
 SELECT a, dt, c FROM key_1_fixed_list_date_part
 WHERE (dt IN ('2023-01-01 00:00:00', '2023-05-01 00:00:00', '2023-09-01 00:00:00', '2023-12-01 00:00:00')) AND (a = 1 OR a > 10);
 
+-- 2/13 (p_3,p_5)
+SELECT *
+FROM key_1_fixed_list_date_part
+WHERE IF(dt IN ('2023-03-01 00:00:00', '2023-05-01 00:00:00'), TRUE, FALSE);
+
+-- 4/13 (p_1,p_2,p_11,p_12)
+SELECT *
+FROM key_1_fixed_list_date_part
+WHERE IF(dt IN ('2023-01-01 00:00:00', '2023-02-01 00:00:00') OR dt > '2023-10-01 00:00:00', TRUE, FALSE);
+
+-- 2/13 (p_NULL,p_5)
+SELECT *
+FROM key_1_fixed_list_date_part
+WHERE IF(dt IS NULL OR dt = '2023-05-01 00:00:00', TRUE, FALSE);
      */
 
 
@@ -234,8 +268,8 @@ WHERE (dt IN ('2023-01-01 00:00:00', '2023-05-01 00:00:00', '2023-09-01 00:00:00
     sql """create table key_1_fixed_list_varchar_part (a int, dt datetime, c varchar(100)) duplicate key(a)
         PARTITION BY LIST(c)
         (
-            PARTITION `p_NULL` VALUES IN ((NULL)), // NULL分区
-            PARTITION `p_NULL_2` VALUES IN ("NULL"), // 普通分区
+            PARTITION `p_NULL` VALUES IN ((NULL)), 
+            PARTITION `p_NULL_2` VALUES IN ("NULL"),
             PARTITION `p_1` VALUES IN ("111"),
             PARTITION `p_2` VALUES IN ("222"),
             PARTITION `p_3` VALUES IN ("333"),
@@ -333,7 +367,21 @@ WHERE c IN (
 SELECT a, dt, c FROM key_1_fixed_list_varchar_part
 WHERE (c IN ('111', '555', '999', 'kkk')) AND (a = 1 OR a > 10);
 
+-- 3/14 (p_10,p_11,p_12)
+SELECT *
+FROM key_1_fixed_list_varchar_part
+WHERE CASE WHEN c > 'j' THEN 1 ELSE 0 END = 1;
 
+
+-- 5/14 (p_1,p_2,p_10,p_11,p_12)
+SELECT *
+FROM key_1_fixed_list_varchar_part
+WHERE IF(c IN ('111', '222') OR c > 'i', TRUE, FALSE);
+
+-- 3/14 (p_NULL_2,p_4,p_7)
+SELECT *
+FROM key_1_fixed_list_varchar_part
+WHERE CASE WHEN LENGTH(c) = 4 THEN TRUE ELSE FALSE END;
      */
 
 }

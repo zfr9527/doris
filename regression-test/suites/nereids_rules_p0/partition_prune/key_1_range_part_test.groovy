@@ -20,6 +20,7 @@ suite("key_1_range_part_test") {
 //    DateAddSub/DateCeilFloor/DateDiff/FromSecond/Date/LastDay/Microsecond/ToDate/UnixTimestamp
 
     String dbName = context.config.getDbNameByFile(context.file)
+    sql """set partition_pruning_expand_threshold=1000;"""
 
     sql """create table key_1_fixed_range_date_part (a int, dt datetime, c varchar(100)) duplicate key(a)
     partition by range(dt) (
@@ -122,20 +123,8 @@ SELECT a, dt, c FROM key_1_fixed_range_date_part WHERE date_add(dt, INTERVAL 1 M
 -- `!=` 不等于条件，结合日期函数，期望只裁剪到分区 p_202307
 SELECT a, dt, c FROM key_1_fixed_range_date_part WHERE dt != '2023-07-05 12:00:00' AND dt > '2023-07-01' AND dt < '2023-08-01';
 
-// 这个只扫描了min分区。有个问题是前后两个条件交换之后仍然只扫描了一个分区，所以程序内部是有一个什么判断的因子仍然可以定位到满足dt的只有一个分区？
-// 这个没有问题
 -- 复杂的 IS NULL / IS NOT NULL 条件，期望全表扫描
 SELECT a, dt, c FROM key_1_fixed_range_date_part WHERE (dt IS NULL OR dt < '2023-01-01') AND NOT (dt IS NULL);
-(a or b)  and c
-(a and c) or (b and c)
-false or (b and c)
-dt < '2023-01-01' and dt is not null
-
-SELECT a, dt, c FROM key_1_fixed_range_date_part WHERE NOT (dt IS NULL) and (dt IS NULL OR dt < '2023-01-01');
-
-SELECT a, dt, c FROM key_1_fixed_range_date_part WHERE (dt IS NULL OR dt < '2023-01-01');
-SELECT a, dt, c FROM key_1_fixed_range_date_part WHERE NOT (dt IS NULL);
-
 
 -- `CAST` 强制类型转换，期望p_202308
 SELECT a, dt, c FROM key_1_fixed_range_date_part WHERE CAST(dt AS DATE) = '2023-08-15' AND unix_timestamp(dt) > 1690848000;
@@ -143,8 +132,27 @@ SELECT a, dt, c FROM key_1_fixed_range_date_part WHERE CAST(dt AS DATE) = '2023-
 
 -- 嵌套 OR，期望全表扫描，这个我不太确定
 SELECT a, dt, c FROM key_1_fixed_range_date_part WHERE (dt BETWEEN '2023-05-01' AND '2023-05-31' OR a = 1) AND (dt > '2023-06-15' OR c LIKE 'pattern');
-(a or b) and (c or d)
-因为b不是分区列，所以所有分区数据可能都为true，所以变成a or true,所以变成true
+
+
+-- 1/14 (p_202304)
+SELECT *
+FROM key_1_fixed_range_date_part
+WHERE IF(DATE(dt) = DATE_SUB('2023-05-15 00:00:00', INTERVAL 1 MONTH), TRUE, FALSE);
+
+-- 4/14 (p_min,p_202301,p_202302,p_202303)
+SELECT *
+FROM key_1_fixed_range_date_part
+WHERE dt < '2023-04-01 00:00:00'
+AND IF(dt IS NOT NULL AND c = 'abc', TRUE, FALSE);
+
+-- 预期应该会裁剪到dt>=9月，但是测试发现是全表扫描  mark2
+SELECT *
+FROM key_1_fixed_range_date_part
+WHERE (CASE WHEN dt < '2023-04-01 00:00:00' THEN dt ELSE dt - INTERVAL 1 MONTH END) > '2023-08-10 00:00:00';
+
+dt < '2023-04-01 00:00:00' and dt > '2023-08-10 00:00:00' ==> false
+or
+dt >= '2023-04-01 00:00:00' and dt > '2023-09-10 00:00:00'
 
      */
 
@@ -254,6 +262,20 @@ SELECT a, dt, c FROM key_1_special_fixed_range_date_part WHERE (dt BETWEEN '2023
 SELECT a, dt, c FROM key_1_special_fixed_range_date_part WHERE (dt BETWEEN '2023-05-01' AND '2023-05-31') AND (dt > '2023-06-15' OR c LIKE 'pattern');
 a and (b or c)
 
+-- 2/10 (p_202304,p_202305)
+SELECT *
+FROM key_1_special_fixed_range_date_part
+WHERE IF(dt BETWEEN '2023-04-01 00:00:00' AND '2023-05-01 00:00:00', TRUE, FALSE);
+
+-- 1/10 (p_202309)
+SELECT *
+FROM key_1_special_fixed_range_date_part
+WHERE IF(DATE(dt) = DATE_SUB('2023-10-15 00:00:00', INTERVAL 1 MONTH), TRUE, FALSE);
+
+-- 测试发现是全表扫描，不符合预期  mark2
+SELECT *
+FROM key_1_special_fixed_range_date_part
+WHERE (CASE WHEN dt < '2023-07-01 00:00:00' THEN dt ELSE dt - INTERVAL 1 MONTH END) > '2023-05-01 00:00:00';
 
      */
 
@@ -330,6 +352,23 @@ AND dt IS NOT NULL;
 EXPLAIN SELECT * FROM key_1_fixed_range_int_part
 WHERE a < (CASE WHEN a > 50 THEN 100 ELSE 20 END)
    OR a <=> 125
+
+-- 1/13 (p_10_20)
+SELECT *
+FROM key_1_fixed_range_int_part
+WHERE a BETWEEN 15 AND 18
+AND CASE WHEN dt > '2023-01-01 00:00:00' THEN TRUE ELSE FALSE END;
+
+
+-- 7/13 (p_50_60,p_60_70,p_70_80,p_80_90,p_90_100,p_100_110,p_max)
+SELECT *
+FROM key_1_fixed_range_int_part
+WHERE CASE WHEN a > 50 THEN 'large_range' ELSE 'small_range' END = 'large_range';
+
+-- 9/13 (p_min,p_10_20,p_20_30,p_60_70,p_70_80,p_80_90,p_90_100,p_100_110,p_max)
+SELECT *
+FROM key_1_fixed_range_int_part
+WHERE (CASE WHEN a < 25 THEN a * 2 ELSE a / 2 END) > 30;
 
 -- `MOD` 运算，结果依赖于 a 的值，通常无法进行分区裁剪，期望全表扫描
 SELECT a, dt, c FROM key_1_fixed_range_int_part WHERE MOD(a, 10) = 5;
@@ -459,6 +498,21 @@ SELECT a, dt, c FROM key_1_special_fixed_range_int_part WHERE a = 65;
 
 -- 查询跨越分区空隙的值，期望扫描 2/9 (p_100_110,p_120_130)
 SELECT a, dt, c FROM key_1_special_fixed_range_int_part WHERE a BETWEEN 105 AND 125;
+
+-- 6/9 (p_30_60,p_70_80,p_90_100,p_100_110,p_120_130,p_max)
+SELECT *
+FROM key_1_special_fixed_range_int_part
+WHERE CASE WHEN a >= 45 THEN TRUE ELSE FALSE END;
+
+-- 7/9 (p_min,p_30_60,p_70_80,p_90_100,p_100_110,p_120_130,p_max)
+SELECT *
+FROM key_1_special_fixed_range_int_part
+WHERE (CASE WHEN a < 50 THEN a + 10 ELSE a / 2 END) > 40;
+
+-- 7/9 (p_min,p_0_10,p_10_20,p_90_100,p_100_110,p_120_130,p_max)  mark2
+SELECT *
+FROM key_1_special_fixed_range_int_part
+WHERE IF(a < 20 OR a > 90, TRUE, FALSE);
 
      */
 
