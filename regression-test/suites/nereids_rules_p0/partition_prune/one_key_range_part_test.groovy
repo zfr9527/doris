@@ -17,8 +17,6 @@
 
 suite("one_key_range_part_test") {
 
-//    DateAddSub/DateCeilFloor/DateDiff/FromSecond/Date/LastDay/Microsecond/ToDate/UnixTimestamp
-
     String dbName = context.config.getDbNameByFile(context.file)
     sql """set partition_pruning_expand_threshold=1000;"""
 
@@ -186,6 +184,16 @@ dt >= '2023-04-01 00:00:00' and dt > '2023-09-10 00:00:00'
             (null, "2023-01-01 00:00:00", null),
             (null, null, "zzz");"""
     sql """analyze table key_1_special_fixed_range_date_part with sync;"""
+
+    sql """ALTER TABLE key_1_special_fixed_range_date_part ADD TEMPORARY PARTITION tp1 VALUES [("2023-03-01 00:00:00"), ("2023-04-01 00:00:00"));"""
+    sql """insert into key_1_special_fixed_range_date_part TEMPORARY PARTITION(tp1) values (3, "2023-03-01 00:00:00", "333")"""
+
+    /*
+// 临时分区
+-- 1/10 (tp1)
+SELECT a, dt, c FROM key_1_special_fixed_range_date_part TEMPORARY PARTITION(tp1) WHERE dt = '2023-03-15 10:00:00';
+
+     */
 
     /*
 
