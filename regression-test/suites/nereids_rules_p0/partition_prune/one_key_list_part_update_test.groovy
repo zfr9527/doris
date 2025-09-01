@@ -15,11 +15,10 @@
 // specific language governing permissions and limitations
 // under the License.
 
-suite("key_1_list_part_update_test") {
-
-//    DateAddSub/DateCeilFloor/DateDiff/FromSecond/Date/LastDay/Microsecond/ToDate/UnixTimestamp
+suite("one_key_list_part_update_test") {
 
     String dbName = context.config.getDbNameByFile(context.file)
+    sql """set partition_pruning_expand_threshold=1000;"""
 
     sql """create table key_1_fixed_list_int_part (a int, dt datetime, c varchar(100)) duplicate key(a)
         PARTITION BY LIST(a)

@@ -15,11 +15,10 @@
 // specific language governing permissions and limitations
 // under the License.
 
-suite("key_1_list_part_test") {
-
-//    DateAddSub/DateCeilFloor/DateDiff/FromSecond/Date/LastDay/Microsecond/ToDate/UnixTimestamp
+suite("one_key_list_part_test") {
 
     String dbName = context.config.getDbNameByFile(context.file)
+    sql """set partition_pruning_expand_threshold=1000;"""
 
     sql """create table key_1_fixed_list_int_part (a int, dt datetime, c varchar(100)) duplicate key(a)
         PARTITION BY LIST(a)
@@ -57,6 +56,90 @@ suite("key_1_list_part_test") {
             (null, "2023-01-01 00:00:00", null),
             ("null", null, "zzz");"""
     sql """analyze table key_1_fixed_list_int_part with sync;"""
+
+    explain {
+        sql("SELECT a, dt, c FROM key_1_fixed_list_int_part WHERE a = 5;")
+        contains "1/13 (p_5)"
+    }
+    explain {
+        sql("SELECT a, dt, c FROM key_1_fixed_list_int_part WHERE a IN (1, 3, 8);")
+        contains "3/13 (p_1,p_3,p_8) "
+    }
+    explain {
+        sql("SELECT a, dt, c FROM key_1_fixed_list_int_part WHERE a IN (2, 12);")
+        contains ""
+    }
+    explain {
+        sql("SELECT a, dt, c FROM key_1_fixed_list_int_part WHERE a IS NULL;")
+        contains ""
+    }
+    explain {
+        sql("SELECT a, dt, c FROM key_1_fixed_list_int_part WHERE a = 5;")
+        contains ""
+    }
+    explain {
+        sql("SELECT a, dt, c FROM key_1_fixed_list_int_part WHERE a = 5;")
+        contains ""
+    }
+    explain {
+        sql("SELECT a, dt, c FROM key_1_fixed_list_int_part WHERE a = 5;")
+        contains ""
+    }
+    explain {
+        sql("SELECT a, dt, c FROM key_1_fixed_list_int_part WHERE a = 5;")
+        contains ""
+    }
+    explain {
+        sql("SELECT a, dt, c FROM key_1_fixed_list_int_part WHERE a = 5;")
+        contains ""
+    }
+    explain {
+        sql("SELECT a, dt, c FROM key_1_fixed_list_int_part WHERE a = 5;")
+        contains ""
+    }explain {
+        sql("SELECT a, dt, c FROM key_1_fixed_list_int_part WHERE a = 5;")
+        contains ""
+    }
+    explain {
+        sql("SELECT a, dt, c FROM key_1_fixed_list_int_part WHERE a = 5;")
+        contains ""
+    }
+    explain {
+        sql("SELECT a, dt, c FROM key_1_fixed_list_int_part WHERE a = 5;")
+        contains ""
+    }
+    explain {
+        sql("SELECT a, dt, c FROM key_1_fixed_list_int_part WHERE a = 5;")
+        contains ""
+    }
+    explain {
+        sql("SELECT a, dt, c FROM key_1_fixed_list_int_part WHERE a = 5;")
+        contains ""
+    }
+    explain {
+        sql("SELECT a, dt, c FROM key_1_fixed_list_int_part WHERE a = 5;")
+        contains ""
+    }explain {
+        sql("SELECT a, dt, c FROM key_1_fixed_list_int_part WHERE a = 5;")
+        contains ""
+    }
+    explain {
+        sql("SELECT a, dt, c FROM key_1_fixed_list_int_part WHERE a = 5;")
+        contains ""
+    }
+    explain {
+        sql("SELECT a, dt, c FROM key_1_fixed_list_int_part WHERE a = 5;")
+        contains ""
+    }
+    explain {
+        sql("SELECT a, dt, c FROM key_1_fixed_list_int_part WHERE a = 5;")
+        contains ""
+    }
+    explain {
+        sql("SELECT a, dt, c FROM key_1_fixed_list_int_part WHERE a = 5;")
+        contains ""
+    }
+
 
     /*
 -- 查询单个分区，期望只扫描 p_5
