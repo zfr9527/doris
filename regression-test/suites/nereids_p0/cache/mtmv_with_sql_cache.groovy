@@ -188,7 +188,23 @@ suite("mtmv_with_sql_cache") {
     res1 = sql "show partitions from ${mv_name1}"
     logger.info("res1: " + res1)
 
-    sleep(10000)
+//    sleep(10000)
+    assertHasCache "select * from ${mv_name1}"
+    assertHasCache mtmv_sql
+    assertHasCache "select * from ${nested_mv_name1}"
+    assertHasCache nested_mtmv_sql1
+
+    sql "REFRESH MATERIALIZED VIEW ${mv_name1} complete;"
+    assertNoCache "select * from ${mv_name1}"
+    assertHasCache mtmv_sql
+    assertHasCache "select * from ${nested_mv_name1}"
+    assertNoCache nested_mtmv_sql1
+
+    sql "select * from ${mv_name1}"
+    sql mtmv_sql
+    sql "select * from ${nested_mv_name1}"
+    sql nested_mtmv_sql1
+
     assertHasCache "select * from ${mv_name1}"
     assertHasCache mtmv_sql
     assertHasCache "select * from ${nested_mv_name1}"
