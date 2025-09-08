@@ -92,7 +92,6 @@ suite("mtmv_with_sql_cache") {
     cur_create_partition_mtmv(dbName, mv_name4, mtmv_sql4)
     cur_create_partition_mtmv(dbName, nested_mv_name1, nested_mtmv_sql1)
 
-
     sleep(10000)
     sql "set enable_nereids_planner=true"
     sql "set enable_fallback_to_original_planner=false"
