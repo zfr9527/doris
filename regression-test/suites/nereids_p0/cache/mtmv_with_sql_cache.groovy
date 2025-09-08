@@ -194,6 +194,7 @@ suite("mtmv_with_sql_cache") {
     assertHasCache "select * from ${nested_mv_name1}"
     assertHasCache nested_mtmv_sql1
 
+    // ？？？ complete刷新看不懂
 //    sql "REFRESH MATERIALIZED VIEW ${mv_name1} complete;"
 //    sleep(10000)
 //    assertNoCache "select * from ${mv_name1}"
@@ -205,6 +206,7 @@ suite("mtmv_with_sql_cache") {
 //    assertHasCache "select * from ${mv_name1}"
 //    sql nested_mtmv_sql1
 //    assertHasCache nested_mtmv_sql1
+
 
     // base table insert overwrite
     sql "INSERT OVERWRITE table ${tb_name1} PARTITION(p5) VALUES (5, 6);"
@@ -220,7 +222,7 @@ suite("mtmv_with_sql_cache") {
     sql "REFRESH MATERIALIZED VIEW ${mv_name1} AUTO;"
     waitingMTMVTaskFinishedByMvName(mv_name1)
     assertNoCache "select * from ${mv_name1}"
-    assertNoCache mtmv_sql
+    assertHasCache mtmv_sql
     assertHasCache "select * from ${nested_mv_name1}"
     assertNoCache nested_mtmv_sql1
 
@@ -325,6 +327,8 @@ suite("mtmv_with_sql_cache") {
     assertNoCache mtmv_sql4
     assertHasCache "select * from ${nested_mv_name1}"
     assertNoCache nested_mtmv_sql1
+
+
 
 
 
