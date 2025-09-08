@@ -125,7 +125,7 @@ suite("mtmv_with_sql_cache") {
     assertNoCache "select * from ${mv_name1}"
     assertNoCache "select * from ${mv_name2}"
     assertNoCache mtmv_sql   // -->   "select * from mv1/mv2" --> version change  --> nocache
-    assertNoCache "select * from ${nested_mv_name1}"
+    assertHasCache "select * from ${nested_mv_name1}"
     assertNoCache nested_mtmv_sql1
 
     sql "select * from ${mv_name1}"
