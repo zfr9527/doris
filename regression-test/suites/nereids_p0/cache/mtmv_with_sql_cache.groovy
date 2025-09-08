@@ -161,12 +161,14 @@ suite("mtmv_with_sql_cache") {
     assertHasCache mtmv_sql4
 
 
-    logger.info("res1: " + sql "show partitions from ${mv_name1}")
+    def res1 = sql "show partitions from ${mv_name1}"
+    logger.info("res1: " + res1)
     // 刷新mtmv，确保mtmv初始表现正常
     // 刷新是否会导致物化视图version版本变化
     sql "REFRESH MATERIALIZED VIEW ${mv_name1} AUTO;"
     waitingMTMVTaskFinishedByMvName(mv_name1)
-    logger.info("res1: " + sql "show partitions from ${mv_name1}")
+    res1 = sql "show partitions from ${mv_name1}"
+    logger.info("res1: " + res1)
 
     sleep(10000)
     assertHasCache "select * from ${mv_name1}"
