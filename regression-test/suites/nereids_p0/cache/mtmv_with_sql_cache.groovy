@@ -207,16 +207,9 @@ suite("mtmv_with_sql_cache") {
 //    assertHasCache "select * from ${mv_name1}"
 //    assertHasCache nested_mtmv_sql1
 
-//    sql "select * from ${mv_name1}"
-//    assertHasCache "select * from ${mv_name1}"
-//    sql "select * from ${nested_mv_name1}"
-//    sql nested_mtmv_sql1
-//    assertHasCache "select * from ${nested_mv_name1}"
-//    assertHasCache nested_mtmv_sql1
-
-
     // base table insert overwrite
     sql "INSERT OVERWRITE table ${tb_name1} PARTITION(p5) VALUES (5, 6);"
+    sleep(10 * 1000)
     assertHasCache "select * from ${mv_name1}"
     assertNoCache mtmv_sql
     assertHasCache "select * from ${nested_mv_name1}"
