@@ -70,6 +70,7 @@ suite("mtmv_with_sql_cache") {
         left join ${mv_name2} as t2
         on t1.id = t2.id
     """
+    sql """DROP MATERIALIZED VIEW IF EXISTS ${mv_name3};"""
     create_async_partition_mv(dbName, mv_name1, mtmv_sql, "(id)")
     create_async_partition_mv(dbName, mv_name2, mtmv_sql, "(id)")
     create_async_partition_mv(dbName, mv_name4, mtmv_sql4, "(id)")
