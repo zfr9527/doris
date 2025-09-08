@@ -70,10 +70,10 @@ suite("mtmv_with_sql_cache") {
         left join ${mv_name2} as t2
         on t1.id = t2.id
     """
-    create_async_partition_mv(dbName, mv_name1, mtmv_sql, "id")
-    create_async_partition_mv(dbName, mv_name2, mtmv_sql, "id")
-    create_async_partition_mv(dbName, mv_name4, mtmv_sql4, "id")
-    create_async_partition_mv(dbName, nested_mv_name1, nested_mtmv_sql1, "id")
+    create_async_partition_mv(dbName, mv_name1, mtmv_sql, "(id)")
+    create_async_partition_mv(dbName, mv_name2, mtmv_sql, "(id)")
+    create_async_partition_mv(dbName, mv_name4, mtmv_sql4, "(id)")
+    create_async_partition_mv(dbName, nested_mv_name1, nested_mtmv_sql1, "(id)")
 
     sleep(10000)
     sql "set enable_nereids_planner=true"
@@ -229,7 +229,7 @@ suite("mtmv_with_sql_cache") {
     // 不能命中物化视图，就是直查原表，原表是改变的，那么就不能命中cache，反之就可以用cache
 
     // recreate mtmv to add column
-    create_async_partition_mv(dbName, mv_name1, mtmv_sql4, "id")
+    create_async_partition_mv(dbName, mv_name1, mtmv_sql4, "(id)")
     sleep(10000)
     assertNoCache "select * from ${mv_name1}"
     assertHasCache "select * from ${mv_name2}"
