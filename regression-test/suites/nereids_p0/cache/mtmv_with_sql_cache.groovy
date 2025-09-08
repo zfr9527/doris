@@ -31,6 +31,24 @@ suite("mtmv_with_sql_cache") {
         }
     }
 
+    def cur_create_async_partition_mv = { db, mv_name, mv_sql, partition_col ->
+
+        sql """DROP MATERIALIZED VIEW IF EXISTS ${db}.${mv_name}"""
+        sql"""
+        CREATE MATERIALIZED VIEW ${db}.${mv_name} 
+        BUILD IMMEDIATE REFRESH auto ON MANUAL 
+        PARTITION BY ${partition_col} 
+        DISTRIBUTED BY RANDOM BUCKETS 2 
+        PROPERTIES ('replication_num' = '1')  
+        AS ${mv_sql}
+        """
+        def job_name = getJobName(db, mv_name);
+        waitingMTMVTaskFinished(job_name)
+        sql "analyze table ${db}.${mv_name} with sync;"
+        // force meta sync to avoid stale meta data on follower fe
+        sql """sync;"""
+    }
+
     String dbName = context.config.getDbNameByFile(context.file)
     def prefix_str = "mtmv_with_sql_cache_"
 
@@ -71,10 +89,10 @@ suite("mtmv_with_sql_cache") {
         on t1.id = t2.id
     """
     sql """DROP MATERIALIZED VIEW IF EXISTS ${mv_name3};"""
-    create_async_partition_mv(dbName, mv_name1, mtmv_sql, "(id)")
-    create_async_partition_mv(dbName, mv_name2, mtmv_sql, "(id)")
-    create_async_partition_mv(dbName, mv_name4, mtmv_sql4, "(id)")
-    create_async_partition_mv(dbName, nested_mv_name1, nested_mtmv_sql1, "(id)")
+    cur_create_async_partition_mv(dbName, mv_name1, mtmv_sql, "(id)")
+    cur_create_async_partition_mv(dbName, mv_name2, mtmv_sql, "(id)")
+    cur_create_async_partition_mv(dbName, mv_name4, mtmv_sql4, "(id)")
+    cur_create_async_partition_mv(dbName, nested_mv_name1, nested_mtmv_sql1, "(id)")
 
     sleep(10000)
     sql "set enable_nereids_planner=true"
@@ -234,7 +252,7 @@ suite("mtmv_with_sql_cache") {
     // 不能命中物化视图，就是直查原表，原表是改变的，那么就不能命中cache，反之就可以用cache
 
     // recreate mtmv to add column
-    create_async_partition_mv(dbName, mv_name1, mtmv_sql4, "(id)")
+    cur_create_async_partition_mv(dbName, mv_name1, mtmv_sql4, "(id)")
     sleep(10000)
     assertNoCache "select * from ${mv_name1}"
     assertHasCache "select * from ${mv_name2}"
