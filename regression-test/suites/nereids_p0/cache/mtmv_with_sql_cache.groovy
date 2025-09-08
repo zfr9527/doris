@@ -110,7 +110,7 @@ suite("mtmv_with_sql_cache") {
     sql """ALTER MATERIALIZED VIEW ${mv_name1} rename ${mv_name3};"""
     assertNoCache "select * from ${mv_name3}"
     assertHasCache mtmv_sql   // -->   "select * from mv1"   --> 改名不会影响表version --> hit
-    assertNoCache "select * from ${nested_mv_name1}"
+    assertHasCache "select * from ${nested_mv_name1}"
     assertNoCache nested_mtmv_sql3
 
     sql """ALTER MATERIALIZED VIEW ${mv_name3} rename ${mv_name1};"""
