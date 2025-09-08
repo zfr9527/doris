@@ -57,6 +57,7 @@ suite("parse_sql_from_sql_cache_tmp") {
 
                 // insert overwrite data can not use cache
                 sql "INSERT OVERWRITE table ${tb_name} PARTITION(p5) VALUES (5, 6);"
+                sleep(10 * 1000)
                 assertNoCache "select * from ${tb_name}"
                 sql "select * from ${tb_name}"
                 assertHasCache "select * from ${tb_name}"
