@@ -107,10 +107,10 @@ suite("mtmv_with_sql_cache") {
     assertHasCache mtmv_sql4
     assertHasCache nested_mtmv_sql1
 
-    // rename mtmv, 直查和改写是否可以命中sql cache？
+    // rename mtmv, 直查和改写是否可以命中sql cache
     sql """ALTER MATERIALIZED VIEW ${mv_name1} rename ${mv_name3};"""
     assertNoCache "select * from ${mv_name3}"
-    assertHasCache mtmv_sql   // -->   "select * from mv1"   --> 改名不会影响表version --> hit
+    assertHasCache mtmv_sql   // -->   "select * from mv1"   --> rename don't affect table version --> hit
     assertHasCache "select * from ${nested_mv_name1}"
     assertNoCache nested_mtmv_sql3
 
@@ -120,7 +120,7 @@ suite("mtmv_with_sql_cache") {
     assertHasCache "select * from ${nested_mv_name1}"
     assertHasCache nested_mtmv_sql1
 
-    // replace mtmv, 直查和改写是否可以命中sql cache？存疑
+    // replace mtmv, 直查和改写是否可以命中sql cache
     sql """ALTER MATERIALIZED VIEW ${mv_name1} REPLACE WITH MATERIALIZED VIEW ${mv_name2};"""
     assertNoCache "select * from ${mv_name1}"
     assertNoCache "select * from ${mv_name2}"
@@ -161,12 +161,14 @@ suite("mtmv_with_sql_cache") {
     assertHasCache mtmv_sql4
 
 
+    logger.info("res1: " + sql "show partitions from ${mv_name1}")
     // 刷新mtmv，确保mtmv初始表现正常
     // 刷新是否会导致物化视图version版本变化
     sql "REFRESH MATERIALIZED VIEW ${mv_name1} AUTO;"
     waitingMTMVTaskFinishedByMvName(mv_name1)
+    logger.info("res1: " + sql "show partitions from ${mv_name1}")
 
-//    sleep(10000)
+    sleep(10000)
     assertHasCache "select * from ${mv_name1}"
     assertHasCache mtmv_sql
     assertHasCache "select * from ${nested_mv_name1}"
