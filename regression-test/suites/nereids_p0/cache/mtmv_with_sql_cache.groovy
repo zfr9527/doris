@@ -15,6 +15,10 @@
 // specific language governing permissions and limitations
 // under the License.
 
+// 什么时候走直查，什么时候走改写？
+// 基表变动会让查询无法走mtmv，所以无法命中物化视图，所以就是走原始查询，不能被改写
+// 能命中物化视图，其实我们走改写，因为物化视图没有刷新，sql cache仍然生效
+// 不能命中物化视图，就是直查原表，原表是改变的，那么就不能命中cache，反之就可以用cache
 suite("mtmv_with_sql_cache") {
 
     def assertHasCache = { String sqlStr ->
@@ -188,9 +192,9 @@ suite("mtmv_with_sql_cache") {
 //    assertHasCache "select * from ${nested_mv_name1}"
 //    assertHasCache nested_mtmv_sql1
 
-    // ？？？
+    // refresh mtmv complete
     sql "REFRESH MATERIALIZED VIEW ${mv_name1} complete;"
-    sleep(20 * 1000)
+    sleep(15 * 1000)
     assertNoCache "select * from ${mv_name1}"
     assertHasCache mtmv_sql
     assertHasCache "select * from ${nested_mv_name1}"
@@ -215,7 +219,7 @@ suite("mtmv_with_sql_cache") {
 
     sql "REFRESH MATERIALIZED VIEW ${mv_name1} AUTO;"
     waitingMTMVTaskFinishedByMvName(mv_name1)
-    sleep(20 * 1000)
+    sleep(15 * 1000)
     assertNoCache "select * from ${mv_name1}"
     assertHasCache mtmv_sql
     assertHasCache "select * from ${nested_mv_name1}"
@@ -245,12 +249,6 @@ suite("mtmv_with_sql_cache") {
     assertHasCache "select * from ${nested_mv_name1}"
     assertHasCache nested_mtmv_sql1
 
-
-    // 什么时候走直查，什么时候走改写？
-    // 基表变动会让查询无法走mtmv，所以无法命中物化视图，所以就是走原始查询，不能被改写
-    // 能命中物化视图，其实我们走改写，因为物化视图没有刷新，sql cache仍然生效
-    // 不能命中物化视图，就是直查原表，原表是改变的，那么就不能命中cache，反之就可以用cache
-
     // recreate mtmv to add column
     cur_create_async_partition_mv(dbName, mv_name1, mtmv_sql4, "(id)")
     sleep(10000)
@@ -267,6 +265,7 @@ suite("mtmv_with_sql_cache") {
 
     sql "REFRESH MATERIALIZED VIEW ${mv_name2} AUTO;"
     waitingMTMVTaskFinishedByMvName(mv_name2)
+    sleep(15 * 1000)
     assertNoCache "select * from ${mv_name2}"
     sql "select * from ${mv_name2}"
     assertHasCache "select * from ${mv_name2}"
