@@ -244,17 +244,21 @@ suite("mtmv_with_sql_cache") {
 
     // base table insert data
     sql "insert into ${tb_name1} values(6, 1)"
+    sleep(10 * 1000)
     assertHasCache "select * from ${mv_name1}"
     assertNoCache mtmv_sql
     assertHasCache "select * from ${nested_mv_name1}"
     assertHasCache nested_mtmv_sql1
 
+    sql mtmv_sql
+    assertHasCache mtmv_sql
+
     // recreate mtmv to add column
     cur_create_async_partition_mv(dbName, mv_name1, mtmv_sql4, "(id)")
-    sleep(10000)
+    sleep(10 * 1000)
     assertNoCache "select * from ${mv_name1}"
     assertHasCache "select * from ${mv_name2}"
-    assertNoCache mtmv_sql
+    assertHasCache mtmv_sql
 
     assertNoCache mtmv_sql4  // base table change, not hit mtmv1/mtmv4
     assertHasCache "select * from ${nested_mv_name1}"
