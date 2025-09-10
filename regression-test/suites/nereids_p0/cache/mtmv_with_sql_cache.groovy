@@ -283,6 +283,7 @@ suite("mtmv_with_sql_cache") {
 
     // insert overwrite
     sql "INSERT OVERWRITE table ${tb_name1} PARTITION(p4) VALUES (4, 6);"
+    sleep(15 * 1000)
     assertHasCache "select * from ${mv_name1}"
     assertNoCache mtmv_sql4
     assertHasCache "select * from ${nested_mv_name1}"
@@ -293,6 +294,7 @@ suite("mtmv_with_sql_cache") {
 
     sql "REFRESH MATERIALIZED VIEW ${mv_name1} AUTO;"
     waitingMTMVTaskFinishedByMvName(mv_name1)
+    sleep(15 * 1000)
     assertNoCache "select * from ${nested_mv_name1}"
     assertNoCache nested_mtmv_sql1
 
@@ -312,6 +314,7 @@ suite("mtmv_with_sql_cache") {
 
     // insert data
     sql "insert into ${tb_name1} values(7, 1)"
+    sleep(15 * 1000)
     assertHasCache "select * from ${mv_name1}"
     assertNoCache mtmv_sql4
     assertHasCache "select * from ${nested_mv_name1}"
@@ -319,6 +322,7 @@ suite("mtmv_with_sql_cache") {
 
     sql "REFRESH MATERIALIZED VIEW ${mv_name1} AUTO;"
     waitingMTMVTaskFinishedByMvName(mv_name1)
+    sleep(15 * 1000)
     assertNoCache "select * from ${nested_mv_name1}"
     assertNoCache mtmv_sql4
     assertHasCache "select * from ${nested_mv_name1}"
