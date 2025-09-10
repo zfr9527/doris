@@ -196,8 +196,6 @@ suite("mtmv_with_sql_cache") {
     assertHasCache "select * from ${nested_mv_name1}"
     assertNoCache nested_mtmv_sql1
 
-    sql "set enable_sql_cache=true"
-
     sql "select * from ${mv_name1}"
     sql nested_mtmv_sql1
 
