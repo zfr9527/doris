@@ -192,7 +192,7 @@ suite("mtmv_with_sql_cache") {
     assertHasCache "select * from ${nested_mv_name1}"
     assertHasCache nested_mtmv_sql1
 
-     refresh mtmv complete
+    // refresh mtmv complete
     sql "REFRESH MATERIALIZED VIEW ${mv_name1} complete;"
     sleep(15 * 1000)
     assertNoCache "select * from ${mv_name1}"
