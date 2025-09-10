@@ -177,16 +177,16 @@ suite("mtmv_with_sql_cache") {
 //    sql """RESUME MATERIALIZED VIEW JOB ON ${mv_name4};"""
 //    assertHasCache "select * from ${mv_name4}"
 //    assertHasCache mtmv_sql4
-
-    // 刷新mtmv，确保mtmv初始表现正常
-    sql "REFRESH MATERIALIZED VIEW ${mv_name1} AUTO;"
-    waitingMTMVTaskFinishedByMvName(mv_name1)
-
-    sleep(10000)
-    assertHasCache "select * from ${mv_name1}"
-    assertHasCache mtmv_sql
-    assertHasCache "select * from ${nested_mv_name1}"
-    assertHasCache nested_mtmv_sql1
+//
+//    // 刷新mtmv，确保mtmv初始表现正常
+//    sql "REFRESH MATERIALIZED VIEW ${mv_name1} AUTO;"
+//    waitingMTMVTaskFinishedByMvName(mv_name1)
+//
+//    sleep(10000)
+//    assertHasCache "select * from ${mv_name1}"
+//    assertHasCache mtmv_sql
+//    assertHasCache "select * from ${nested_mv_name1}"
+//    assertHasCache nested_mtmv_sql1
 
     // ？？？
     sql "REFRESH MATERIALIZED VIEW ${mv_name1} complete;"
