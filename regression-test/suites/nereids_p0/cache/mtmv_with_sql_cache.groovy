@@ -191,8 +191,8 @@ suite("mtmv_with_sql_cache") {
 //    assertHasCache mtmv_sql
 //    assertHasCache "select * from ${nested_mv_name1}"
 //    assertHasCache nested_mtmv_sql1
-
-    // refresh mtmv complete
+//
+//     refresh mtmv complete
 //    sql "REFRESH MATERIALIZED VIEW ${mv_name1} complete;"
 //    sleep(15 * 1000)
 //    assertNoCache "select * from ${mv_name1}"
@@ -295,11 +295,14 @@ suite("mtmv_with_sql_cache") {
     sql "REFRESH MATERIALIZED VIEW ${mv_name1} AUTO;"
     waitingMTMVTaskFinishedByMvName(mv_name1)
     sleep(15 * 1000)
+    assertNoCache "select * from ${mv_name1}"
     assertHasCache "select * from ${nested_mv_name1}"
     assertNoCache nested_mtmv_sql1
 
+    sql "select * from ${mv_name1}"
     sql nested_mtmv_sql1
 
+    assertHasCache "select * from ${mv_name1}"
     assertHasCache "select * from ${nested_mv_name1}"
     assertHasCache nested_mtmv_sql1
 
