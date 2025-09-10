@@ -71,7 +71,7 @@ suite("mtmv_with_sql_cache") {
         on t1.id = t2.id
     """
     def mtmv_sql4 = """
-        select t1.id as id, t1.value as value1, t2.value as value2
+        select t1.id as id, t1.value as value1 
         from ${tb_name1} as t1
         left join ${tb_name2} as t2
         on t1.id = t2.id
