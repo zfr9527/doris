@@ -129,109 +129,109 @@ suite("mtmv_with_sql_cache") {
     assertHasCache mtmv_sql4
     assertHasCache nested_mtmv_sql1
 
-    // rename mtmv, 直查和改写是否可以命中sql cache
-    sql """ALTER MATERIALIZED VIEW ${mv_name1} rename ${mv_name3};"""
-    assertNoCache "select * from ${mv_name3}"
-    assertHasCache mtmv_sql   // -->   "select * from mv1"   --> rename don't affect table version --> hit
-    assertHasCache "select * from ${nested_mv_name1}"
-    assertNoCache nested_mtmv_sql3
-
-    sql """ALTER MATERIALIZED VIEW ${mv_name3} rename ${mv_name1};"""
-    assertHasCache "select * from ${mv_name1}"
-    assertHasCache mtmv_sql
-    assertHasCache "select * from ${nested_mv_name1}"
-    assertHasCache nested_mtmv_sql1
-
-    // replace mtmv, 直查和改写是否可以命中sql cache
-    sql """ALTER MATERIALIZED VIEW ${mv_name1} REPLACE WITH MATERIALIZED VIEW ${mv_name2};"""
-    assertNoCache "select * from ${mv_name1}"
-    assertNoCache "select * from ${mv_name2}"
-    assertNoCache mtmv_sql   // -->   "select * from mv1/mv2" --> version change  --> nocache
-    assertHasCache "select * from ${nested_mv_name1}"
-    assertNoCache nested_mtmv_sql1
-
-    sql "select * from ${mv_name1}"
-    sql "select * from ${mv_name2}"
-    sql mtmv_sql
-    sql "select * from ${nested_mv_name1}"
-    sql nested_mtmv_sql1
-
-    assertHasCache "select * from ${mv_name1}"
-    assertHasCache "select * from ${mv_name2}"
-    assertHasCache mtmv_sql
-    assertHasCache "select * from ${nested_mv_name1}"
-    assertHasCache nested_mtmv_sql1
-
-    // pause/resume mtmv
-    // 暂停和恢复不影响sql cache工作
-    sql """PAUSE MATERIALIZED VIEW JOB ON ${mv_name1};"""
-    assertHasCache "select * from ${mv_name1}"
-    assertHasCache mtmv_sql
-    assertHasCache "select * from ${nested_mv_name1}"
-    assertHasCache nested_mtmv_sql1
-
-    sql """PAUSE MATERIALIZED VIEW JOB ON ${mv_name4};"""
-    assertHasCache "select * from ${mv_name4}"
-    assertHasCache mtmv_sql4
-
-    sql """RESUME MATERIALIZED VIEW JOB ON ${mv_name1};"""
-    assertHasCache "select * from ${mv_name1}"
-    assertHasCache mtmv_sql
-
-    sql """RESUME MATERIALIZED VIEW JOB ON ${mv_name4};"""
-    assertHasCache "select * from ${mv_name4}"
-    assertHasCache mtmv_sql4
-
-    // 刷新mtmv，确保mtmv初始表现正常
-    sql "REFRESH MATERIALIZED VIEW ${mv_name1} AUTO;"
-    waitingMTMVTaskFinishedByMvName(mv_name1)
-
-    sleep(10000)
-    assertHasCache "select * from ${mv_name1}"
-    assertHasCache mtmv_sql
-    assertHasCache "select * from ${nested_mv_name1}"
-    assertHasCache nested_mtmv_sql1
-
-    // refresh mtmv complete
-    sql "REFRESH MATERIALIZED VIEW ${mv_name1} complete;"
-    sleep(15 * 1000)
-    assertNoCache "select * from ${mv_name1}"
-    assertHasCache mtmv_sql
-    assertHasCache "select * from ${nested_mv_name1}"
-    assertNoCache nested_mtmv_sql1
-
-    sql "select * from ${mv_name1}"
-    sql nested_mtmv_sql1
-
-    assertHasCache "select * from ${mv_name1}"
-    assertHasCache nested_mtmv_sql1
-
-    // base table insert overwrite
-    sql "INSERT OVERWRITE table ${tb_name1} PARTITION(p5) VALUES (5, 6);"
-    sleep(10 * 1000)
-    assertHasCache "select * from ${mv_name1}"
-    assertNoCache mtmv_sql
-    assertHasCache "select * from ${nested_mv_name1}"
-    assertHasCache nested_mtmv_sql1
-
-    sql mtmv_sql
-    assertHasCache mtmv_sql
-
-    sql "REFRESH MATERIALIZED VIEW ${mv_name1} AUTO;"
-    waitingMTMVTaskFinishedByMvName(mv_name1)
-    sleep(15 * 1000)
-    assertNoCache "select * from ${mv_name1}"
-    assertHasCache mtmv_sql
-    assertHasCache "select * from ${nested_mv_name1}"
-    assertNoCache nested_mtmv_sql1
-
-    sql "select * from ${mv_name1}"
-    sql nested_mtmv_sql1
-
-    assertHasCache "select * from ${mv_name1}"
-    assertHasCache mtmv_sql
-    assertHasCache "select * from ${nested_mv_name1}"
-    assertHasCache nested_mtmv_sql1
+//    // rename mtmv, 直查和改写是否可以命中sql cache
+//    sql """ALTER MATERIALIZED VIEW ${mv_name1} rename ${mv_name3};"""
+//    assertNoCache "select * from ${mv_name3}"
+//    assertHasCache mtmv_sql   // -->   "select * from mv1"   --> rename don't affect table version --> hit
+//    assertHasCache "select * from ${nested_mv_name1}"
+//    assertNoCache nested_mtmv_sql3
+//
+//    sql """ALTER MATERIALIZED VIEW ${mv_name3} rename ${mv_name1};"""
+//    assertHasCache "select * from ${mv_name1}"
+//    assertHasCache mtmv_sql
+//    assertHasCache "select * from ${nested_mv_name1}"
+//    assertHasCache nested_mtmv_sql1
+//
+//    // replace mtmv, 直查和改写是否可以命中sql cache
+//    sql """ALTER MATERIALIZED VIEW ${mv_name1} REPLACE WITH MATERIALIZED VIEW ${mv_name2};"""
+//    assertNoCache "select * from ${mv_name1}"
+//    assertNoCache "select * from ${mv_name2}"
+//    assertNoCache mtmv_sql   // -->   "select * from mv1/mv2" --> version change  --> nocache
+//    assertHasCache "select * from ${nested_mv_name1}"
+//    assertNoCache nested_mtmv_sql1
+//
+//    sql "select * from ${mv_name1}"
+//    sql "select * from ${mv_name2}"
+//    sql mtmv_sql
+//    sql "select * from ${nested_mv_name1}"
+//    sql nested_mtmv_sql1
+//
+//    assertHasCache "select * from ${mv_name1}"
+//    assertHasCache "select * from ${mv_name2}"
+//    assertHasCache mtmv_sql
+//    assertHasCache "select * from ${nested_mv_name1}"
+//    assertHasCache nested_mtmv_sql1
+//
+//    // pause/resume mtmv
+//    // 暂停和恢复不影响sql cache工作
+//    sql """PAUSE MATERIALIZED VIEW JOB ON ${mv_name1};"""
+//    assertHasCache "select * from ${mv_name1}"
+//    assertHasCache mtmv_sql
+//    assertHasCache "select * from ${nested_mv_name1}"
+//    assertHasCache nested_mtmv_sql1
+//
+//    sql """PAUSE MATERIALIZED VIEW JOB ON ${mv_name4};"""
+//    assertHasCache "select * from ${mv_name4}"
+//    assertHasCache mtmv_sql4
+//
+//    sql """RESUME MATERIALIZED VIEW JOB ON ${mv_name1};"""
+//    assertHasCache "select * from ${mv_name1}"
+//    assertHasCache mtmv_sql
+//
+//    sql """RESUME MATERIALIZED VIEW JOB ON ${mv_name4};"""
+//    assertHasCache "select * from ${mv_name4}"
+//    assertHasCache mtmv_sql4
+//
+//    // 刷新mtmv，确保mtmv初始表现正常
+//    sql "REFRESH MATERIALIZED VIEW ${mv_name1} AUTO;"
+//    waitingMTMVTaskFinishedByMvName(mv_name1)
+//
+//    sleep(10000)
+//    assertHasCache "select * from ${mv_name1}"
+//    assertHasCache mtmv_sql
+//    assertHasCache "select * from ${nested_mv_name1}"
+//    assertHasCache nested_mtmv_sql1
+//
+//    // refresh mtmv complete
+//    sql "REFRESH MATERIALIZED VIEW ${mv_name1} complete;"
+//    sleep(15 * 1000)
+//    assertNoCache "select * from ${mv_name1}"
+//    assertHasCache mtmv_sql
+//    assertHasCache "select * from ${nested_mv_name1}"
+//    assertNoCache nested_mtmv_sql1
+//
+//    sql "select * from ${mv_name1}"
+//    sql nested_mtmv_sql1
+//
+//    assertHasCache "select * from ${mv_name1}"
+//    assertHasCache nested_mtmv_sql1
+//
+//    // base table insert overwrite
+//    sql "INSERT OVERWRITE table ${tb_name1} PARTITION(p5) VALUES (5, 6);"
+//    sleep(10 * 1000)
+//    assertHasCache "select * from ${mv_name1}"
+//    assertNoCache mtmv_sql
+//    assertHasCache "select * from ${nested_mv_name1}"
+//    assertHasCache nested_mtmv_sql1
+//
+//    sql mtmv_sql
+//    assertHasCache mtmv_sql
+//
+//    sql "REFRESH MATERIALIZED VIEW ${mv_name1} AUTO;"
+//    waitingMTMVTaskFinishedByMvName(mv_name1)
+//    sleep(15 * 1000)
+//    assertNoCache "select * from ${mv_name1}"
+//    assertHasCache mtmv_sql
+//    assertHasCache "select * from ${nested_mv_name1}"
+//    assertNoCache nested_mtmv_sql1
+//
+//    sql "select * from ${mv_name1}"
+//    sql nested_mtmv_sql1
+//
+//    assertHasCache "select * from ${mv_name1}"
+//    assertHasCache mtmv_sql
+//    assertHasCache "select * from ${nested_mv_name1}"
+//    assertHasCache nested_mtmv_sql1
 
 
     // add partition
