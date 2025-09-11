@@ -146,10 +146,13 @@ suite("mtmv_with_sql_cache") {
     assertNoCache nested_mtmv_sql3
 
     sql """ALTER MATERIALIZED VIEW ${mv_name3} rename ${mv_name1};"""
-    assertHasCache "select * from ${mv_name1}"
-    assertNoCache mtmv_sql1
-    assertHasCache "select * from ${nested_mv_name1}"
-    assertHasCache nested_mtmv_sql1
+    assertHasCache "select * from ${mv_name1}"  // 之前没有查询过这个sql，所以之前的cache没有被删，现在再查询仍然生效
+    assertNoCache mtmv_sql1 // 这个之前查询检测到失效，所以cache被删除了，所以这个地方无法用cache
+    assertHasCache "select * from ${nested_mv_name1}" // nested mtmv未变化
+    assertHasCache nested_mtmv_sql1 // 这个之前没查询过，所以cache仍然可以生效
+
+    sql mtmv_sql1
+    assertHasCache mtmv_sql1
 
     // replace mtmv, 直查和改写是否可以命中sql cache
     sql """ALTER MATERIALIZED VIEW ${mv_name1} REPLACE WITH MATERIALIZED VIEW ${mv_name2};"""
