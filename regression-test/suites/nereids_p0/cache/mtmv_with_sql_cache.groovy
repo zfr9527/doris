@@ -35,7 +35,7 @@ suite("mtmv_with_sql_cache") {
         }
     }
 
-    def cur_create_async_partition_mv = { db, mv_name, mv_sql, partition_col ->
+    def cur_create_async_partition_mv = { def db, def mv_name, def mv_sql, def partition_col ->
 
         sql """DROP MATERIALIZED VIEW IF EXISTS ${db}.${mv_name}"""
         sql"""
@@ -75,7 +75,7 @@ suite("mtmv_with_sql_cache") {
         on t1.id = t2.id
     """
     def mtmv_sql2 = """
-        select t2.id as id, t1.value as value
+        select t2.id as id, t2.value as value
         from ${tb_name1} as t1
         right join ${tb_name2} as t2
         on t1.id = t2.id
