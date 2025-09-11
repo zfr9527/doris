@@ -75,7 +75,7 @@ suite("mtmv_with_sql_cache") {
         on t1.id = t2.id
     """
     def mtmv_sql2 = """
-        select t2.id as id, t2.value as value
+        select t2.id as id, t1.value as value
         from ${tb_name1} as t1
         right join ${tb_name2} as t2
         on t1.id = t2.id
@@ -208,9 +208,7 @@ suite("mtmv_with_sql_cache") {
     sql "REFRESH MATERIALIZED VIEW ${mv_name1} complete;"
     sleep(15 * 1000)
     assertNoCache "select * from ${mv_name1}"
-    assertHasCache mtmv_sql1
-
-    /*
+    assertNoCache mtmv_sql1
     assertHasCache "select * from ${nested_mv_name1}"
     assertNoCache nested_mtmv_sql1
 
@@ -345,9 +343,5 @@ suite("mtmv_with_sql_cache") {
     assertNoCache mtmv_sql4
     assertHasCache "select * from ${nested_mv_name1}"
     assertNoCache nested_mtmv_sql1
-
-
-
-     */
 
 }
