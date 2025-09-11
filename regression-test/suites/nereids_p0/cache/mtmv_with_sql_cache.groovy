@@ -21,11 +21,32 @@
 // 不能命中物化视图，就是直查原表，原表是改变的，那么就不能命中cache，反之就可以用cache
 suite("mtmv_with_sql_cache") {
 
+    def judge_res = { def sql_str ->
+
+        sql "set enable_sql_cache=true"
+        def directly_res = sql sql_str
+        directly_res.sort { [it[0], it[1]] }
+        sql "set enable_sql_cache=false"
+        def sql_cache_res = sql sql_str
+        sql_cache_res.sort { [it[0], it[1]] }
+        sql "set enable_sql_cache=true"
+
+        assertTrue(directly_res.size() == sql_cache_res.size())
+        for (int i = 0; i < directly_res.size(); i++) {
+            assertTrue(directly_res[i].size() == sql_cache_res[i].size())
+            for (int j = 0; j < directly_res[i].size(); j++) {
+                assertTrue(directly_res[i][j] == sql_cache_res[i][j])
+            }
+        }
+    }
+
     def assertHasCache = { String sqlStr ->
         explain {
             sql ("physical plan ${sqlStr}")
             contains("PhysicalSqlCache")
         }
+
+        judge_res(sqlStr)
     }
 
     def assertNoCache = { String sqlStr ->
