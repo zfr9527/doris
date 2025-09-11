@@ -80,6 +80,12 @@ suite("mtmv_with_sql_cache") {
         right join ${tb_name2} as t2
         on t1.id = t2.id
     """
+    def mtmv_sql3 = """
+        select t2.id as id, t1.value as value1 
+        from ${tb_name1} as t1
+        right join ${tb_name2} as t2
+        on t1.id = t2.id
+    """
     def mtmv_sql4 = """
         select t1.id as id, t1.value as value1 
         from ${tb_name1} as t1
@@ -278,7 +284,7 @@ suite("mtmv_with_sql_cache") {
     sql mtmv_sql1
 
     // recreate mtmv to add column
-    cur_create_async_partition_mv(dbName, mv_name1, mtmv_sql4, "(id)")
+    cur_create_async_partition_mv(dbName, mv_name1, mtmv_sql3, "(id)")
     sleep(15 * 1000)
     assertNoCache "select * from ${mv_name1}"
     assertHasCache "select * from ${mv_name2}"
@@ -320,11 +326,19 @@ suite("mtmv_with_sql_cache") {
     waitingMTMVTaskFinishedByMvName(mv_name1)
     sleep(15 * 1000)
     assertNoCache "select * from ${mv_name1}"
+    assertNoCache mtmv_sql4 // 基表变化，物化视图不可用，查询原表，原表变化，无法命中cache
     assertHasCache "select * from ${nested_mv_name1}"
     assertNoCache nested_mtmv_sql1
 
     sql "select * from ${mv_name1}"
     sql nested_mtmv_sql1
+
+    sql "REFRESH MATERIALIZED VIEW ${mv_name4} AUTO;"
+    waitingMTMVTaskFinishedByMvName(mv_name4)
+    sleep(15 * 1000)
+    assertNoCache mtmv_sql4
+    sql mtmv_sql4
+    assertHasCache mtmv_sql4
 
     assertHasCache "select * from ${mv_name1}"
     assertHasCache "select * from ${nested_mv_name1}"
@@ -342,7 +356,7 @@ suite("mtmv_with_sql_cache") {
     sql "insert into ${tb_name1} values(7, 1)"
     sleep(15 * 1000)
     assertHasCache "select * from ${mv_name1}"
-    assertNoCache mtmv_sql4
+    assertNoCache mtmv_sql3
     assertHasCache "select * from ${nested_mv_name1}"
     assertHasCache nested_mtmv_sql1
 
@@ -350,7 +364,7 @@ suite("mtmv_with_sql_cache") {
     waitingMTMVTaskFinishedByMvName(mv_name1)
     sleep(15 * 1000)
     assertNoCache "select * from ${mv_name1}"
-    assertNoCache mtmv_sql4
+    assertNoCache mtmv_sql3
     assertHasCache "select * from ${nested_mv_name1}"
     assertNoCache nested_mtmv_sql1
 
