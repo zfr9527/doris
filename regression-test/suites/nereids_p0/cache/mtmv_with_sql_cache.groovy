@@ -68,8 +68,14 @@ suite("mtmv_with_sql_cache") {
     def mv_name3 = prefix_str + "mtmv3"
     def mv_name4 = prefix_str + "mtmv4"
     def nested_mv_name1 = prefix_str + "nested_mtmv1"
-    def mtmv_sql = """
+    def mtmv_sql1 = """
         select t1.id as id, t2.value as value
+        from ${tb_name1} as t1
+        left join ${tb_name2} as t2
+        on t1.id = t2.id
+    """
+    def mtmv_sql2 = """
+        select t2.id as id, t2.value as value
         from ${tb_name1} as t1
         left join ${tb_name2} as t2
         on t1.id = t2.id
@@ -93,17 +99,10 @@ suite("mtmv_with_sql_cache") {
         on t1.id = t2.id
     """
     sql """DROP MATERIALIZED VIEW IF EXISTS ${mv_name3};"""
-    cur_create_async_partition_mv(dbName, mv_name1, mtmv_sql, "(id)")
-    cur_create_async_partition_mv(dbName, mv_name2, mtmv_sql, "(id)")
+    cur_create_async_partition_mv(dbName, mv_name1, mtmv_sql1, "(id)")
+    cur_create_async_partition_mv(dbName, mv_name2, mtmv_sql2, "(id)")
     cur_create_async_partition_mv(dbName, mv_name4, mtmv_sql4, "(id)")
     cur_create_async_partition_mv(dbName, nested_mv_name1, nested_mtmv_sql1, "(id)")
-
-    mtmv_sql = """
-        select /*+ use_mv(${mv_name1})*/ t1.id as id, t2.value as value
-        from ${tb_name1} as t1
-        left join ${tb_name2} as t2
-        on t1.id = t2.id
-    """
 
     sleep(10000)
     sql "set enable_nereids_planner=true"
@@ -116,7 +115,8 @@ suite("mtmv_with_sql_cache") {
     assertNoCache "select * from ${mv_name4}"
     assertNoCache "select * from ${nested_mv_name1}"
     // mtmv rewrite
-    assertNoCache mtmv_sql
+    assertNoCache mtmv_sql1
+    assertNoCache mtmv_sql2
     assertNoCache mtmv_sql4
     assertNoCache nested_mtmv_sql1
 
@@ -124,7 +124,8 @@ suite("mtmv_with_sql_cache") {
     sql "select * from ${mv_name2}"
     sql "select * from ${mv_name4}"
     sql "select * from ${nested_mv_name1}"
-    sql mtmv_sql
+    sql mtmv_sql1
+    sql mtmv_sql2
     sql mtmv_sql4
     sql nested_mtmv_sql1
 
@@ -132,20 +133,21 @@ suite("mtmv_with_sql_cache") {
     assertHasCache "select * from ${mv_name2}"
     assertHasCache "select * from ${mv_name4}"
     assertHasCache "select * from ${nested_mv_name1}"
-    assertHasCache mtmv_sql
+    assertHasCache mtmv_sql1
+    assertHasCache mtmv_sql2
     assertHasCache mtmv_sql4
     assertHasCache nested_mtmv_sql1
 
     // rename mtmv, 直查和改写是否可以命中sql cache
     sql """ALTER MATERIALIZED VIEW ${mv_name1} rename ${mv_name3};"""
     assertNoCache "select * from ${mv_name3}"
-    assertHasCache mtmv_sql   // -->   "select * from mv1"   --> rename don't affect table version --> hit
+    assertNoCache mtmv_sql1   // -->   "select * from mv1"   --> rename don't affect table version --> hit
     assertHasCache "select * from ${nested_mv_name1}"
     assertNoCache nested_mtmv_sql3
 
     sql """ALTER MATERIALIZED VIEW ${mv_name3} rename ${mv_name1};"""
     assertHasCache "select * from ${mv_name1}"
-    assertHasCache mtmv_sql
+    assertHasCache mtmv_sql1
     assertHasCache "select * from ${nested_mv_name1}"
     assertHasCache nested_mtmv_sql1
 
@@ -153,19 +155,19 @@ suite("mtmv_with_sql_cache") {
     sql """ALTER MATERIALIZED VIEW ${mv_name1} REPLACE WITH MATERIALIZED VIEW ${mv_name2};"""
     assertNoCache "select * from ${mv_name1}"
     assertNoCache "select * from ${mv_name2}"
-    assertNoCache mtmv_sql   // -->   "select * from mv1/mv2" --> version change  --> nocache
+    assertNoCache mtmv_sql1   // -->   "select * from mv1/mv2" --> version change  --> nocache
     assertHasCache "select * from ${nested_mv_name1}"
     assertNoCache nested_mtmv_sql1
 
     sql "select * from ${mv_name1}"
     sql "select * from ${mv_name2}"
-    sql mtmv_sql
+    sql mtmv_sql1
     sql "select * from ${nested_mv_name1}"
     sql nested_mtmv_sql1
 
     assertHasCache "select * from ${mv_name1}"
     assertHasCache "select * from ${mv_name2}"
-    assertHasCache mtmv_sql
+    assertHasCache mtmv_sql1
     assertHasCache "select * from ${nested_mv_name1}"
     assertHasCache nested_mtmv_sql1
 
@@ -173,7 +175,7 @@ suite("mtmv_with_sql_cache") {
     // 暂停和恢复不影响sql cache工作
     sql """PAUSE MATERIALIZED VIEW JOB ON ${mv_name1};"""
     assertHasCache "select * from ${mv_name1}"
-    assertHasCache mtmv_sql
+    assertHasCache mtmv_sql1
     assertHasCache "select * from ${nested_mv_name1}"
     assertHasCache nested_mtmv_sql1
 
@@ -183,7 +185,7 @@ suite("mtmv_with_sql_cache") {
 
     sql """RESUME MATERIALIZED VIEW JOB ON ${mv_name1};"""
     assertHasCache "select * from ${mv_name1}"
-    assertHasCache mtmv_sql
+    assertHasCache mtmv_sql1
 
     sql """RESUME MATERIALIZED VIEW JOB ON ${mv_name4};"""
     assertHasCache "select * from ${mv_name4}"
@@ -195,7 +197,7 @@ suite("mtmv_with_sql_cache") {
 
     sleep(10000)
     assertHasCache "select * from ${mv_name1}"
-    assertHasCache mtmv_sql
+    assertHasCache mtmv_sql1
     assertHasCache "select * from ${nested_mv_name1}"
     assertHasCache nested_mtmv_sql1
 
@@ -203,7 +205,7 @@ suite("mtmv_with_sql_cache") {
     sql "REFRESH MATERIALIZED VIEW ${mv_name1} complete;"
     sleep(15 * 1000)
     assertNoCache "select * from ${mv_name1}"
-    assertHasCache mtmv_sql
+    assertHasCache mtmv_sql1
     assertHasCache "select * from ${nested_mv_name1}"
     assertNoCache nested_mtmv_sql1
 
@@ -217,18 +219,18 @@ suite("mtmv_with_sql_cache") {
     sql "INSERT OVERWRITE table ${tb_name1} PARTITION(p5) VALUES (5, 6);"
     sleep(10 * 1000)
     assertHasCache "select * from ${mv_name1}"
-    assertNoCache mtmv_sql
+    assertNoCache mtmv_sql1
     assertHasCache "select * from ${nested_mv_name1}"
     assertHasCache nested_mtmv_sql1
 
-    sql mtmv_sql
-    assertHasCache mtmv_sql
+    sql mtmv_sql1
+    assertHasCache mtmv_sql1
 
     sql "REFRESH MATERIALIZED VIEW ${mv_name1} AUTO;"
     waitingMTMVTaskFinishedByMvName(mv_name1)
     sleep(15 * 1000)
     assertNoCache "select * from ${mv_name1}"
-    assertHasCache mtmv_sql
+    assertHasCache mtmv_sql1
     assertHasCache "select * from ${nested_mv_name1}"
     assertNoCache nested_mtmv_sql1
 
@@ -236,7 +238,7 @@ suite("mtmv_with_sql_cache") {
     sql nested_mtmv_sql1
 
     assertHasCache "select * from ${mv_name1}"
-    assertHasCache mtmv_sql
+    assertHasCache mtmv_sql1
     assertHasCache "select * from ${nested_mv_name1}"
     assertHasCache nested_mtmv_sql1
 
@@ -245,7 +247,7 @@ suite("mtmv_with_sql_cache") {
     // 给基表插入分区之后是否仍然能
     sql "alter table ${tb_name1} add partition p6 values[('6'),('7'))"
     assertHasCache "select * from ${mv_name1}"
-    assertHasCache mtmv_sql
+    assertHasCache mtmv_sql1
     assertHasCache "select * from ${nested_mv_name1}"
     assertHasCache nested_mtmv_sql1
 
@@ -253,19 +255,19 @@ suite("mtmv_with_sql_cache") {
     sql "insert into ${tb_name1} values(6, 1)"
     sleep(10 * 1000)
     assertHasCache "select * from ${mv_name1}"
-    assertNoCache mtmv_sql
+    assertNoCache mtmv_sql1
     assertHasCache "select * from ${nested_mv_name1}"
     assertHasCache nested_mtmv_sql1
 
-    sql mtmv_sql
-    assertHasCache mtmv_sql
+    sql mtmv_sql1
+    assertHasCache mtmv_sql1
 
     // recreate mtmv to add column
     cur_create_async_partition_mv(dbName, mv_name1, mtmv_sql4, "(id)")
     sleep(15 * 1000)
     assertNoCache "select * from ${mv_name1}"
     assertHasCache "select * from ${mv_name2}"
-    assertHasCache mtmv_sql // ???
+    assertHasCache mtmv_sql1 // ???
 
     assertNoCache mtmv_sql4  // base table change, not hit mtmv1/mtmv4
     assertHasCache "select * from ${nested_mv_name1}"
@@ -281,7 +283,7 @@ suite("mtmv_with_sql_cache") {
     sql "select * from ${mv_name2}"
     assertHasCache "select * from ${mv_name2}"
 
-    assertHasCache mtmv_sql
+    assertHasCache mtmv_sql1
 
     sql mtmv_sql4
     sql nested_mtmv_sql1
