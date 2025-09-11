@@ -69,7 +69,7 @@ suite("mtmv_with_sql_cache") {
     def mv_name4 = prefix_str + "mtmv4"
     def nested_mv_name1 = prefix_str + "nested_mtmv1"
     def mtmv_sql = """
-        select /*+ use_mv(${mv_name1})*/ * t1.id as id, t2.value as value
+        select t1.id as id, t2.value as value
         from ${tb_name1} as t1
         left join ${tb_name2} as t2
         on t1.id = t2.id
@@ -97,6 +97,13 @@ suite("mtmv_with_sql_cache") {
     cur_create_async_partition_mv(dbName, mv_name2, mtmv_sql, "(id)")
     cur_create_async_partition_mv(dbName, mv_name4, mtmv_sql4, "(id)")
     cur_create_async_partition_mv(dbName, nested_mv_name1, nested_mtmv_sql1, "(id)")
+
+    mtmv_sql = """
+        select /*+ use_mv(${mv_name1})*/ * t1.id as id, t2.value as value
+        from ${tb_name1} as t1
+        left join ${tb_name2} as t2
+        on t1.id = t2.id
+    """
 
     sleep(10000)
     sql "set enable_nereids_planner=true"
