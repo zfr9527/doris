@@ -158,13 +158,23 @@ suite("mtmv_with_sql_cache") {
     sql """ALTER MATERIALIZED VIEW ${mv_name1} REPLACE WITH MATERIALIZED VIEW ${mv_name2};"""
     assertNoCache "select * from ${mv_name1}"
     assertNoCache "select * from ${mv_name2}"
-    assertNoCache mtmv_sql1   // -->   "select * from mv1/mv2" --> version change  --> nocache
+    assertNoCache mtmv_sql1
+    assertNoCache mtmv_sql2// -->   "select * from mv1/mv2" --> version change  --> nocache
+    assertHasCache "select * from ${nested_mv_name1}"
+    assertNoCache nested_mtmv_sql1
+
+    sql """ALTER MATERIALIZED VIEW ${mv_name2} REPLACE WITH MATERIALIZED VIEW ${mv_name1};"""
+    assertNoCache "select * from ${mv_name1}"
+    assertNoCache "select * from ${mv_name2}"
+    assertNoCache mtmv_sql1
+    assertNoCache mtmv_sql2// -->   "select * from mv1/mv2" --> version change  --> nocache
     assertHasCache "select * from ${nested_mv_name1}"
     assertNoCache nested_mtmv_sql1
 
     sql "select * from ${mv_name1}"
     sql "select * from ${mv_name2}"
     sql mtmv_sql1
+    sql mtmv_sql2
     sql "select * from ${nested_mv_name1}"
     sql nested_mtmv_sql1
 
