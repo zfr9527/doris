@@ -245,10 +245,11 @@ suite("mtmv_with_sql_cache") {
     waitingMTMVTaskFinishedByMvName(mv_name1)
     sleep(15 * 1000)
     assertNoCache "select * from ${mv_name1}"
-    assertHasCache mtmv_sql1
+    assertNoCache mtmv_sql1
     assertHasCache "select * from ${nested_mv_name1}"
     assertNoCache nested_mtmv_sql1
 
+    sql mtmv_sql1
     sql "select * from ${mv_name1}"
     sql nested_mtmv_sql1
 
@@ -272,7 +273,7 @@ suite("mtmv_with_sql_cache") {
     assertHasCache "select * from ${mv_name1}"
     assertNoCache mtmv_sql1
     assertHasCache "select * from ${nested_mv_name1}"
-    assertHasCache nested_mtmv_sql1
+    assertNoCache nested_mtmv_sql1
 
     sql mtmv_sql1
     assertHasCache mtmv_sql1
