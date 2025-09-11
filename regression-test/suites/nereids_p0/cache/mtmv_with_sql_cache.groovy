@@ -326,7 +326,7 @@ suite("mtmv_with_sql_cache") {
     waitingMTMVTaskFinishedByMvName(mv_name1)
     sleep(15 * 1000)
     assertNoCache "select * from ${mv_name1}"
-    assertNoCache mtmv_sql4 // 基表变化，物化视图不可用，查询原表，原表变化，无法命中cache
+    assertNoCache mtmv_sql3 // 基表变化，物化视图不可用，查询原表，原表变化，无法命中cache
     assertHasCache "select * from ${nested_mv_name1}"
     assertNoCache nested_mtmv_sql1
 
