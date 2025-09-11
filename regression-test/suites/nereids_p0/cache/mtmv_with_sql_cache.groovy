@@ -149,7 +149,7 @@ suite("mtmv_with_sql_cache") {
     assertHasCache "select * from ${mv_name1}"
     assertNoCache mtmv_sql1
     assertHasCache "select * from ${nested_mv_name1}"
-    assertNoCache nested_mtmv_sql1
+    assertHasCache nested_mtmv_sql1
 
     // replace mtmv, 直查和改写是否可以命中sql cache
     sql """ALTER MATERIALIZED VIEW ${mv_name1} REPLACE WITH MATERIALIZED VIEW ${mv_name2};"""
