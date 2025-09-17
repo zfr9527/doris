@@ -42,7 +42,7 @@ suite("mtmv_rbo_pre_rewrite") {
             last_promotion_date DATE,
             years_of_experience INT
         ) ENGINE=OLAP
-        DUPLICATE KEY(`is`)
+        DUPLICATE KEY(`id`)
         COMMENT "OLAP"
         DISTRIBUTED BY HASH(`id`) BUCKETS AUTO
         PROPERTIES (
