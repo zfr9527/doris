@@ -453,9 +453,28 @@ suite("mtmv_rbo_pre_rewrite") {
         """
     ]
 
+    def compare_res = { def stmt ->
+        sql "SET enable_materialized_view_rewrite=false"
+        def origin_res = sql stmt
+        logger.info("origin_res: " + origin_res)
+        sql "SET enable_materialized_view_rewrite=true"
+        def mv_origin_res = sql stmt
+        logger.info("mv_origin_res: " + mv_origin_res)
+        assertTrue((mv_origin_res == [] && origin_res == []) || (mv_origin_res.size() == origin_res.size()))
+        for (int row = 0; row < mv_origin_res.size(); row++) {
+            assertTrue(mv_origin_res[row].size() == origin_res[row].size())
+            for (int col = 0; col < mv_origin_res[row].size(); col++) {
+                assertTrue(mv_origin_res[row][col] == origin_res[row][col])
+            }
+        }
+    }
+
     for (int i = 0; i < mtmv_sql_lists.size(); i++) {
-        async_mv_rewrite_success(db, mtmv_sql_lists[i], sql_lists[i], "rbo_mtmv_${i}", [TRY_IN_RBO])
-        sql """ DROP MATERIALIZED VIEW IF EXISTS rbo_mtmv_${i}"""
+        async_mv_rewrite_success(db, mtmv_sql_lists[i], sql_lists[i], "rbo_mtmv_${i}")
+        def res = sql sql_lists[i]
+        assertTrue(res.size() > 0)
+        compare_res(sql_lists[i] + " order by 1, 2, 3, 4, 5, 6, 7, 8")
+        sql """DROP MATERIALIZED VIEW IF EXISTS rbo_mtmv_${i}"""
     }
 
 
