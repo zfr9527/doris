@@ -64,6 +64,7 @@ class ProfileAction implements SuiteAction {
                 exception = t
             }
 
+            sleep(3 * 1000)
             def httpCli = new HttpCliAction(context)
             httpCli.endpoint(context.config.feHttpAddress)
             httpCli.uri("/rest/v1/query_profile")
