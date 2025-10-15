@@ -23,6 +23,7 @@ suite("query_cache_with_mtmv") {
         sql "set enable_fallback_to_original_planner=false"
         sql "set enable_sql_cache=false"
         sql "set enable_query_cache=true"
+        sql """set enable_materialized_view_nest_rewrite=true;"""
     }
 
     def assertHasCache = { String sqlStr ->
@@ -139,64 +140,50 @@ suite("query_cache_with_mtmv") {
                 def nested_mv_name1 = prefix_str + "nested_mtmv1"
 
                 create_table_and_insert(tb_name)
+                setSessionVariables()
 
                 def mtmv_sql = """
-                SELECT
-                    city,
-                    sale_date,
-                    SUM(amount) AS daily_city_amount
-                FROM
-                    ${tb_name}
-                GROUP BY
-                    city, sale_date;
-                """
+                    SELECT city,sale_date,SUM(amount) AS daily_city_amount FROM ${tb_name} GROUP BY city, sale_date;"""
                 def nested_mtmv_sql = """
-                SELECT
-                    city,
-                    date_trunc(sale_date, 'MONTH') AS sale_date,
-                    SUM(daily_city_amount) AS monthly_city_amount
-                FROM
-                    ${mv_name1}
-                GROUP BY
-                    city,
-                    date_trunc(sale_date, 'MONTH');
-                """
+                    SELECT city,date_trunc(sale_date, 'MONTH') AS sale_date, SUM(daily_city_amount) AS monthly_city_amount FROM ${mv_name1} GROUP BY city, date_trunc(sale_date, 'MONTH');"""
+                // 直查表，不改写mtmv1
+                def select_sql = """
+                    SELECT product_id, SUM(amount) AS total_city_amount FROM ${tb_name} WHERE sale_date >= '2025-10-01' AND sale_date <= '2025-10-03' GROUP BY product_id;"""
+                // 直查表，改写mtmv1
                 def mtmv_select_sql = """
-                SELECT
-                    city,
-                    SUM(amount) AS total_city_amount
-                FROM
-                    ${tb_name}
-                WHERE
-                    sale_date >= '2025-10-01' AND sale_date <= '2025-10-03'
-                GROUP BY
-                    city;
-                """
+                    SELECT city, SUM(amount) AS total_city_amount FROM ${tb_name} WHERE sale_date >= '2025-10-01' AND sale_date <= '2025-10-03' GROUP BY city;"""
+                // 直查mtmv2，不改写
+                def nested_mtmv_select_sql = """
+                    select city, sum(monthly_city_amount) from ${nested_mv_name1} group by city;"""
+                // 直查mtmv1，改写mtmv2
                 def nested_mtmv_select_sql1 = """
-                SELECT
-                    date_trunc(sale_date, 'MONTH') AS sale_date,
-                    SUM(daily_city_amount) AS monthly_city_amount
-                FROM
-                    ${mv_name1}
-                GROUP BY
-                    date_trunc(sale_date, 'MONTH');
-                """
+                    SELECT date_trunc(sale_date, 'MONTH') AS sale_date,SUM(daily_city_amount) AS monthly_city_amount FROM ${mv_name1} GROUP BY date_trunc(sale_date, 'MONTH');"""
+                // 直查表，改写mtmv2
                 def nested_mtmv_select_sql2 = """
-                SELECT
-                    date_trunc(sale_date, 'MONTH') AS sale_date,
-                    SUM(daily_city_amount) AS monthly_city_amount
-                FROM
-                    (SELECT
-                    city,
-                    sale_date,
-                    SUM(amount) AS daily_city_amount
-                FROM
-                    ${tb_name}
-                GROUP BY
-                    city, sale_date) as t
-                GROUP BY
-                    date_trunc(sale_date, 'MONTH');
-                """
+                    SELECT date_trunc(sale_date, 'MONTH') AS sale_date,SUM(daily_city_amount) AS monthly_city_amount FROM (SELECT city, sale_date, SUM(amount) AS daily_city_amount FROM ${tb_name} GROUP BY city, sale_date) as t GROUP BY date_trunc(sale_date, 'MONTH');"""
+                // 直查mtmv1，不改写mtmv2
+                def nested_mtmv_select_sql3 = """
+                    select city, avg(daily_city_amount) from ${mv_name1} group by city;"""
+
+                sql """DROP MATERIALIZED VIEW IF EXISTS ${mv_name1};"""
+                sql """DROP MATERIALIZED VIEW IF EXISTS ${nested_mv_name1};"""
+                create_async_mv(dbName, mv_name1, mtmv_sql)
+                create_async_mv(dbName, nested_mv_name1, nested_mtmv_sql)
+
+                assertNoCache select_sql // 直查表，不改写mtmv1
+                assertNoCache mtmv_select_sql  // 直查表，改写mtmv1
+                assertNoCache nested_mtmv_select_sql2 // 直查表，改写mtmv2
+                assertNoCache nested_mtmv_select_sql1 // 直查mtmv1，改写mtmv2
+                assertNoCache nested_mtmv_select_sql3 // 直查mtmv1，不改写mtmv2
+                assertNoCache nested_mtmv_select_sql // 直查mtmv2，不改写
+
+                assertHasCache select_sql // 直查表，不改写mtmv1
+                assertHasCache mtmv_select_sql  // 直查表，改写mtmv1
+                assertHasCache nested_mtmv_select_sql2 // 直查表，改写mtmv2
+                assertHasCache nested_mtmv_select_sql1 // 直查mtmv1，改写mtmv2
+                assertHasCache nested_mtmv_select_sql3 // 直查mtmv1，不改写mtmv2
+                assertHasCache nested_mtmv_select_sql // 直查mtmv2，不改写
+
 
 
 
