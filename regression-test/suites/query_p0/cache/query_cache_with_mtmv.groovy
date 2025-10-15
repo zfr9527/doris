@@ -152,18 +152,21 @@ suite("query_cache_with_mtmv") {
                 // 直查表，改写mtmv1
                 def mtmv_select_sql = """
                     SELECT city, SUM(amount) AS total_city_amount FROM ${tb_name} WHERE sale_date >= '2025-10-01' AND sale_date <= '2025-10-03' GROUP BY city;"""
-                // 直查mtmv2，不改写
+                // 直查nested_mtmv1，不改写
                 def nested_mtmv_select_sql = """
                     select city, sum(monthly_city_amount) from ${nested_mv_name1} group by city;"""
-                // 直查mtmv1，改写mtmv2
+                // 直查mtmv1，改写nested_mtmv1
                 def nested_mtmv_select_sql1 = """
                     SELECT date_trunc(sale_date, 'MONTH') AS sale_date,SUM(daily_city_amount) AS monthly_city_amount FROM ${mv_name1} GROUP BY date_trunc(sale_date, 'MONTH');"""
-                // 直查表，改写mtmv2
+                // 直查表，改写nested_mtmv1
                 def nested_mtmv_select_sql2 = """
                     SELECT date_trunc(sale_date, 'MONTH') AS sale_date,SUM(daily_city_amount) AS monthly_city_amount FROM (SELECT city, sale_date, SUM(amount) AS daily_city_amount FROM ${tb_name} GROUP BY city, sale_date) as t GROUP BY date_trunc(sale_date, 'MONTH');"""
-                // 直查mtmv1，不改写mtmv2
+                // 直查mtmv1，不改写nested_mtmv1
                 def nested_mtmv_select_sql3 = """
                     select city, avg(daily_city_amount) from ${mv_name1} group by city;"""
+                def nested_mtmv_select_sql3_new = """
+                    select city, avg(daily_city_amount) from ${mv_name2} group by city;"""
+
 
                 sql """DROP MATERIALIZED VIEW IF EXISTS ${mv_name1};"""
                 sql """DROP MATERIALIZED VIEW IF EXISTS ${nested_mv_name1};"""
@@ -172,456 +175,394 @@ suite("query_cache_with_mtmv") {
 
                 assertNoCache select_sql // 直查表，不改写mtmv1
                 assertNoCache mtmv_select_sql  // 直查表，改写mtmv1
-                assertNoCache nested_mtmv_select_sql2 // 直查表，改写mtmv2
-                assertNoCache nested_mtmv_select_sql1 // 直查mtmv1，改写mtmv2
-                assertNoCache nested_mtmv_select_sql3 // 直查mtmv1，不改写mtmv2
-                assertNoCache nested_mtmv_select_sql // 直查mtmv2，不改写
+                assertNoCache nested_mtmv_select_sql2 // 直查表，改写nested_mtmv1
+                assertNoCache nested_mtmv_select_sql1 // 直查mtmv1，改写nested_mtmv1
+                assertNoCache nested_mtmv_select_sql3 // 直查mtmv1，不改写nested_mtmv1
+                assertNoCache nested_mtmv_select_sql // 直查nested_mtmv1，不改写
 
                 assertHasCache select_sql // 直查表，不改写mtmv1
                 assertHasCache mtmv_select_sql  // 直查表，改写mtmv1
-                assertHasCache nested_mtmv_select_sql2 // 直查表，改写mtmv2
-                assertHasCache nested_mtmv_select_sql1 // 直查mtmv1，改写mtmv2
-                assertHasCache nested_mtmv_select_sql3 // 直查mtmv1，不改写mtmv2
-                assertHasCache nested_mtmv_select_sql // 直查mtmv2，不改写
+                assertHasCache nested_mtmv_select_sql2 // 直查表，改写nested_mtmv1
+                assertHasCache nested_mtmv_select_sql1 // 直查mtmv1，改写nested_mtmv1
+                assertHasCache nested_mtmv_select_sql3 // 直查mtmv1，不改写nested_mtmv1
+                assertHasCache nested_mtmv_select_sql // 直查nested_mtmv1，不改写
 
-
-
-
-
-
-
-                createTestTable tb_name1
-                createTestTable tb_name2
-
-                sql """alter table ${tb_name1} add partition p6 values[('6'),('7'))"""
-                sql "insert into ${tb_name1} values(6, 1)"
-
-                sql """DROP MATERIALIZED VIEW IF EXISTS ${mv_name1};"""
-                sql """DROP MATERIALIZED VIEW IF EXISTS ${mv_name2};"""
-                sql """DROP MATERIALIZED VIEW IF EXISTS ${mv_name3};"""
-                sql """DROP MATERIALIZED VIEW IF EXISTS ${nested_mv_name1};"""
-
-                cur_create_async_partition_mv(dbName, mv_name1, mtmv_sql1, "(id)")
-                cur_create_async_partition_mv(dbName, mv_name2, mtmv_sql2, "(id)")
-                cur_create_async_partition_mv(dbName, nested_mv_name1, nested_mtmv_sql1, "(id)")
-
-                setSessionVariables()
-
-                // Directly query
-                assertNoCache """select id, count(value) from ${mv_name1} group by id"""
-                assertNoCache """select id, count(value) from ${mv_name2} group by id"""
-                assertNoCache """select id, count(value) from ${nested_mv_name1} group by id"""
-                assertHasCache """select id, count(value) from ${mv_name1} group by id"""
-                assertHasCache """select id, count(value) from ${mv_name2} group by id"""
-                assertHasCache """select id, count(value) from ${nested_mv_name1} group by id"""
-                // mtmv rewrite
-                assertNoCache mtmv_sql1   // 改写成select * from mv1，
-                assertNoCache mtmv_sql2
-                assertNoCache nested_mtmv_sql1
-                assertHasCache mtmv_sql1
-                assertHasCache mtmv_sql2
-                assertHasCache nested_mtmv_sql1
-
-                sql """ALTER MATERIALIZED VIEW ${mv_name1} rename ${mv_name3};"""
-                assertNoCache """select id, count(value) from ${mv_name3} group by id"""
-                assertNoCache mtmv_sql1
-                assertHasCache """select id, count(value) from ${nested_mv_name1} group by id"""
-                assertNoCache nested_mtmv_sql3
+                sql """ALTER MATERIALIZED VIEW ${mv_name1} rename ${mv_name2};"""
+                assertHasCache select_sql // 直查表，不改写mtmv1
+                assertNoCache mtmv_select_sql  // 直查表，改写mtmv1
+                assertNoCache nested_mtmv_select_sql2 // 直查表，改写nested_mtmv1
+                assertNoCache nested_mtmv_select_sql1 // 直查mtmv1，改写nested_mtmv1
+                test {
+                    sql nested_mtmv_select_sql3
+                    exception "does not exist"
+                }
+                assertNoCache nested_mtmv_select_sql3_new // 直查mtmv1，不改写nested_mtmv1
+                assertHasCache nested_mtmv_select_sql // 直查nested_mtmv1，不改写
 
                 sql """ALTER MATERIALIZED VIEW ${mv_name3} rename ${mv_name1};"""
-                assertHasCache """select id, count(value) from ${mv_name1} group by id"""
-                assertHasCache mtmv_sql1
-                assertHasCache """select id, count(value) from ${nested_mv_name1} group by id"""
-                assertHasCache nested_mtmv_sql1
+                assertHasCache select_sql // 直查表，不改写mtmv1
+                assertHasCache mtmv_select_sql  // 直查表，改写mtmv1
+                assertHasCache nested_mtmv_select_sql2 // 直查表，改写nested_mtmv1
+                assertHasCache nested_mtmv_select_sql1 // 直查mtmv1，改写nested_mtmv1
+                assertHasCache nested_mtmv_select_sql3 // 直查mtmv1，不改写nested_mtmv1
+                assertHasCache nested_mtmv_select_sql // 直查nested_mtmv1，不改写
 
             }),
-
-            /*
             extraThread("testReplaceMtmv", {
                 def prefix_str = "qc_replace_mtmv_"
 
-                def tb_name1 = prefix_str + "table1"
-                def tb_name2 = prefix_str + "table2"
+                def tb_name = prefix_str + "table1"
 
                 def mv_name1 = prefix_str + "mtmv1"
                 def mv_name2 = prefix_str + "mtmv2"
-                def mv_name3 = prefix_str + "mtmv3"
                 def nested_mv_name1 = prefix_str + "nested_mtmv1"
 
-                def mtmv_sql1 = """
-                    select t1.id as id, t2.value as value, count(*) 
-                    from ${tb_name1} as t1
-                    left join ${tb_name2} as t2
-                    on t1.id = t2.id
-                    group by id, value
-                    """
+                create_table_and_insert(tb_name)
+                setSessionVariables()
+
+                def mtmv_sql = """
+                    SELECT city,sale_date,SUM(amount) AS daily_city_amount FROM ${tb_name} GROUP BY city, sale_date;"""
                 def mtmv_sql2 = """
-                    select t2.id as id, t2.value as value, count(*) 
-                    from ${tb_name1} as t1
-                    left join ${tb_name2} as t2
-                    on t1.id = t2.id
-                    group by id, value
-                    """
+                    SELECT city,sale_date,avg(amount) AS daily_city_amount FROM ${tb_name} GROUP BY city, sale_date;"""
+                def nested_mtmv_sql = """
+                    SELECT city,date_trunc(sale_date, 'MONTH') AS sale_date, SUM(daily_city_amount) AS monthly_city_amount FROM ${mv_name1} GROUP BY city, date_trunc(sale_date, 'MONTH');"""
+                // 直查表，不改写mtmv1
+                def select_sql = """
+                    SELECT product_id, SUM(amount) AS total_city_amount FROM ${tb_name} WHERE sale_date >= '2025-10-01' AND sale_date <= '2025-10-03' GROUP BY product_id;"""
+                // 直查表，改写mtmv1
+                def mtmv_select_sql = """
+                    SELECT city, SUM(amount) AS total_city_amount FROM ${tb_name} WHERE sale_date >= '2025-10-01' AND sale_date <= '2025-10-03' GROUP BY city;"""
+                // 直查nested_mtmv1，不改写
+                def nested_mtmv_select_sql = """
+                    select city, sum(monthly_city_amount) from ${nested_mv_name1} group by city;"""
+                // 直查mtmv1，改写nested_mtmv1
+                def nested_mtmv_select_sql1 = """
+                    SELECT date_trunc(sale_date, 'MONTH') AS sale_date,SUM(daily_city_amount) AS monthly_city_amount FROM ${mv_name1} GROUP BY date_trunc(sale_date, 'MONTH');"""
+                // 直查表，改写nested_mtmv1
+                def nested_mtmv_select_sql2 = """
+                    SELECT date_trunc(sale_date, 'MONTH') AS sale_date,SUM(daily_city_amount) AS monthly_city_amount FROM (SELECT city, sale_date, SUM(amount) AS daily_city_amount FROM ${tb_name} GROUP BY city, sale_date) as t GROUP BY date_trunc(sale_date, 'MONTH');"""
+                // 直查mtmv1，不改写nested_mtmv1
+                def nested_mtmv_select_sql3 = """
+                    select city, avg(daily_city_amount) from ${mv_name1} group by city;"""
+                def nested_mtmv_select_sql3_new = """
+                    select city, avg(daily_city_amount) from ${mv_name2} group by city;"""
 
-                def nested_mtmv_sql1 = """
-                    select t1.id as id, t2.value as value, count(*)
-                    from ${mv_name1} as t1
-                    left join ${mv_name2} as t2
-                    on t1.id = t2.id
-                    group by id, value
-                    """
-                def nested_mtmv_sql3 = """
-                    select t1.id as id, t2.value as value, count(*)
-                    from ${mv_name3} as t1
-                    left join ${mv_name2} as t2
-                    on t1.id = t2.id
-                    group by id, value
-                    """
-
-                createTestTable tb_name1
-                createTestTable tb_name2
-                sql """alter table ${tb_name1} add partition p6 values[('6'),('7'))"""
-                sql "insert into ${tb_name1} values(6, 1)"
 
                 sql """DROP MATERIALIZED VIEW IF EXISTS ${mv_name1};"""
                 sql """DROP MATERIALIZED VIEW IF EXISTS ${mv_name2};"""
-                sql """DROP MATERIALIZED VIEW IF EXISTS ${mv_name3};"""
                 sql """DROP MATERIALIZED VIEW IF EXISTS ${nested_mv_name1};"""
+                create_async_mv(dbName, mv_name1, mtmv_sql)
+                create_async_mv(dbName, mv_name2, mtmv_sql2)
+                create_async_mv(dbName, nested_mv_name1, nested_mtmv_sql)
 
-                cur_create_async_partition_mv(dbName, mv_name1, mtmv_sql1, "(id)")
-                cur_create_async_partition_mv(dbName, mv_name2, mtmv_sql2, "(id)")
-                cur_create_async_partition_mv(dbName, nested_mv_name1, nested_mtmv_sql1, "(id)")
+                assertNoCache select_sql // 直查表，不改写mtmv1
+                assertNoCache mtmv_select_sql  // 直查表，改写mtmv1
+                assertNoCache nested_mtmv_select_sql2 // 直查表，改写nested_mtmv1
+                assertNoCache nested_mtmv_select_sql1 // 直查mtmv1，改写nested_mtmv1
+                assertNoCache nested_mtmv_select_sql3 // 直查mtmv1，不改写nested_mtmv1
+                assertNoCache nested_mtmv_select_sql // 直查nested_mtmv1，不改写
 
-                setSessionVariables()
-
-                // Directly query
-                assertNoCache """select id, count(value) from ${mv_name1} group by id"""
-                assertNoCache """select id, count(value) from ${mv_name2} group by id"""
-                assertNoCache """select id, count(value) from ${nested_mv_name1} group by id"""
-                assertHasCache """select id, count(value) from ${mv_name1} group by id"""
-                assertHasCache """select id, count(value) from ${mv_name2} group by id"""
-                assertHasCache """select id, count(value) from ${nested_mv_name1} group by id"""
-                // mtmv rewrite
-                assertNoCache mtmv_sql1
-                assertNoCache mtmv_sql2
-                assertNoCache nested_mtmv_sql1
-                assertHasCache mtmv_sql1
-                assertHasCache mtmv_sql2
-                assertHasCache nested_mtmv_sql1
+                assertHasCache select_sql // 直查表，不改写mtmv1
+                assertHasCache mtmv_select_sql  // 直查表，改写mtmv1
+                assertHasCache nested_mtmv_select_sql2 // 直查表，改写nested_mtmv1
+                assertHasCache nested_mtmv_select_sql1 // 直查mtmv1，改写nested_mtmv1
+                assertHasCache nested_mtmv_select_sql3 // 直查mtmv1，不改写nested_mtmv1
+                assertHasCache nested_mtmv_select_sql // 直查nested_mtmv1，不改写
 
                 sql """ALTER MATERIALIZED VIEW ${mv_name1} REPLACE WITH MATERIALIZED VIEW ${mv_name2};"""
-                assertNoCache """select id, count(value) from ${mv_name1} group by id"""
-                assertNoCache """select id, count(value) from ${mv_name2} group by id"""
-                assertNoCache mtmv_sql1
-                assertNoCache mtmv_sql2
-                assertHasCache """select id, count(value) from ${nested_mv_name1} group by id"""
-                assertNoCache nested_mtmv_sql1
+                assertHasCache select_sql // 直查表，不改写mtmv1
+                assertNoCache mtmv_select_sql  // 直查表，改写mtmv1
+                assertNoCache nested_mtmv_select_sql2 // 直查表，改写nested_mtmv1
+                assertNoCache nested_mtmv_select_sql1 // 直查mtmv1，改写nested_mtmv1
+                assertNoCache nested_mtmv_select_sql3_new // 直查mtmv1，不改写nested_mtmv1
+                assertHasCache nested_mtmv_select_sql // 直查nested_mtmv1，不改写
 
                 // 换回来之后无法确定是之前的缓存生效，还是执行之后重新生成的缓存生效
                 // 通过查询结果来验证缓存生效情况
                 sql """ALTER MATERIALIZED VIEW ${mv_name1} REPLACE WITH MATERIALIZED VIEW ${mv_name2};"""
-                assertHasCache """select id, count(value) from ${mv_name1} group by id"""
-                assertHasCache """select id, count(value) from ${mv_name2} group by id"""
-                assertHasCache mtmv_sql1
-                assertHasCache mtmv_sql2
-                assertHasCache """select id, count(value) from ${nested_mv_name1} group by id"""
-                assertHasCache nested_mtmv_sql1
+                assertHasCache select_sql // 直查表，不改写mtmv1
+                assertHasCache mtmv_select_sql  // 直查表，改写mtmv1
+                assertHasCache nested_mtmv_select_sql2 // 直查表，改写nested_mtmv1
+                assertHasCache nested_mtmv_select_sql1 // 直查mtmv1，改写nested_mtmv1
+                assertHasCache nested_mtmv_select_sql3 // 直查mtmv1，不改写nested_mtmv1
+                assertHasCache nested_mtmv_select_sql // 直查nested_mtmv1，不改写
+
             }),
             extraThread("testPauseResumeMtmv", {
                 def prefix_str = "qc_pause_resume_mtmv_"
 
-                def tb_name1 = prefix_str + "table1"
-                def tb_name2 = prefix_str + "table2"
+                def tb_name = prefix_str + "table1"
 
                 def mv_name1 = prefix_str + "mtmv1"
                 def mv_name2 = prefix_str + "mtmv2"
                 def mv_name3 = prefix_str + "mtmv3"
                 def nested_mv_name1 = prefix_str + "nested_mtmv1"
 
-                def mtmv_sql1 = """
-                    select t1.id as id, t2.value as value, count(*) 
-                    from ${tb_name1} as t1
-                    left join ${tb_name2} as t2
-                    on t1.id = t2.id
-                    group by id, value
-                    """
+                create_table_and_insert(tb_name)
+                setSessionVariables()
+
+                def mtmv_sql = """
+                    SELECT city,sale_date,SUM(amount) AS daily_city_amount FROM ${tb_name} GROUP BY city, sale_date;"""
                 def mtmv_sql2 = """
-                    select t2.id as id, t2.value as value, count(*) 
-                    from ${tb_name1} as t1
-                    left join ${tb_name2} as t2
-                    on t1.id = t2.id
-                    group by id, value
-                    """
+                    SELECT city,sale_date,avg(amount) AS daily_city_amount FROM ${tb_name} GROUP BY city, sale_date;"""
+                def nested_mtmv_sql = """
+                    SELECT city,date_trunc(sale_date, 'MONTH') AS sale_date, SUM(daily_city_amount) AS monthly_city_amount FROM ${mv_name1} GROUP BY city, date_trunc(sale_date, 'MONTH');"""
+                // 直查表，不改写mtmv1
+                def select_sql = """
+                    SELECT product_id, SUM(amount) AS total_city_amount FROM ${tb_name} WHERE sale_date >= '2025-10-01' AND sale_date <= '2025-10-03' GROUP BY product_id;"""
+                // 直查表，改写mtmv1
+                def mtmv_select_sql = """
+                    SELECT city, SUM(amount) AS total_city_amount FROM ${tb_name} WHERE sale_date >= '2025-10-01' AND sale_date <= '2025-10-03' GROUP BY city;"""
+                // 直查nested_mtmv1，不改写
+                def nested_mtmv_select_sql = """
+                    select city, sum(monthly_city_amount) from ${nested_mv_name1} group by city;"""
+                // 直查mtmv1，改写nested_mtmv1
+                def nested_mtmv_select_sql1 = """
+                    SELECT date_trunc(sale_date, 'MONTH') AS sale_date,SUM(daily_city_amount) AS monthly_city_amount FROM ${mv_name1} GROUP BY date_trunc(sale_date, 'MONTH');"""
+                // 直查表，改写nested_mtmv1
+                def nested_mtmv_select_sql2 = """
+                    SELECT date_trunc(sale_date, 'MONTH') AS sale_date,SUM(daily_city_amount) AS monthly_city_amount FROM (SELECT city, sale_date, SUM(amount) AS daily_city_amount FROM ${tb_name} GROUP BY city, sale_date) as t GROUP BY date_trunc(sale_date, 'MONTH');"""
+                // 直查mtmv1，不改写nested_mtmv1
+                def nested_mtmv_select_sql3 = """
+                    select city, avg(daily_city_amount) from ${mv_name1} group by city;"""
+                def nested_mtmv_select_sql3_new = """
+                    select city, avg(daily_city_amount) from ${mv_name2} group by city;"""
 
-                def nested_mtmv_sql1 = """
-                    select t1.id as id, t2.value as value, count(*)
-                    from ${mv_name1} as t1
-                    left join ${mv_name2} as t2
-                    on t1.id = t2.id
-                    group by id, value
-                    """
-                def nested_mtmv_sql3 = """
-                    select t1.id as id, t2.value as value, count(*)
-                    from ${mv_name3} as t1
-                    left join ${mv_name2} as t2
-                    on t1.id = t2.id
-                    group by id, value
-                    """
-
-                createTestTable tb_name1
-                createTestTable tb_name2
-                sql """alter table ${tb_name1} add partition p6 values[('6'),('7'))"""
-                sql "insert into ${tb_name1} values(6, 1)"
 
                 sql """DROP MATERIALIZED VIEW IF EXISTS ${mv_name1};"""
                 sql """DROP MATERIALIZED VIEW IF EXISTS ${mv_name2};"""
-                sql """DROP MATERIALIZED VIEW IF EXISTS ${mv_name3};"""
                 sql """DROP MATERIALIZED VIEW IF EXISTS ${nested_mv_name1};"""
+                create_async_mv(dbName, mv_name1, mtmv_sql)
+                create_async_mv(dbName, mv_name2, mtmv_sql2)
+                create_async_mv(dbName, nested_mv_name1, nested_mtmv_sql)
 
-                cur_create_async_partition_mv(dbName, mv_name1, mtmv_sql1, "(id)")
-                cur_create_async_partition_mv(dbName, mv_name2, mtmv_sql2, "(id)")
-                cur_create_async_partition_mv(dbName, nested_mv_name1, nested_mtmv_sql1, "(id)")
+                assertNoCache select_sql // 直查表，不改写mtmv1
+                assertNoCache mtmv_select_sql  // 直查表，改写mtmv1
+                assertNoCache nested_mtmv_select_sql2 // 直查表，改写nested_mtmv1
+                assertNoCache nested_mtmv_select_sql1 // 直查mtmv1，改写nested_mtmv1
+                assertNoCache nested_mtmv_select_sql3 // 直查mtmv1，不改写nested_mtmv1
+                assertNoCache nested_mtmv_select_sql // 直查nested_mtmv1，不改写
 
-                setSessionVariables()
-
-                // Directly query
-                assertNoCache """select id, count(value) from ${mv_name1} group by id"""
-                assertNoCache """select id, count(value) from ${mv_name2} group by id"""
-                assertNoCache """select id, count(value) from ${nested_mv_name1} group by id"""
-                assertHasCache """select id, count(value) from ${mv_name1} group by id"""
-                assertHasCache """select id, count(value) from ${mv_name2} group by id"""
-                assertHasCache """select id, count(value) from ${nested_mv_name1} group by id"""
-                // mtmv rewrite
-                assertNoCache mtmv_sql1
-                assertNoCache mtmv_sql2
-                assertNoCache nested_mtmv_sql1
-                assertHasCache mtmv_sql1
-                assertHasCache mtmv_sql2
-                assertHasCache nested_mtmv_sql1
+                assertHasCache select_sql // 直查表，不改写mtmv1
+                assertHasCache mtmv_select_sql  // 直查表，改写mtmv1
+                assertHasCache nested_mtmv_select_sql2 // 直查表，改写nested_mtmv1
+                assertHasCache nested_mtmv_select_sql1 // 直查mtmv1，改写nested_mtmv1
+                assertHasCache nested_mtmv_select_sql3 // 直查mtmv1，不改写nested_mtmv1
+                assertHasCache nested_mtmv_select_sql // 直查nested_mtmv1，不改写
 
                 sql """PAUSE MATERIALIZED VIEW JOB ON ${mv_name1};"""
-                assertHasCache """select id, count(value) from ${mv_name1} group by id"""
-                assertHasCache mtmv_sql1
-                assertHasCache """select id, count(value) from ${nested_mv_name1} group by id"""
-                assertHasCache nested_mtmv_sql1
+                assertHasCache select_sql // 直查表，不改写mtmv1
+                assertHasCache mtmv_select_sql  // 直查表，改写mtmv1
+                assertHasCache nested_mtmv_select_sql2 // 直查表，改写nested_mtmv1
+                assertHasCache nested_mtmv_select_sql1 // 直查mtmv1，改写nested_mtmv1
+                assertHasCache nested_mtmv_select_sql3 // 直查mtmv1，不改写nested_mtmv1
+                assertHasCache nested_mtmv_select_sql // 直查nested_mtmv1，不改写
 
                 sql """RESUME MATERIALIZED VIEW JOB ON ${mv_name1};"""
-                assertHasCache """select id, count(value) from ${mv_name1} group by id"""
-                assertHasCache mtmv_sql1
-                assertHasCache """select id, count(value) from ${nested_mv_name1} group by id"""
-                assertHasCache nested_mtmv_sql1
-
+                assertHasCache select_sql // 直查表，不改写mtmv1
+                assertHasCache mtmv_select_sql  // 直查表，改写mtmv1
+                assertHasCache nested_mtmv_select_sql2 // 直查表，改写nested_mtmv1
+                assertHasCache nested_mtmv_select_sql1 // 直查mtmv1，改写nested_mtmv1
+                assertHasCache nested_mtmv_select_sql3 // 直查mtmv1，不改写nested_mtmv1
+                assertHasCache nested_mtmv_select_sql // 直查nested_mtmv1，不改写
 
                 sql "REFRESH MATERIALIZED VIEW ${mv_name1} AUTO;"
                 waitingMTMVTaskFinishedByMvName(mv_name1)
 
-                assertHasCache """select id, count(value) from ${mv_name1} group by id"""
-                assertHasCache mtmv_sql1
-                assertHasCache """select id, count(value) from ${nested_mv_name1} group by id"""
-                assertHasCache nested_mtmv_sql1
+                assertHasCache select_sql // 直查表，不改写mtmv1
+                assertHasCache mtmv_select_sql  // 直查表，改写mtmv1
+                assertHasCache nested_mtmv_select_sql2 // 直查表，改写nested_mtmv1
+                assertHasCache nested_mtmv_select_sql1 // 直查mtmv1，改写nested_mtmv1
+                assertHasCache nested_mtmv_select_sql3 // 直查mtmv1，不改写nested_mtmv1
+                assertHasCache nested_mtmv_select_sql // 直查nested_mtmv1，不改写
 
                 sql "REFRESH MATERIALIZED VIEW ${mv_name1} complete;"
                 waitingMTMVTaskFinishedByMvName(mv_name1)
 
-                assertHasCache """select id, count(value) from ${mv_name1} group by id"""
-                assertHasCache mtmv_sql1
-                assertHasCache """select id, count(value) from ${nested_mv_name1} group by id"""
-                assertHasCache nested_mtmv_sql1
+                assertHasCache select_sql // 直查表，不改写mtmv1
+                assertHasCache mtmv_select_sql  // 直查表，改写mtmv1
+                assertHasCache nested_mtmv_select_sql2 // 直查表，改写nested_mtmv1
+                assertHasCache nested_mtmv_select_sql1 // 直查mtmv1，改写nested_mtmv1
+                assertHasCache nested_mtmv_select_sql3 // 直查mtmv1，不改写nested_mtmv1
+                assertHasCache nested_mtmv_select_sql // 直查nested_mtmv1，不改写
 
-                sql "INSERT OVERWRITE table ${tb_name1} PARTITION(p5) VALUES (5, 6);"
-                assertHasCache """select id, count(value) from ${mv_name1} group by id"""
-                assertHasCache mtmv_sql1
-                assertHasCache """select id, count(value) from ${nested_mv_name1} group by id"""
-                assertHasCache nested_mtmv_sql1
-
-                sql "INSERT OVERWRITE table ${tb_name1} PARTITION(p4) VALUES (4, 6);"
-                assertHasCache """select id, count(value) from ${mv_name1} group by id"""
-                assertNoCache mtmv_sql1
-                assertHasCache """select id, count(value) from ${nested_mv_name1} group by id"""
-                assertHasCache nested_mtmv_sql1
-
-                assertHasCache mtmv_sql1
+                sql "INSERT OVERWRITE table ${tb_name} PARTITION(p20251001) VALUES (101, 'Beijing', '2025-10-01', 500.00);"
+                assertNoCache select_sql // 直查表，不改写mtmv1
+                assertNoCache mtmv_select_sql  // 直查表，改写mtmv1
+                assertNoCache nested_mtmv_select_sql2 // 直查表，改写nested_mtmv1
+                assertHasCache nested_mtmv_select_sql1 // 直查mtmv1，改写nested_mtmv1
+                assertHasCache nested_mtmv_select_sql3 // 直查mtmv1，不改写nested_mtmv1
+                assertHasCache nested_mtmv_select_sql // 直查nested_mtmv1，不改写
 
                 sql "REFRESH MATERIALIZED VIEW ${mv_name1} AUTO;"
-                assertNoCache """select id, count(value) from ${mv_name1} group by id"""
-                assertNoCache mtmv_sql1
-                assertHasCache """select id, count(value) from ${nested_mv_name1} group by id"""
-                assertNoCache nested_mtmv_sql1
+                assertHasCache select_sql // 直查表，不改写mtmv1
+                assertNoCache mtmv_select_sql  // 直查表，改写mtmv1
+                assertNoCache nested_mtmv_select_sql2 // 直查表，改写nested_mtmv1
+                assertNoCache nested_mtmv_select_sql1 // 直查mtmv1，改写nested_mtmv1
+                assertNoCache nested_mtmv_select_sql3 // 直查mtmv1，不改写nested_mtmv1
+                assertHasCache nested_mtmv_select_sql // 直查nested_mtmv1，不改写
+
             }),
             extraThread("testBaseInsertDataMtmv", {
                 def prefix_str = "qc_base_insert_data_mtmv_"
 
-                def tb_name1 = prefix_str + "table1"
-                def tb_name2 = prefix_str + "table2"
+                def tb_name = prefix_str + "table1"
 
                 def mv_name1 = prefix_str + "mtmv1"
                 def mv_name2 = prefix_str + "mtmv2"
                 def mv_name3 = prefix_str + "mtmv3"
                 def nested_mv_name1 = prefix_str + "nested_mtmv1"
 
-                def mtmv_sql1 = """
-                    select t1.id as id, t2.value as value, count(*) 
-                    from ${tb_name1} as t1
-                    left join ${tb_name2} as t2
-                    on t1.id = t2.id
-                    group by id, value
-                    """
+                create_table_and_insert(tb_name)
+                setSessionVariables()
+
+                def mtmv_sql = """
+                    SELECT city,sale_date,SUM(amount) AS daily_city_amount FROM ${tb_name} GROUP BY city, sale_date;"""
                 def mtmv_sql2 = """
-                    select t2.id as id, t2.value as value, count(*) 
-                    from ${tb_name1} as t1
-                    left join ${tb_name2} as t2
-                    on t1.id = t2.id
-                    group by id, value
-                    """
+                    SELECT city,sale_date,avg(amount) AS daily_city_amount FROM ${tb_name} GROUP BY city, sale_date;"""
+                def nested_mtmv_sql = """
+                    SELECT city,date_trunc(sale_date, 'MONTH') AS sale_date, SUM(daily_city_amount) AS monthly_city_amount FROM ${mv_name1} GROUP BY city, date_trunc(sale_date, 'MONTH');"""
+                // 直查表，不改写mtmv1
+                def select_sql = """
+                    SELECT product_id, SUM(amount) AS total_city_amount FROM ${tb_name} WHERE sale_date >= '2025-10-01' AND sale_date <= '2025-10-03' GROUP BY product_id;"""
+                // 直查表，改写mtmv1
+                def mtmv_select_sql = """
+                    SELECT city, SUM(amount) AS total_city_amount FROM ${tb_name} WHERE sale_date >= '2025-10-01' AND sale_date <= '2025-10-03' GROUP BY city;"""
+                // 直查nested_mtmv1，不改写
+                def nested_mtmv_select_sql = """
+                    select city, sum(monthly_city_amount) from ${nested_mv_name1} group by city;"""
+                // 直查mtmv1，改写nested_mtmv1
+                def nested_mtmv_select_sql1 = """
+                    SELECT date_trunc(sale_date, 'MONTH') AS sale_date,SUM(daily_city_amount) AS monthly_city_amount FROM ${mv_name1} GROUP BY date_trunc(sale_date, 'MONTH');"""
+                // 直查表，改写nested_mtmv1
+                def nested_mtmv_select_sql2 = """
+                    SELECT date_trunc(sale_date, 'MONTH') AS sale_date,SUM(daily_city_amount) AS monthly_city_amount FROM (SELECT city, sale_date, SUM(amount) AS daily_city_amount FROM ${tb_name} GROUP BY city, sale_date) as t GROUP BY date_trunc(sale_date, 'MONTH');"""
+                // 直查mtmv1，不改写nested_mtmv1
+                def nested_mtmv_select_sql3 = """
+                    select city, avg(daily_city_amount) from ${mv_name1} group by city;"""
+                def nested_mtmv_select_sql3_new = """
+                    select city, avg(daily_city_amount) from ${mv_name2} group by city;"""
 
-                def nested_mtmv_sql1 = """
-                    select t1.id as id, t2.value as value, count(*)
-                    from ${mv_name1} as t1
-                    left join ${mv_name2} as t2
-                    on t1.id = t2.id
-                    group by id, value
-                    """
-                def nested_mtmv_sql3 = """
-                    select t1.id as id, t2.value as value, count(*)
-                    from ${mv_name3} as t1
-                    left join ${mv_name2} as t2
-                    on t1.id = t2.id
-                    group by id, value
-                    """
-
-                createTestTable tb_name1
-                createTestTable tb_name2
-                sql """alter table ${tb_name1} add partition p6 values[('6'),('7'))"""
-                sql "insert into ${tb_name1} values(6, 1)"
 
                 sql """DROP MATERIALIZED VIEW IF EXISTS ${mv_name1};"""
                 sql """DROP MATERIALIZED VIEW IF EXISTS ${mv_name2};"""
-                sql """DROP MATERIALIZED VIEW IF EXISTS ${mv_name3};"""
                 sql """DROP MATERIALIZED VIEW IF EXISTS ${nested_mv_name1};"""
+                create_async_mv(dbName, mv_name1, mtmv_sql)
+                create_async_mv(dbName, mv_name2, mtmv_sql2)
+                create_async_mv(dbName, nested_mv_name1, nested_mtmv_sql)
 
-                cur_create_async_partition_mv(dbName, mv_name1, mtmv_sql1, "(id)")
-                cur_create_async_partition_mv(dbName, mv_name2, mtmv_sql2, "(id)")
-                cur_create_async_partition_mv(dbName, nested_mv_name1, nested_mtmv_sql1, "(id)")
+                assertNoCache select_sql // 直查表，不改写mtmv1
+                assertNoCache mtmv_select_sql  // 直查表，改写mtmv1
+                assertNoCache nested_mtmv_select_sql2 // 直查表，改写nested_mtmv1
+                assertNoCache nested_mtmv_select_sql1 // 直查mtmv1，改写nested_mtmv1
+                assertNoCache nested_mtmv_select_sql3 // 直查mtmv1，不改写nested_mtmv1
+                assertNoCache nested_mtmv_select_sql // 直查nested_mtmv1，不改写
 
-                setSessionVariables()
+                assertHasCache select_sql // 直查表，不改写mtmv1
+                assertHasCache mtmv_select_sql  // 直查表，改写mtmv1
+                assertHasCache nested_mtmv_select_sql2 // 直查表，改写nested_mtmv1
+                assertHasCache nested_mtmv_select_sql1 // 直查mtmv1，改写nested_mtmv1
+                assertHasCache nested_mtmv_select_sql3 // 直查mtmv1，不改写nested_mtmv1
+                assertHasCache nested_mtmv_select_sql // 直查nested_mtmv1，不改写
 
-                // Directly query
-                assertNoCache """select id, count(value) from ${mv_name1} group by id"""
-                assertNoCache """select id, count(value) from ${mv_name2} group by id"""
-                assertNoCache """select id, count(value) from ${nested_mv_name1} group by id"""
-                assertHasCache """select id, count(value) from ${mv_name1} group by id"""
-                assertHasCache """select id, count(value) from ${mv_name2} group by id"""
-                assertHasCache """select id, count(value) from ${nested_mv_name1} group by id"""
-                // mtmv rewrite
-                assertNoCache mtmv_sql1
-                assertNoCache mtmv_sql2
-                assertNoCache nested_mtmv_sql1
-                assertHasCache mtmv_sql1
-                assertHasCache mtmv_sql2
-                assertHasCache nested_mtmv_sql1
+                sql "alter table ${tb_name} add partition p1 values[('2025-11-01'), ('2025-12-01'))"
+                assertHasCache select_sql // 直查表，不改写mtmv1
+                assertHasCache mtmv_select_sql  // 直查表，改写mtmv1
+                assertHasCache nested_mtmv_select_sql2 // 直查表，改写nested_mtmv1
+                assertHasCache nested_mtmv_select_sql1 // 直查mtmv1，改写nested_mtmv1
+                assertHasCache nested_mtmv_select_sql3 // 直查mtmv1，不改写nested_mtmv1
+                assertHasCache nested_mtmv_select_sql // 直查nested_mtmv1，不改写
 
-                sql "alter table ${tb_name1} add partition p6 values[('6'),('7'))"
-                assertHasCache "select * from ${mv_name1}"
-                assertHasCache mtmv_sql1
-                assertHasCache "select * from ${nested_mv_name1}"
-                assertHasCache nested_mtmv_sql1
+                sql "insert into ${tb_name} values(111, 'Beijing', '2025-11-01', 500.00)"
+                assertNoCache select_sql // 直查表，不改写mtmv1
+                assertNoCache mtmv_select_sql  // 直查表，改写mtmv1
+                assertNoCache nested_mtmv_select_sql2 // 直查表，改写nested_mtmv1
+                assertHasCache nested_mtmv_select_sql1 // 直查mtmv1，改写nested_mtmv1
+                assertHasCache nested_mtmv_select_sql3 // 直查mtmv1，不改写nested_mtmv1
+                assertHasCache nested_mtmv_select_sql // 直查nested_mtmv1，不改写
 
-                sql "insert into ${tb_name1} values(6, 1)"
-                assertHasCache "select * from ${mv_name1}"
-                assertNoCache mtmv_sql1
-                assertHasCache "select * from ${nested_mv_name1}"
-                assertHasCache nested_mtmv_sql1
             }),
             extraThread("testRecreateMtmv", {
                 def prefix_str = "qc_recreate_mtmv_"
 
-                def tb_name1 = prefix_str + "table1"
-                def tb_name2 = prefix_str + "table2"
+                def tb_name = prefix_str + "table1"
 
                 def mv_name1 = prefix_str + "mtmv1"
                 def mv_name2 = prefix_str + "mtmv2"
                 def mv_name3 = prefix_str + "mtmv3"
                 def nested_mv_name1 = prefix_str + "nested_mtmv1"
 
-                def mtmv_sql1 = """
-                    select t1.id as id, t2.value as value, count(*) 
-                    from ${tb_name1} as t1
-                    left join ${tb_name2} as t2
-                    on t1.id = t2.id
-                    group by id, value
-                    """
+                create_table_and_insert(tb_name)
+                setSessionVariables()
+
+                def mtmv_sql = """
+                    SELECT city,sale_date,SUM(amount) AS daily_city_amount FROM ${tb_name} GROUP BY city, sale_date;"""
                 def mtmv_sql2 = """
-                    select t2.id as id, t2.value as value, count(*) 
-                    from ${tb_name1} as t1
-                    left join ${tb_name2} as t2
-                    on t1.id = t2.id
-                    group by id, value
-                    """
+                    SELECT city,sale_date,avg(amount) AS daily_city_amount FROM ${tb_name} GROUP BY city, sale_date;"""
+                def nested_mtmv_sql = """
+                    SELECT city,date_trunc(sale_date, 'MONTH') AS sale_date, SUM(daily_city_amount) AS monthly_city_amount FROM ${mv_name1} GROUP BY city, date_trunc(sale_date, 'MONTH');"""
+                // 直查表，不改写mtmv1
+                def select_sql = """
+                    SELECT product_id, SUM(amount) AS total_city_amount FROM ${tb_name} WHERE sale_date >= '2025-10-01' AND sale_date <= '2025-10-03' GROUP BY product_id;"""
+                // 直查表，改写mtmv1
+                def mtmv_select_sql = """
+                    SELECT city, SUM(amount) AS total_city_amount FROM ${tb_name} WHERE sale_date >= '2025-10-01' AND sale_date <= '2025-10-03' GROUP BY city;"""
+                // 直查nested_mtmv1，不改写
+                def nested_mtmv_select_sql = """
+                    select city, sum(monthly_city_amount) from ${nested_mv_name1} group by city;"""
+                // 直查mtmv1，改写nested_mtmv1
+                def nested_mtmv_select_sql1 = """
+                    SELECT date_trunc(sale_date, 'MONTH') AS sale_date,SUM(daily_city_amount) AS monthly_city_amount FROM ${mv_name1} GROUP BY date_trunc(sale_date, 'MONTH');"""
+                // 直查表，改写nested_mtmv1
+                def nested_mtmv_select_sql2 = """
+                    SELECT date_trunc(sale_date, 'MONTH') AS sale_date,SUM(daily_city_amount) AS monthly_city_amount FROM (SELECT city, sale_date, SUM(amount) AS daily_city_amount FROM ${tb_name} GROUP BY city, sale_date) as t GROUP BY date_trunc(sale_date, 'MONTH');"""
+                // 直查mtmv1，不改写nested_mtmv1
+                def nested_mtmv_select_sql3 = """
+                    select city, avg(daily_city_amount) from ${mv_name1} group by city;"""
+                def nested_mtmv_select_sql3_new = """
+                    select city, avg(daily_city_amount) from ${mv_name2} group by city;"""
 
-                def nested_mtmv_sql1 = """
-                    select t1.id as id, t2.value as value, count(*)
-                    from ${mv_name1} as t1
-                    left join ${mv_name2} as t2
-                    on t1.id = t2.id
-                    group by id, value
-                    """
-                def nested_mtmv_sql3 = """
-                    select t1.id as id, t2.value as value, count(*)
-                    from ${mv_name3} as t1
-                    left join ${mv_name2} as t2
-                    on t1.id = t2.id
-                    group by id, value
-                    """
-
-                createTestTable tb_name1
-                createTestTable tb_name2
-                sql """alter table ${tb_name1} add partition p6 values[('6'),('7'))"""
-                sql "insert into ${tb_name1} values(6, 1)"
 
                 sql """DROP MATERIALIZED VIEW IF EXISTS ${mv_name1};"""
                 sql """DROP MATERIALIZED VIEW IF EXISTS ${mv_name2};"""
-                sql """DROP MATERIALIZED VIEW IF EXISTS ${mv_name3};"""
                 sql """DROP MATERIALIZED VIEW IF EXISTS ${nested_mv_name1};"""
+                create_async_mv(dbName, mv_name1, mtmv_sql)
+                create_async_mv(dbName, mv_name2, mtmv_sql2)
+                create_async_mv(dbName, nested_mv_name1, nested_mtmv_sql)
 
-                cur_create_async_partition_mv(dbName, mv_name1, mtmv_sql1, "(id)")
-                cur_create_async_partition_mv(dbName, mv_name2, mtmv_sql2, "(id)")
-                cur_create_async_partition_mv(dbName, nested_mv_name1, nested_mtmv_sql1, "(id)")
+                assertNoCache select_sql // 直查表，不改写mtmv1
+                assertNoCache mtmv_select_sql  // 直查表，改写mtmv1
+                assertNoCache nested_mtmv_select_sql2 // 直查表，改写nested_mtmv1
+                assertNoCache nested_mtmv_select_sql1 // 直查mtmv1，改写nested_mtmv1
+                assertNoCache nested_mtmv_select_sql3 // 直查mtmv1，不改写nested_mtmv1
+                assertNoCache nested_mtmv_select_sql // 直查nested_mtmv1，不改写
 
-                setSessionVariables()
-
-                // Directly query
-                assertNoCache """select id, count(value) from ${mv_name1} group by id"""
-                assertNoCache """select id, count(value) from ${mv_name2} group by id"""
-                assertNoCache """select id, count(value) from ${nested_mv_name1} group by id"""
-                assertHasCache """select id, count(value) from ${mv_name1} group by id"""
-                assertHasCache """select id, count(value) from ${mv_name2} group by id"""
-                assertHasCache """select id, count(value) from ${nested_mv_name1} group by id"""
-                // mtmv rewrite
-                assertNoCache mtmv_sql1
-                assertNoCache mtmv_sql2
-                assertNoCache nested_mtmv_sql1
-                assertHasCache mtmv_sql1
-                assertHasCache mtmv_sql2
-                assertHasCache nested_mtmv_sql1
+                assertHasCache select_sql // 直查表，不改写mtmv1
+                assertHasCache mtmv_select_sql  // 直查表，改写mtmv1
+                assertHasCache nested_mtmv_select_sql2 // 直查表，改写nested_mtmv1
+                assertHasCache nested_mtmv_select_sql1 // 直查mtmv1，改写nested_mtmv1
+                assertHasCache nested_mtmv_select_sql3 // 直查mtmv1，不改写nested_mtmv1
+                assertHasCache nested_mtmv_select_sql // 直查nested_mtmv1，不改写
 
                 sql """DROP MATERIALIZED VIEW IF EXISTS ${mv_name1}"""
-                assertNoCache mtmv_sql1
-                assertHasCache "select * from ${nested_mv_name1}"
+                assertHasCache select_sql // 直查表，不改写mtmv1
+                assertNoCache mtmv_select_sql  // 直查表，改写mtmv1
+                assertNoCache nested_mtmv_select_sql2 // 直查表，改写nested_mtmv1
+                test {
+                    sql nested_mtmv_select_sql1
+                    exception "does not exist"
+                }
+                assertHasCache nested_mtmv_select_sql // 直查nested_mtmv1，不改写
 
-                cur_create_async_partition_mv(dbName, mv_name1, mtmv_sql1, "(id)")
-                assertNoCache "select * from ${mv_name1}"
-                assertNoCache mtmv_sql1
-                assertHasCache "select * from ${nested_mv_name1}"
-                assertNoCache nested_mtmv_sql1
-
-                sql "REFRESH MATERIALIZED VIEW ${nested_mv_name1} AUTO;"
-                waitingMTMVTaskFinishedByMvName(nested_mv_name1)
-                assertNoCache "select * from ${nested_mv_name1}"
-                assertNoCache nested_mtmv_sql1
+                create_async_mv(dbName, mv_name1, mtmv_sql)
+                assertHasCache select_sql // 直查表，不改写mtmv1
+                assertHasCache mtmv_select_sql  // 直查表，改写mtmv1
+                assertNoCache nested_mtmv_select_sql2 // 直查表，改写nested_mtmv1
+                assertHasCache nested_mtmv_select_sql1 // 直查mtmv1，改写nested_mtmv1
+                assertNoCache nested_mtmv_select_sql3 // 直查mtmv1，不改写nested_mtmv1
+                assertHasCache nested_mtmv_select_sql // 直查nested_mtmv1，不改写
 
             }),
-
-             */
 
     ).get()
 
