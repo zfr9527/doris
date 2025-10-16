@@ -401,7 +401,7 @@ suite("query_cache_with_mtmv") {
                 assertHasCache nested_mtmv_select_sql3 // 直查mtmv1，不改写nested_mtmv1
                 assertHasCache nested_mtmv_select_sql // 直查nested_mtmv1，不改写
             }),
-
+*/
             extraThread("testRefreshAutoMtmv", {
                 def prefix_str = "qc_refresh_auto_mtmv_"
 
@@ -472,7 +472,6 @@ suite("query_cache_with_mtmv") {
                 assertHasCache nested_mtmv_select_sql // 直查nested_mtmv1，不改写
 
             }),
-            */
 
             extraThread("testRefreshCompleteMtmv", {
                 def prefix_str = "qc_refresh_complete_mtmv_"
