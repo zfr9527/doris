@@ -408,10 +408,10 @@ suite("query_cache_with_mtmv") {
                 waitingMTMVTaskFinishedByMvName(mv_name1)
 
                 assertHasCache select_sql // 直查表，不改写mtmv1
-                assertNoCache mtmv_select_sql  // 直查表，改写mtmv1
+                assertHasCache mtmv_select_sql  // 直查表，改写mtmv1
                 assertHasCache nested_mtmv_select_sql2 // 直查表，改写nested_mtmv1
                 assertHasCache nested_mtmv_select_sql1 // 直查mtmv1，改写nested_mtmv1
-                assertNoCache nested_mtmv_select_sql3 // 直查mtmv1，不改写nested_mtmv1
+                assertHasCache nested_mtmv_select_sql3 // 直查mtmv1，不改写nested_mtmv1
                 assertHasCache nested_mtmv_select_sql // 直查nested_mtmv1，不改写
 
                 sql "REFRESH MATERIALIZED VIEW ${mv_name1} complete;"
