@@ -140,7 +140,6 @@ suite("query_cache_with_mtmv") {
     }
 
     combineFutures(
-            /*
             extraThread("testRenameMtmv", {
                 def prefix_str = "qc_rename_mtmv_"
 
@@ -538,7 +537,7 @@ suite("query_cache_with_mtmv") {
                 assertHasCache select_sql // 直查表，不改写mtmv1
                 assertNoCache mtmv_select_sql  // 直查表，改写mtmv1
                 assertNoCache nested_mtmv_select_sql2 // 直查表，改写nested_mtmv1
-                assertHasCache nested_mtmv_select_sql1 // 直查mtmv1，改写nested_mtmv1
+                assertHasCache nested_mtmv_select_sql1 // 直查mtmv1，改写nested_mtmv1  理论上不应该命中缓存，但是应该是被前面的语句影响了，生成了对应的缓存，导致这条语句在这个位置执行可以命中query cache
                 assertNoCache nested_mtmv_select_sql3 // 直查mtmv1，不改写nested_mtmv1
                 assertHasCache nested_mtmv_select_sql // 直查nested_mtmv1，不改写
 
@@ -706,13 +705,11 @@ suite("query_cache_with_mtmv") {
                 assertHasCache select_sql // 直查表，不改写mtmv1
                 assertNoCache mtmv_select_sql  // 直查表，改写mtmv1
                 assertNoCache nested_mtmv_select_sql2 // 直查表，改写nested_mtmv1
-                assertHasCache nested_mtmv_select_sql1 // 直查mtmv1，改写nested_mtmv1
+                assertHasCache nested_mtmv_select_sql1 // 直查mtmv1，改写nested_mtmv1  理论上不应该命中缓存，但是应该是被前面的语句影响了，生成了对应的缓存，导致这条语句在这个位置执行可以命中query cache
                 assertNoCache nested_mtmv_select_sql3 // 直查mtmv1，不改写nested_mtmv1
                 assertHasCache nested_mtmv_select_sql // 直查nested_mtmv1，不改写
 
             }),
-
-             */
 
             extraThread("testInsertOverwriteMtmv", {
                 def prefix_str = "qc_insert_overwrite_mtmv_"
@@ -785,7 +782,7 @@ suite("query_cache_with_mtmv") {
                 assertHasCache select_sql // 直查表，不改写mtmv1
                 assertNoCache mtmv_select_sql  // 直查表，改写mtmv1
                 assertNoCache nested_mtmv_select_sql2 // 直查表，改写nested_mtmv1
-                assertHasCache nested_mtmv_select_sql1 // 直查mtmv1，改写nested_mtmv1
+                assertHasCache nested_mtmv_select_sql1 // 直查mtmv1，改写nested_mtmv1  理论上不应该命中缓存，但是应该是被前面的语句影响了，生成了对应的缓存，导致这条语句在这个位置执行可以命中query cache
                 assertNoCache nested_mtmv_select_sql3 // 直查mtmv1，不改写nested_mtmv1
                 assertHasCache nested_mtmv_select_sql // 直查nested_mtmv1，不改写
 
