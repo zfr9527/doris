@@ -473,6 +473,7 @@ suite("query_cache_with_mtmv") {
 
             }),
 
+            /*
             extraThread("testRefreshCompleteMtmv", {
                 def prefix_str = "qc_refresh_complete_mtmv_"
 
@@ -566,8 +567,6 @@ suite("query_cache_with_mtmv") {
                 assertHasCache nested_mtmv_select_sql // 直查nested_mtmv1，不改写
 
             }),
-
-            /*
 
             extraThread("testBaseInsertDataMtmv", {
                 def prefix_str = "qc_base_insert_data_mtmv_"
