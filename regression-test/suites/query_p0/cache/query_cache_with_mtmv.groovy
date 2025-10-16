@@ -121,8 +121,8 @@ suite("query_cache_with_mtmv") {
             DUPLICATE KEY(product_id, city, sale_date)
             PARTITION BY RANGE(sale_date) (
                 PARTITION p20251001 VALUES [('2025-10-01'), ('2025-10-02')),
-                PARTITION p20251002 VALUES [('2025-10-02'), ('2025-12-31')),
-                PARTITION p20251003 VALUES [('2025-12-31'), ('2025-10-04')),
+                PARTITION p20251002 VALUES [('2025-10-02'), ('2025-10-03')),
+                PARTITION p20251003 VALUES [('2025-10-03'), ('2025-10-04')),
                 PARTITION p_other VALUES [('2025-10-04'), ('2025-11-01'))
             )
             DISTRIBUTED BY HASH(product_id) BUCKETS 10
@@ -134,8 +134,8 @@ suite("query_cache_with_mtmv") {
             (101, 'Shanghai', '2025-10-01', 150.00), -- p20251001
             (102, 'Beijing', '2025-10-02', 200.00), -- p20251002
             (102, 'Shanghai', '2025-10-02', 250.00), -- p20251002
-            (101, 'Beijing', '2025-12-31', 120.00), -- p20251003
-            (102, 'Shanghai', '2025-12-31', 300.00); -- p20251003
+            (101, 'Beijing', '2025-10-03', 120.00), -- p20251003
+            (102, 'Shanghai', '2025-10-03', 300.00); -- p20251003
             """
     }
 
@@ -160,10 +160,10 @@ suite("query_cache_with_mtmv") {
                     SELECT city,date_trunc(sale_date, 'MONTH') AS sale_date, SUM(daily_city_amount) AS monthly_city_amount FROM ${mv_name1} GROUP BY city, date_trunc(sale_date, 'MONTH');"""
                 // 直查表，不改写mtmv1
                 def select_sql = """
-                    SELECT product_id, SUM(amount) AS total_city_amount FROM ${tb_name} WHERE sale_date >= '2025-10-01' AND sale_date <= '2025-12-31' GROUP BY product_id;"""
+                    SELECT product_id, SUM(amount) AS total_city_amount FROM ${tb_name} WHERE sale_date >= '2025-10-01' AND sale_date <= '2025-10-03' GROUP BY product_id;"""
                 // 直查表，改写mtmv1
                 def mtmv_select_sql = """
-                    SELECT city, SUM(amount) AS total_city_amount FROM ${tb_name} WHERE sale_date >= '2025-10-01' AND sale_date <= '2025-12-31' GROUP BY city;"""
+                    SELECT city, SUM(amount) AS total_city_amount FROM ${tb_name} WHERE sale_date >= '2025-10-01' AND sale_date <= '2025-10-03' GROUP BY city;"""
                 // 直查nested_mtmv1，不改写
                 def nested_mtmv_select_sql = """
                     select city, sum(monthly_city_amount) from ${nested_mv_name1} group by city;"""
@@ -245,10 +245,10 @@ suite("query_cache_with_mtmv") {
                     SELECT city,date_trunc(sale_date, 'MONTH') AS sale_date, SUM(daily_city_amount) AS monthly_city_amount FROM ${mv_name1} GROUP BY city, date_trunc(sale_date, 'MONTH') order by 1, 2, 3;"""
                 // 直查表，不改写mtmv1
                 def select_sql = """
-                    SELECT product_id, SUM(amount) AS total_city_amount FROM ${tb_name} WHERE sale_date >= '2025-10-01' AND sale_date <= '2025-12-31' GROUP BY product_id order by 1, 2;"""
+                    SELECT product_id, SUM(amount) AS total_city_amount FROM ${tb_name} WHERE sale_date >= '2025-10-01' AND sale_date <= '2025-10-03' GROUP BY product_id order by 1, 2;"""
                 // 直查表，改写mtmv1
                 def mtmv_select_sql = """
-                    SELECT city, SUM(amount) AS total_city_amount FROM ${tb_name} WHERE sale_date >= '2025-10-01' AND sale_date <= '2025-12-31' GROUP BY city order by 1, 2;"""
+                    SELECT city, SUM(amount) AS total_city_amount FROM ${tb_name} WHERE sale_date >= '2025-10-01' AND sale_date <= '2025-10-03' GROUP BY city order by 1, 2;"""
                 // 直查nested_mtmv1，不改写
                 def nested_mtmv_select_sql = """
                     select city, sum(monthly_city_amount) from ${nested_mv_name1} group by city order by 1, 2;"""
@@ -347,10 +347,10 @@ suite("query_cache_with_mtmv") {
                     SELECT city,date_trunc(sale_date, 'MONTH') AS sale_date, SUM(daily_city_amount) AS monthly_city_amount FROM ${mv_name1} GROUP BY city, date_trunc(sale_date, 'MONTH');"""
                 // 直查表，不改写mtmv1
                 def select_sql = """
-                    SELECT product_id, SUM(amount) AS total_city_amount FROM ${tb_name} WHERE sale_date >= '2025-10-01' AND sale_date <= '2025-12-31' GROUP BY product_id;"""
+                    SELECT product_id, SUM(amount) AS total_city_amount FROM ${tb_name} WHERE sale_date >= '2025-10-01' AND sale_date <= '2025-10-03' GROUP BY product_id;"""
                 // 直查表，改写mtmv1
                 def mtmv_select_sql = """
-                    SELECT city, SUM(amount) AS total_city_amount FROM ${tb_name} WHERE sale_date >= '2025-10-01' AND sale_date <= '2025-12-31' GROUP BY city;"""
+                    SELECT city, SUM(amount) AS total_city_amount FROM ${tb_name} WHERE sale_date >= '2025-10-01' AND sale_date <= '2025-10-03' GROUP BY city;"""
                 // 直查nested_mtmv1，不改写
                 def nested_mtmv_select_sql = """
                     select city, sum(monthly_city_amount) from ${nested_mv_name1} group by city;"""
@@ -422,10 +422,10 @@ suite("query_cache_with_mtmv") {
                     SELECT city,date_trunc(sale_date, 'MONTH') AS sale_date, SUM(daily_city_amount) AS monthly_city_amount FROM ${mv_name1} GROUP BY city, date_trunc(sale_date, 'MONTH');"""
                 // 直查表，不改写mtmv1
                 def select_sql = """
-                    SELECT product_id, SUM(amount) AS total_city_amount FROM ${tb_name} WHERE sale_date >= '2025-10-01' AND sale_date <= '2025-12-31' GROUP BY product_id;"""
+                    SELECT product_id, SUM(amount) AS total_city_amount FROM ${tb_name} WHERE sale_date >= '2025-10-01' AND sale_date <= '2025-10-03' GROUP BY product_id;"""
                 // 直查表，改写mtmv1
                 def mtmv_select_sql = """
-                    SELECT city, SUM(amount) AS total_city_amount FROM ${tb_name} WHERE sale_date >= '2025-10-01' AND sale_date <= '2025-12-31' GROUP BY city;"""
+                    SELECT city, SUM(amount) AS total_city_amount FROM ${tb_name} WHERE sale_date >= '2025-10-01' AND sale_date <= '2025-10-03' GROUP BY city;"""
                 // 直查nested_mtmv1，不改写
                 def nested_mtmv_select_sql = """
                     select city, sum(monthly_city_amount) from ${nested_mv_name1} group by city;"""
@@ -494,10 +494,10 @@ suite("query_cache_with_mtmv") {
                     SELECT city,date_trunc(sale_date, 'MONTH') AS sale_date, SUM(daily_city_amount) AS monthly_city_amount FROM ${mv_name1} GROUP BY city, date_trunc(sale_date, 'MONTH');"""
                 // 直查表，不改写mtmv1
                 def select_sql = """
-                    SELECT product_id, SUM(amount) AS total_city_amount FROM ${tb_name} WHERE sale_date >= '2025-10-01' AND sale_date <= '2025-12-31' GROUP BY product_id;"""
+                    SELECT product_id, SUM(amount) AS total_city_amount FROM ${tb_name} WHERE sale_date >= '2025-10-01' AND sale_date <= '2025-10-03' GROUP BY product_id;"""
                 // 直查表，改写mtmv1
                 def mtmv_select_sql = """
-                    SELECT city, SUM(amount) AS total_city_amount FROM ${tb_name} WHERE sale_date >= '2025-10-01' AND sale_date <= '2025-12-31' GROUP BY city;"""
+                    SELECT city, SUM(amount) AS total_city_amount FROM ${tb_name} WHERE sale_date >= '2025-10-01' AND sale_date <= '2025-10-03' GROUP BY city;"""
                 // 直查nested_mtmv1，不改写
                 def nested_mtmv_select_sql = """
                     select city, sum(monthly_city_amount) from ${nested_mv_name1} group by city;"""
@@ -578,7 +578,7 @@ suite("query_cache_with_mtmv") {
                     SELECT product_id, SUM(amount) AS total_city_amount FROM ${tb_name} WHERE sale_date >= '2025-10-01' AND sale_date <= '2025-12-31' GROUP BY product_id;"""
                 // 直查表，改写mtmv1
                 def mtmv_select_sql = """
-                    SELECT city, SUM(amount) AS total_city_amount FROM ${tb_name} WHERE sale_date >= '2025-10-01' AND sale_date <= '2025-12-31' GROUP BY city;"""
+                    SELECT city, SUM(amount) AS total_city_amount FROM ${tb_name} WHERE sale_date >= '2025-10-01' AND sale_date <= '2025-10-03' GROUP BY city;"""
                 // 直查nested_mtmv1，不改写
                 def nested_mtmv_select_sql = """
                     select city, sum(monthly_city_amount) from ${nested_mv_name1} group by city;"""
@@ -655,10 +655,10 @@ suite("query_cache_with_mtmv") {
                     SELECT city,date_trunc(sale_date, 'MONTH') AS sale_date, SUM(daily_city_amount) AS monthly_city_amount FROM ${mv_name1} GROUP BY city, date_trunc(sale_date, 'MONTH');"""
                 // 直查表，不改写mtmv1
                 def select_sql = """
-                    SELECT product_id, SUM(amount) AS total_city_amount FROM ${tb_name} WHERE sale_date >= '2025-10-01' AND sale_date <= '2025-12-31' GROUP BY product_id;"""
+                    SELECT product_id, SUM(amount) AS total_city_amount FROM ${tb_name} WHERE sale_date >= '2025-10-01' AND sale_date <= '2025-10-03' GROUP BY product_id;"""
                 // 直查表，改写mtmv1
                 def mtmv_select_sql = """
-                    SELECT city, SUM(amount) AS total_city_amount FROM ${tb_name} WHERE sale_date >= '2025-10-01' AND sale_date <= '2025-12-31' GROUP BY city;"""
+                    SELECT city, SUM(amount) AS total_city_amount FROM ${tb_name} WHERE sale_date >= '2025-10-01' AND sale_date <= '2025-10-03' GROUP BY city;"""
                 // 直查nested_mtmv1，不改写
                 def nested_mtmv_select_sql = """
                     select city, sum(monthly_city_amount) from ${nested_mv_name1} group by city;"""
@@ -738,10 +738,10 @@ suite("query_cache_with_mtmv") {
                     SELECT city,date_trunc(sale_date, 'MONTH') AS sale_date, SUM(daily_city_amount) AS monthly_city_amount FROM ${mv_name1} GROUP BY city, date_trunc(sale_date, 'MONTH');"""
                 // 直查表，不改写mtmv1
                 def select_sql = """
-                    SELECT product_id, SUM(amount) AS total_city_amount FROM ${tb_name} WHERE sale_date >= '2025-10-01' AND sale_date <= '2025-12-31' GROUP BY product_id;"""
+                    SELECT product_id, SUM(amount) AS total_city_amount FROM ${tb_name} WHERE sale_date >= '2025-10-01' AND sale_date <= '2025-10-03' GROUP BY product_id;"""
                 // 直查表，改写mtmv1
                 def mtmv_select_sql = """
-                    SELECT city, SUM(amount) AS total_city_amount FROM ${tb_name} WHERE sale_date >= '2025-10-01' AND sale_date <= '2025-12-31' GROUP BY city;"""
+                    SELECT city, SUM(amount) AS total_city_amount FROM ${tb_name} WHERE sale_date >= '2025-10-01' AND sale_date <= '2025-10-03' GROUP BY city;"""
                 // 直查nested_mtmv1，不改写
                 def nested_mtmv_select_sql = """
                     select city, sum(monthly_city_amount) from ${nested_mv_name1} group by city;"""
