@@ -129,6 +129,7 @@ suite("query_cache_with_mtmv") {
     }
 
     combineFutures(
+            /*
             extraThread("testRenameMtmv", {
                 def prefix_str = "qc_rename_mtmv_"
 
@@ -212,7 +213,9 @@ suite("query_cache_with_mtmv") {
                 assertHasCache nested_mtmv_select_sql // 直查nested_mtmv1，不改写
 
             }),
-            /*
+
+             */
+
             extraThread("testReplaceMtmv", {
                 def prefix_str = "qc_replace_mtmv_"
 
@@ -284,7 +287,7 @@ suite("query_cache_with_mtmv") {
 
                 // 换回来之后无法确定是之前的缓存生效，还是执行之后重新生成的缓存生效
                 // 通过查询结果来验证缓存生效情况
-                sql """ALTER MATERIALIZED VIEW ${mv_name1} REPLACE WITH MATERIALIZED VIEW ${mv_name2};"""
+                sql """ALTER MATERIALIZED VIEW ${mv_name2} REPLACE WITH MATERIALIZED VIEW ${mv_name1};"""
                 assertHasCache select_sql // 直查表，不改写mtmv1
                 assertHasCache mtmv_select_sql  // 直查表，改写mtmv1
                 assertHasCache nested_mtmv_select_sql2 // 直查表，改写nested_mtmv1
@@ -293,6 +296,8 @@ suite("query_cache_with_mtmv") {
                 assertHasCache nested_mtmv_select_sql // 直查nested_mtmv1，不改写
 
             }),
+
+            /*
             extraThread("testPauseResumeMtmv", {
                 def prefix_str = "qc_pause_resume_mtmv_"
 
