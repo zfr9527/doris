@@ -370,9 +370,9 @@ suite("query_cache_with_mtmv") {
                 sql """DROP MATERIALIZED VIEW IF EXISTS ${mv_name1};"""
                 sql """DROP MATERIALIZED VIEW IF EXISTS ${mv_name2};"""
                 sql """DROP MATERIALIZED VIEW IF EXISTS ${nested_mv_name1};"""
-                create_async_mv(dbName, mv_name1, mtmv_sql)
-                create_async_mv(dbName, mv_name2, mtmv_sql2)
-                create_async_mv(dbName, nested_mv_name1, nested_mtmv_sql)
+                cur_create_async_partition_mv(dbName, mv_name1, mtmv_sql, "")
+                cur_create_async_partition_mv(dbName, mv_name2, mtmv_sql2, "")
+                cur_create_async_partition_mv(dbName, nested_mv_name1, nested_mtmv_sql, "")
 
                 assertNoCache select_sql // 直查表，不改写mtmv1
                 assertNoCache mtmv_select_sql  // 直查表，改写mtmv1
@@ -404,43 +404,41 @@ suite("query_cache_with_mtmv") {
                 assertHasCache nested_mtmv_select_sql3 // 直查mtmv1，不改写nested_mtmv1
                 assertHasCache nested_mtmv_select_sql // 直查nested_mtmv1，不改写
 
-//                sql "REFRESH MATERIALIZED VIEW ${mv_name1} AUTO;"
-//                waitingMTMVTaskFinishedByMvName(mv_name1)
-//
-//
-//
-//                assertHasCache select_sql // 直查表，不改写mtmv1
-//                assertNoCache mtmv_select_sql  // 直查表，改写mtmv1
-//                assertNoCache nested_mtmv_select_sql2 // 直查表，改写nested_mtmv1
-//                assertNoCache nested_mtmv_select_sql1 // 直查mtmv1，改写nested_mtmv1
-//                assertNoCache nested_mtmv_select_sql3 // 直查mtmv1，不改写nested_mtmv1
-//                assertHasCache nested_mtmv_select_sql // 直查nested_mtmv1，不改写
-//
-//                sql "REFRESH MATERIALIZED VIEW ${mv_name1} complete;"
-//                waitingMTMVTaskFinishedByMvName(mv_name1)
-//
-//                assertHasCache select_sql // 直查表，不改写mtmv1
-//                assertNoCache mtmv_select_sql  // 直查表，改写mtmv1
-//                assertHasCache nested_mtmv_select_sql2 // 直查表，改写nested_mtmv1
-//                assertHasCache nested_mtmv_select_sql1 // 直查mtmv1，改写nested_mtmv1
-//                assertNoCache nested_mtmv_select_sql3 // 直查mtmv1，不改写nested_mtmv1
-//                assertHasCache nested_mtmv_select_sql // 直查nested_mtmv1，不改写
-//
-//                sql "INSERT OVERWRITE table ${tb_name} PARTITION(p20251001) VALUES (101, 'Beijing', '2025-10-01', 500.00);"
-//                assertNoCache select_sql // 直查表，不改写mtmv1
-//                assertNoCache mtmv_select_sql  // 直查表，改写mtmv1
-//                assertNoCache nested_mtmv_select_sql2 // 直查表，改写nested_mtmv1
-//                assertHasCache nested_mtmv_select_sql1 // 直查mtmv1，改写nested_mtmv1
-//                assertHasCache nested_mtmv_select_sql3 // 直查mtmv1，不改写nested_mtmv1
-//                assertHasCache nested_mtmv_select_sql // 直查nested_mtmv1，不改写
-//
-//                sql "REFRESH MATERIALIZED VIEW ${mv_name1} AUTO;"
-//                assertHasCache select_sql // 直查表，不改写mtmv1
-//                assertNoCache mtmv_select_sql  // 直查表，改写mtmv1
-//                assertNoCache nested_mtmv_select_sql2 // 直查表，改写nested_mtmv1
-//                assertNoCache nested_mtmv_select_sql1 // 直查mtmv1，改写nested_mtmv1
-//                assertNoCache nested_mtmv_select_sql3 // 直查mtmv1，不改写nested_mtmv1
-//                assertHasCache nested_mtmv_select_sql // 直查nested_mtmv1，不改写
+                sql "REFRESH MATERIALIZED VIEW ${mv_name1} AUTO;"
+                waitingMTMVTaskFinishedByMvName(mv_name1)
+
+                assertHasCache select_sql // 直查表，不改写mtmv1
+                assertNoCache mtmv_select_sql  // 直查表，改写mtmv1
+                assertHasCache nested_mtmv_select_sql2 // 直查表，改写nested_mtmv1
+                assertHasCache nested_mtmv_select_sql1 // 直查mtmv1，改写nested_mtmv1
+                assertNoCache nested_mtmv_select_sql3 // 直查mtmv1，不改写nested_mtmv1
+                assertHasCache nested_mtmv_select_sql // 直查nested_mtmv1，不改写
+
+                sql "REFRESH MATERIALIZED VIEW ${mv_name1} complete;"
+                waitingMTMVTaskFinishedByMvName(mv_name1)
+
+                assertHasCache select_sql // 直查表，不改写mtmv1
+                assertNoCache mtmv_select_sql  // 直查表，改写mtmv1
+                assertHasCache nested_mtmv_select_sql2 // 直查表，改写nested_mtmv1
+                assertHasCache nested_mtmv_select_sql1 // 直查mtmv1，改写nested_mtmv1
+                assertNoCache nested_mtmv_select_sql3 // 直查mtmv1，不改写nested_mtmv1
+                assertHasCache nested_mtmv_select_sql // 直查nested_mtmv1，不改写
+
+                sql "INSERT OVERWRITE table ${tb_name} PARTITION(p20251001) VALUES (101, 'Beijing', '2025-10-01', 500.00);"
+                assertNoCache select_sql // 直查表，不改写mtmv1
+                assertNoCache mtmv_select_sql  // 直查表，改写mtmv1
+                assertNoCache nested_mtmv_select_sql2 // 直查表，改写nested_mtmv1
+                assertHasCache nested_mtmv_select_sql1 // 直查mtmv1，改写nested_mtmv1
+                assertHasCache nested_mtmv_select_sql3 // 直查mtmv1，不改写nested_mtmv1
+                assertHasCache nested_mtmv_select_sql // 直查nested_mtmv1，不改写
+
+                sql "REFRESH MATERIALIZED VIEW ${mv_name1} AUTO;"
+                assertHasCache select_sql // 直查表，不改写mtmv1
+                assertNoCache mtmv_select_sql  // 直查表，改写mtmv1
+                assertNoCache nested_mtmv_select_sql2 // 直查表，改写nested_mtmv1
+                assertNoCache nested_mtmv_select_sql1 // 直查mtmv1，改写nested_mtmv1
+                assertNoCache nested_mtmv_select_sql3 // 直查mtmv1，不改写nested_mtmv1
+                assertHasCache nested_mtmv_select_sql // 直查nested_mtmv1，不改写
 
             }),
 
