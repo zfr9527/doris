@@ -192,7 +192,10 @@ suite("query_cache_with_mtmv") {
                 assertHasCache select_sql // 直查表，不改写mtmv1
                 assertNoCache mtmv_select_sql  // 直查表，改写mtmv1
                 assertNoCache nested_mtmv_select_sql2 // 直查表，改写nested_mtmv1
-                assertNoCache nested_mtmv_select_sql1 // 直查mtmv1，改写nested_mtmv1
+                test {
+                    sql nested_mtmv_select_sql1   // 直查mtmv1，改写nested_mtmv1
+                    exception "does not exist"
+                }
                 test {
                     sql nested_mtmv_select_sql3
                     exception "does not exist"
