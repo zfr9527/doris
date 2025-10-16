@@ -313,12 +313,18 @@ suite("query_cache_with_mtmv") {
                 assertHasCache nested_mtmv_select_sql3 // 直查mtmv1，不改写nested_mtmv1
                 assertHasCache nested_mtmv_select_sql // 直查nested_mtmv1，不改写
 
-                judge_res(res1, sql select_sql)
-//                judge_res(res2, sql mtmv_select_sql)
-//                judge_res(res3, sql nested_mtmv_select_sql2)
-//                judge_res(res4, sql nested_mtmv_select_sql1)
-//                judge_res(res5, sql nested_mtmv_select_sql3)
-//                judge_res(res6, sql nested_mtmv_select_sql)
+                def new_res1 = sql select_sql // 直查表，不改写mtmv1
+                def new_res2 = sql mtmv_select_sql  // 直查表，改写mtmv1
+                def new_res3 = sql nested_mtmv_select_sql2 // 直查表，改写nested_mtmv1
+                def new_res4 = sql nested_mtmv_select_sql1 // 直查mtmv1，改写nested_mtmv1
+                def new_res5 = sql nested_mtmv_select_sql3 // 直查mtmv1，不改写nested_mtmv1
+                def new_res6 = sql nested_mtmv_select_sql // 直查nested_mtmv1，不改写
+                judge_res(res1, new_res1)
+                judge_res(res2, new_res2)
+                judge_res(res3, new_res3)
+                judge_res(res4, new_res4)
+                judge_res(res5, new_res5)
+                judge_res(res6, new_res6)
 
             }),
 
