@@ -203,7 +203,7 @@ suite("query_cache_with_mtmv") {
                 assertNoCache nested_mtmv_select_sql3_new // 直查mtmv1，不改写nested_mtmv1
                 assertHasCache nested_mtmv_select_sql // 直查nested_mtmv1，不改写
 
-                sql """ALTER MATERIALIZED VIEW ${mv_name3} rename ${mv_name1};"""
+                sql """ALTER MATERIALIZED VIEW ${mv_name2} rename ${mv_name1};"""
                 assertHasCache select_sql // 直查表，不改写mtmv1
                 assertHasCache mtmv_select_sql  // 直查表，改写mtmv1
                 assertHasCache nested_mtmv_select_sql2 // 直查表，改写nested_mtmv1
