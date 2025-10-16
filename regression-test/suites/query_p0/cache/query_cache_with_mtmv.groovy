@@ -169,6 +169,7 @@ suite("query_cache_with_mtmv") {
 
 
                 sql """DROP MATERIALIZED VIEW IF EXISTS ${mv_name1};"""
+                sql """DROP MATERIALIZED VIEW IF EXISTS ${mv_name2};"""
                 sql """DROP MATERIALIZED VIEW IF EXISTS ${nested_mv_name1};"""
                 create_async_mv(dbName, mv_name1, mtmv_sql)
                 create_async_mv(dbName, nested_mv_name1, nested_mtmv_sql)
