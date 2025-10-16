@@ -96,6 +96,17 @@ suite("query_cache_with_mtmv") {
         sql """sync;"""
     }
 
+    def judge_res = { def res1, def res2 ->
+
+        assertTrue(res1.size() == res2.size())
+        for (int i = 0; i < res1.size(); i++) {
+            assertTrue(res1[i].size() == res2[i].size())
+            for (int j = 0; j < res1[i].size(); j++) {
+                assertTrue(res1[i][j] == res2[i][j])
+            }
+        }
+    }
+
     String dbName = context.config.getDbNameByFile(context.file)
     sql "ADMIN SET FRONTEND CONFIG ('cache_last_version_interval_second' = '0')"
 
@@ -229,31 +240,31 @@ suite("query_cache_with_mtmv") {
                 setSessionVariables()
 
                 def mtmv_sql = """
-                    SELECT city,sale_date,SUM(amount) AS daily_city_amount FROM ${tb_name} GROUP BY city, sale_date;"""
+                    SELECT city,sale_date,SUM(amount) AS daily_city_amount FROM ${tb_name} GROUP BY city, sale_date order by 1, 2, 3;"""
                 def mtmv_sql2 = """
-                    SELECT city,sale_date,avg(amount) AS daily_city_amount FROM ${tb_name} GROUP BY city, sale_date;"""
+                    SELECT city,sale_date,count(amount) AS daily_city_amount FROM ${tb_name} GROUP BY city, sale_date order by 1, 2, 3;"""
                 def nested_mtmv_sql = """
-                    SELECT city,date_trunc(sale_date, 'MONTH') AS sale_date, SUM(daily_city_amount) AS monthly_city_amount FROM ${mv_name1} GROUP BY city, date_trunc(sale_date, 'MONTH');"""
+                    SELECT city,date_trunc(sale_date, 'MONTH') AS sale_date, SUM(daily_city_amount) AS monthly_city_amount FROM ${mv_name1} GROUP BY city, date_trunc(sale_date, 'MONTH') order by 1, 2, 3;"""
                 // 直查表，不改写mtmv1
                 def select_sql = """
-                    SELECT product_id, SUM(amount) AS total_city_amount FROM ${tb_name} WHERE sale_date >= '2025-10-01' AND sale_date <= '2025-10-03' GROUP BY product_id;"""
+                    SELECT product_id, SUM(amount) AS total_city_amount FROM ${tb_name} WHERE sale_date >= '2025-10-01' AND sale_date <= '2025-10-03' GROUP BY product_id order by 1, 2;"""
                 // 直查表，改写mtmv1
                 def mtmv_select_sql = """
-                    SELECT city, SUM(amount) AS total_city_amount FROM ${tb_name} WHERE sale_date >= '2025-10-01' AND sale_date <= '2025-10-03' GROUP BY city;"""
+                    SELECT city, SUM(amount) AS total_city_amount FROM ${tb_name} WHERE sale_date >= '2025-10-01' AND sale_date <= '2025-10-03' GROUP BY city order by 1, 2;"""
                 // 直查nested_mtmv1，不改写
                 def nested_mtmv_select_sql = """
-                    select city, sum(monthly_city_amount) from ${nested_mv_name1} group by city;"""
+                    select city, sum(monthly_city_amount) from ${nested_mv_name1} group by city order by 1, 2;"""
                 // 直查mtmv1，改写nested_mtmv1
                 def nested_mtmv_select_sql1 = """
-                    SELECT date_trunc(sale_date, 'MONTH') AS sale_date,SUM(daily_city_amount) AS monthly_city_amount FROM ${mv_name1} GROUP BY date_trunc(sale_date, 'MONTH');"""
+                    SELECT date_trunc(sale_date, 'MONTH') AS sale_date,SUM(daily_city_amount) AS monthly_city_amount FROM ${mv_name1} GROUP BY date_trunc(sale_date, 'MONTH') order by 1, 2;"""
                 // 直查表，改写nested_mtmv1
                 def nested_mtmv_select_sql2 = """
-                    SELECT date_trunc(sale_date, 'MONTH') AS sale_date,SUM(daily_city_amount) AS monthly_city_amount FROM (SELECT city, sale_date, SUM(amount) AS daily_city_amount FROM ${tb_name} GROUP BY city, sale_date) as t GROUP BY date_trunc(sale_date, 'MONTH');"""
+                    SELECT date_trunc(sale_date, 'MONTH') AS sale_date,SUM(daily_city_amount) AS monthly_city_amount FROM (SELECT city, sale_date, SUM(amount) AS daily_city_amount FROM ${tb_name} GROUP BY city, sale_date) as t GROUP BY date_trunc(sale_date, 'MONTH') order by 1, 2;"""
                 // 直查mtmv1，不改写nested_mtmv1
                 def nested_mtmv_select_sql3 = """
-                    select city, avg(daily_city_amount) from ${mv_name1} group by city;"""
+                    select city, avg(daily_city_amount) from ${mv_name1} group by city order by 1, 2;"""
                 def nested_mtmv_select_sql3_new = """
-                    select city, avg(daily_city_amount) from ${mv_name2} group by city;"""
+                    select city, avg(daily_city_amount) from ${mv_name2} group by city order by 1, 2;"""
 
 
                 sql """DROP MATERIALIZED VIEW IF EXISTS ${mv_name1};"""
@@ -277,6 +288,13 @@ suite("query_cache_with_mtmv") {
                 assertHasCache nested_mtmv_select_sql3 // 直查mtmv1，不改写nested_mtmv1
                 assertHasCache nested_mtmv_select_sql // 直查nested_mtmv1，不改写
 
+                def res1 = sql select_sql // 直查表，不改写mtmv1
+                def res2 = sql mtmv_select_sql  // 直查表，改写mtmv1
+                def res3 = sql nested_mtmv_select_sql2 // 直查表，改写nested_mtmv1
+                def res4 = sql nested_mtmv_select_sql1 // 直查mtmv1，改写nested_mtmv1
+                def res5 = sql nested_mtmv_select_sql3 // 直查mtmv1，不改写nested_mtmv1
+                def res6 = sql nested_mtmv_select_sql // 直查nested_mtmv1，不改写
+
                 sql """ALTER MATERIALIZED VIEW ${mv_name1} REPLACE WITH MATERIALIZED VIEW ${mv_name2};"""
                 assertHasCache select_sql // 直查表，不改写mtmv1
                 assertNoCache mtmv_select_sql  // 直查表，改写mtmv1
@@ -294,6 +312,13 @@ suite("query_cache_with_mtmv") {
                 assertHasCache nested_mtmv_select_sql1 // 直查mtmv1，改写nested_mtmv1
                 assertHasCache nested_mtmv_select_sql3 // 直查mtmv1，不改写nested_mtmv1
                 assertHasCache nested_mtmv_select_sql // 直查nested_mtmv1，不改写
+
+                judge_res(res1, sql select_sql)
+                judge_res(res2, sql mtmv_select_sql)
+                judge_res(res3, sql nested_mtmv_select_sql2)
+                judge_res(res4, sql nested_mtmv_select_sql1)
+                judge_res(res5, sql nested_mtmv_select_sql3)
+                judge_res(res6, sql nested_mtmv_select_sql)
 
             }),
 
