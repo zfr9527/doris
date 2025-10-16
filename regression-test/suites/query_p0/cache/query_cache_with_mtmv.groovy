@@ -575,7 +575,7 @@ suite("query_cache_with_mtmv") {
                     SELECT city,date_trunc(sale_date, 'MONTH') AS sale_date, SUM(daily_city_amount) AS monthly_city_amount FROM ${mv_name1} GROUP BY city, date_trunc(sale_date, 'MONTH');"""
                 // 直查表，不改写mtmv1
                 def select_sql = """
-                    SELECT product_id, SUM(amount) AS total_city_amount FROM ${tb_name} WHERE sale_date >= '2025-10-01' AND sale_date <= '2025-10-03' GROUP BY product_id;"""
+                    SELECT product_id, SUM(amount) AS total_city_amount FROM ${tb_name} WHERE sale_date >= '2025-10-01' AND sale_date <= '2025-12-31' GROUP BY product_id;"""
                 // 直查表，改写mtmv1
                 def mtmv_select_sql = """
                     SELECT city, SUM(amount) AS total_city_amount FROM ${tb_name} WHERE sale_date >= '2025-10-01' AND sale_date <= '2025-10-03' GROUP BY city;"""
