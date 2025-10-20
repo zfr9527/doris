@@ -269,6 +269,7 @@ suite("query_cache_with_table_change") {
                 }
 
                 assertNoCache sql_str
+                assertHasCache sql_str
             }),
 
             extraThread("testAddPartitionAndInsert", {
