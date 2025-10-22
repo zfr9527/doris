@@ -283,6 +283,6 @@ suite("query_cache_all_base_table_types") {
             }),
 
              */
-    ).get
+    ).get()
 
 }
