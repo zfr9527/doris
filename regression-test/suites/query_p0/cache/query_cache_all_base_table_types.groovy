@@ -84,7 +84,7 @@ suite("query_cache_all_base_table_types") {
     sql "ADMIN SET FRONTEND CONFIG ('cache_last_version_interval_second' = '0')"
 
     combineFutures(
-
+            /*
             extraThread("testRangeOneKeyTable", {
                 def tb_name = "query_cache_range_one_key_table"
                 sql """drop table if exists ${tb_name}"""
@@ -135,12 +135,10 @@ suite("query_cache_all_base_table_types") {
                 sql "insert into ${tb_name} values(null, null)"
                 assertPartHasCache sql_str
                 assertHasCache sql_str
-            })
-
-
-/*
+            }),
             extraThread("testRangeTwoKeyTable", {
                 def tb_name = "query_cache_range_two_key_table"
+                sql """drop table if exists ${tb_name}"""
                 sql """
                     create table ${tb_name}
                     (
@@ -189,9 +187,11 @@ suite("query_cache_all_base_table_types") {
                 assertNoCache sql_str
                 assertHasCache sql_str
             }),
+            */
 
             extraThread("testListOneKeyTable", {
                 def tb_name = "query_cache_list_one_key_table"
+                sql """drop table if exists ${tb_name}"""
                 sql """
                     create table ${tb_name}
                     (
@@ -230,7 +230,7 @@ suite("query_cache_all_base_table_types") {
                 assertHasCache sql_str
 
                 sql """alter table ${tb_name} add partition p6 values[('6'),('7'))"""
-                assertHasCache sql_str // mark
+                assertHasCache sql_str
 
                 sql "insert into ${tb_name} values(6, 1)"
                 assertNoCache sql_str
@@ -240,6 +240,7 @@ suite("query_cache_all_base_table_types") {
                 assertNoCache sql_str
                 assertHasCache sql_str
             }),
+            /*
             extraThread("testListOneKeyTable", {
                 def tb_name = "query_cache_list_one_key_table"
                 sql """
