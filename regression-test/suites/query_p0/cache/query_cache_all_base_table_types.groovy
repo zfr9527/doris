@@ -187,8 +187,6 @@ suite("query_cache_all_base_table_types") {
                 assertNoCache sql_str
                 assertHasCache sql_str
             }),
-            */
-
             extraThread("testListOneKeyTable", {
                 def tb_name = "query_cache_list_one_key_table"
                 sql """drop table if exists ${tb_name}"""
@@ -240,7 +238,9 @@ suite("query_cache_all_base_table_types") {
                 assertNoCache sql_str
                 assertHasCache sql_str
             }),
-            /*
+
+             */
+
             extraThread("testNonPartitionTable", {
                 def tb_name = "query_cache_non_partition_table"
                 sql """
@@ -284,7 +284,6 @@ suite("query_cache_all_base_table_types") {
                 assertHasCache sql_str
             }),
 
-             */
     ).get()
 
 }
