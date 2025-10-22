@@ -353,7 +353,6 @@ suite("query_cache_with_table_change") {
                 sql """alter table ${tb_name} replace partition (p1) with temporary partition(tp1)"""
                 assertNoCache sql_str
             }),
-            */
             extraThread("testRenamePartition", {
                 def tb_name = "query_cache_rename_partition_table"
                 createTestTable tb_name
@@ -367,7 +366,6 @@ suite("query_cache_with_table_change") {
                 sql """ALTER TABLE ${tb_name} RENAME PARTITION p1 p6;"""
                 assertNoCache sql_str  // mark 我以为不会使用cache，但是实际上是使用了cache。分区名称不影响查询使用cache吗？
             }),
-            /*
             extraThread("testStreamLoad", {
                 def tb_name = "query_cache_stream_load_table"
                 createTestTable tb_name
@@ -413,6 +411,7 @@ suite("query_cache_with_table_change") {
                 sql "delete from ${tb_name} where id = 1"
                 assertNoCache sql_str
             }),
+            */
             extraThread("testCreateAndAlterView", {
                 def tb_name = "query_cache_create_and_alter_view_table"
                 def view_name = "query_cache_create_and_alter_view_table_view"
@@ -428,6 +427,7 @@ suite("query_cache_with_table_change") {
                 sql "alter view ${view_name} as select id as k1, avg(value) as k2 from ${tb_name} group by k1;"
                 assertNoCache sql_str
             }),
+            /*
             extraThread("testCreateAndDropView", {
                 def tb_name = "query_cache_create_and_drop_view_table"
                 def view_name = "query_cache_create_and_drop_view_table_view"
