@@ -177,7 +177,7 @@ suite("query_cache_all_base_table_types") {
                 assertHasCache sql_str
 
                 sql """alter table ${tb_name} add partition p6 values[('6', '1'),('7', '1'))"""
-                assertHasCache sql_str // mark
+                assertHasCache sql_str
 
                 sql "insert into ${tb_name} values(6, 1)"
                 assertNoCache sql_str
@@ -198,7 +198,7 @@ suite("query_cache_all_base_table_types") {
                         id int,
                         value int
                     )
-                    partition by range(id)
+                    partition by list(id)
                     (
                         PARTITION p0 VALUES IN ((NULL)),
                         partition p1 VALUES IN ("1"),
@@ -241,8 +241,8 @@ suite("query_cache_all_base_table_types") {
                 assertHasCache sql_str
             }),
             /*
-            extraThread("testListOneKeyTable", {
-                def tb_name = "query_cache_list_one_key_table"
+            extraThread("testNonPartitionTable", {
+                def tb_name = "query_cache_non_partition_table"
                 sql """
                     create table ${tb_name}
                     (
