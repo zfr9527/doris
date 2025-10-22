@@ -127,7 +127,7 @@ suite("query_cache_with_table_change") {
                 sql """insert into ${tb_name} values (1, 1), (1, 2);"""
                 assertNoCache sql_str // mark 重新建表不应该命中吧？我数据都没有了
             }),
-            */
+
 
 
             extraThread("testRenameTable", {
@@ -151,7 +151,7 @@ suite("query_cache_with_table_change") {
                 sql """ALTER TABLE ${new_tb_name} RENAME ${tb_name};""" // mark
                 assertHasCache sql_str
             }),
-            /*
+
 
             extraThread("testReplaceTable", {
                 def tb_name = "query_cache_replace_table_table1"
@@ -186,7 +186,6 @@ suite("query_cache_with_table_change") {
                 sql """truncate table ${tb_name}"""
                 noQueryCache sql_str  // mark 没有数据之后profile都是VEMPTYSET，完全不会走querycache
             }),
-
             extraThread("testAddColumn", {
                 def tb_name = "query_cache_add_column_table"
                 createTestTable tb_name
@@ -354,6 +353,7 @@ suite("query_cache_with_table_change") {
                 sql """alter table ${tb_name} replace partition (p1) with temporary partition(tp1)"""
                 assertNoCache sql_str
             }),
+            */
             extraThread("testRenamePartition", {
                 def tb_name = "query_cache_rename_partition_table"
                 createTestTable tb_name
@@ -367,6 +367,7 @@ suite("query_cache_with_table_change") {
                 sql """ALTER TABLE ${tb_name} RENAME PARTITION p1 p6;"""
                 assertNoCache sql_str  // mark 我以为不会使用cache，但是实际上是使用了cache。分区名称不影响查询使用cache吗？
             }),
+            /*
             extraThread("testStreamLoad", {
                 def tb_name = "query_cache_stream_load_table"
                 createTestTable tb_name
