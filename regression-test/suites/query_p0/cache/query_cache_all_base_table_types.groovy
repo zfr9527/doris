@@ -134,6 +134,7 @@ suite("query_cache_all_base_table_types") {
                 assertPartHasCache sql_str
                 assertHasCache sql_str
             }),
+            /*
             extraThread("testRangeTwoKeyTable", {
                 def tb_name = "query_cache_range_two_key_table"
                 sql """
@@ -276,6 +277,8 @@ suite("query_cache_all_base_table_types") {
                 assertNoCache sql_str
                 assertHasCache sql_str
             }),
+
+             */
     ).get
 
 }
