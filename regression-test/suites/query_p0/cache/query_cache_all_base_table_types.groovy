@@ -87,6 +87,7 @@ suite("query_cache_all_base_table_types") {
 
             extraThread("testRangeOneKeyTable", {
                 def tb_name = "query_cache_range_one_key_table"
+                sql """drop table if exists ${tb_name}"""
                 sql """
                     create table ${tb_name}
                     (
