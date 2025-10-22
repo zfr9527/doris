@@ -269,7 +269,7 @@ suite("query_cache_configuration_test") {
                 def sql_str1 = "SELECT group_key, GROUP_CONCAT(payload) FROM ${tb_name} WHERE group_key = 'A' GROUP BY group_key;"
                 def sql_str2 = "SELECT group_key, GROUP_CONCAT(payload) FROM ${tb_name} WHERE group_key = 'B' GROUP BY group_key;"
                 def sql_str3 = "SELECT group_key, GROUP_CONCAT(payload) FROM ${tb_name} WHERE group_key = 'C' GROUP BY group_key;"
-                sql """set global query_cache_size=2"""
+                sql """set global query_cache_size=1"""
                 assertNoCache sql_str1
                 assertHasCache sql_str1
 
