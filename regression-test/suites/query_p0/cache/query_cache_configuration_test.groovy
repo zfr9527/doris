@@ -118,7 +118,37 @@ suite("query_cache_configuration_test") {
 
             extraThread("testQueryCacheEntryMaxRows", {
                 def tb_name = "query_cache_entry_max_rows_table"
-                createTestTable tb_name
+//                createTestTable tb_name
+
+                sql """drop table if exists ${tb_name}"""
+                sql """
+                    create table ${tb_name}
+                    (
+                    id int,
+                    value int
+                    )
+                    partition by range(id)
+                    (
+                    partition p1 values[('10'), ('20')),
+                    partition p2 values[('20'), ('30')),
+                    partition p3 values[('30'), ('40')),
+                    partition p4 values[('40'), ('50')),
+                    partition p5 values[('50'), ('60'))
+                    )
+                    distributed by hash(id) BUCKETS 1
+                    properties(
+                    'replication_num'='1'
+                    );"""
+
+                sql """
+                    insert into ${tb_name}
+                    values 
+                    (10, 1), (11, 2),(12, 1), (13, 2),(14, 1), (15, 2),
+                    (20, 1), (21, 2),(22, 1), (23, 2),(24, 1), (25, 2),
+                    (30, 1), (31, 2),(32, 1), (33, 2),(34, 1), (35, 2),
+                    (40, 1), (41, 2),(42, 1), (43, 2),(44, 1), (45, 2),
+                    (50, 1), (51, 2),(52, 1), (53, 2),(54, 1), (55, 2);
+                    """
 
                 setSessionVariables()
 
