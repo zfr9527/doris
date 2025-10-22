@@ -85,6 +85,7 @@ suite("query_cache_with_table_change") {
     sql "ADMIN SET FRONTEND CONFIG ('cache_last_version_interval_second' = '0')"
 
     combineFutures(
+            /*
             extraThread("testDropTable", {
                 def tb_name = "query_cache_drop_table_table"
                 createTestTable tb_name
@@ -126,8 +127,9 @@ suite("query_cache_with_table_change") {
                 sql """insert into ${tb_name} values (1, 1), (1, 2);"""
                 assertNoCache sql_str // mark 重新建表不应该命中吧？我数据都没有了
             }),
+            */
 
-/*
+
             extraThread("testRenameTable", {
                 def tb_name = "query_cache_rename_table_table"
                 def new_tb_name = "new_query_cache_rename_table_table"
@@ -149,6 +151,7 @@ suite("query_cache_with_table_change") {
                 sql """ALTER TABLE ${new_tb_name} RENAME ${tb_name};""" // mark
                 assertHasCache sql_str
             }),
+            /*
 
             extraThread("testReplaceTable", {
                 def tb_name = "query_cache_replace_table_table1"
