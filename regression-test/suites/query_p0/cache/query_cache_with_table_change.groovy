@@ -127,9 +127,6 @@ suite("query_cache_with_table_change") {
                 sql """insert into ${tb_name} values (1, 1), (1, 2);"""
                 assertNoCache sql_str // mark 重新建表不应该命中吧？我数据都没有了
             }),
-
-
-
             extraThread("testRenameTable", {
                 def tb_name = "query_cache_rename_table_table"
                 def new_tb_name = "new_query_cache_rename_table_table"
@@ -151,8 +148,6 @@ suite("query_cache_with_table_change") {
                 sql """ALTER TABLE ${new_tb_name} RENAME ${tb_name};""" // mark
                 assertHasCache sql_str
             }),
-
-
             extraThread("testReplaceTable", {
                 def tb_name = "query_cache_replace_table_table1"
                 def tb_name2 = "query_cache_replace_table_table2"
@@ -200,6 +195,7 @@ suite("query_cache_with_table_change") {
                 assertHasCache sql_str // mark 增加一列不会影响结果，仍然命中
             }),
 
+             */
             extraThread("testDropColumn", {
                 def tb_name = "query_cache_drop_column_table"
                 createTestTable tb_name
@@ -226,34 +222,7 @@ suite("query_cache_with_table_change") {
                     exception "Unknown column"
                 }
             }),
-            // rename column被禁用了
-//            extraThread("testRenameColumn", {
-//                def tb_name = "query_cache_rename_column_table"
-//                createTestTable tb_name
-//
-//                setSessionVariables()
-//
-//                def sql_str = "select count(value) from ${tb_name} group by value;"
-//                def sql_str2 = "select id, count(value) from ${tb_name} group by id, value;"
-//                assertNoCache sql_str
-//                assertHasCache sql_str
-//
-//                assertNoCache sql_str2
-//                assertHasCache sql_str2
-//
-//                sql """alter table ${tb_name} rename column id id2"""
-//                waitForSchemaChangeDone {
-//                    sql """ SHOW ALTER TABLE COLUMN WHERE tablename='${tb_name}' ORDER BY createtime DESC LIMIT 1 """
-//                    time 600
-//                }
-//
-//                assertHasCache sql_str
-//                test {
-//                    sql sql_str2
-//                    exception "Unknown column"
-//                }
-//            }),
-
+/*
             extraThread("testModifyColumn", {
                 def tb_name = "query_cache_modify_column_table"
                 createTestTable tb_name
@@ -335,12 +304,6 @@ suite("query_cache_with_table_change") {
 
                 sql "alter table ${tb_name} add temporary partition tp1 values [('1'), ('2'))"
                 sql """INSERT INTO ${tb_name} TEMPORARY PARTITION(tp1) values (1, 3), (1, 4)"""
-//                streamLoad {
-//                    table tb_name
-//                    set "temporaryPartitions", "tp1"
-//                    inputIterator([[1, 3], [1, 4]].iterator())
-//                }
-                // 这里的stream load像是没有导入成功
 
                 sql "sync"
 
@@ -583,7 +546,6 @@ suite("query_cache_with_table_change") {
                 res = sql sql_str
                 assertTrue(res.size() == 1)
             }),
-            */
             // 这个地方会有bdbje的问题导致fe crash
             extraThread("testMultiFrontends", {
                 def tb_name = "query_cache_multi_frontends_table"
@@ -626,7 +588,6 @@ suite("query_cache_with_table_change") {
                     assertHasCache sql_str
                 }
             }),
-            /*
             extraThread("testSameSqlWithDifferentDb", {
                 def dbName1 = "query_cache_same_sql_with_different_db1"
                 def dbName2 = "query_cache_same_sql_with_different_db2"
@@ -772,8 +733,6 @@ suite("query_cache_with_table_change") {
             })
 
  */
-
-
     ).get()
 
 }
