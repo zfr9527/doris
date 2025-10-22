@@ -102,8 +102,6 @@ suite("query_cache_configuration_test") {
                 sql """set query_cache_force_refresh=true;"""
                 assertNoCache sql_str
             }),
-
-             */
             extraThread("testQueryCacheEntryMaxBytes", {
                 def tb_name = "query_cache_entry_max_bytes_table"
                 createTestTable tb_name
@@ -115,7 +113,9 @@ suite("query_cache_configuration_test") {
                 assertNoCache sql_str
                 assertNoCache sql_str
             }),
-            /*
+
+             */
+
             extraThread("testQueryCacheEntryMaxRows", {
                 def tb_name = "query_cache_entry_max_rows_table"
                 createTestTable tb_name
@@ -127,6 +127,7 @@ suite("query_cache_configuration_test") {
                 assertNoCache sql_str
                 assertNoCache sql_str
             }),
+            /*
             extraThread("testQueryCacheSize", {
                 def tb_name = "query_cache_size_table"
                 sql """drop table if exists ${tb_name}"""
