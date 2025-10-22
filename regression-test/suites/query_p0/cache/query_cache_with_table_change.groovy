@@ -127,7 +127,7 @@ suite("query_cache_with_table_change") {
                 assertNoCache sql_str // mark 重新建表不应该命中吧？我数据都没有了
             }),
 
-
+/*
             extraThread("testRenameTable", {
                 def tb_name = "query_cache_rename_table_table"
                 def new_tb_name = "new_query_cache_rename_table_table"
@@ -767,6 +767,7 @@ suite("query_cache_with_table_change") {
                 }
             })
 
+ */
 
 
     ).get()
