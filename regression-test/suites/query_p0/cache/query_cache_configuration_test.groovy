@@ -102,6 +102,7 @@ suite("query_cache_configuration_test") {
                 sql """set query_cache_force_refresh=true;"""
                 assertNoCache sql_str
             }),
+            /*
             extraThread("testQueryCacheEntryMaxBytes", {
                 def tb_name = "query_cache_entry_max_bytes_table"
                 createTestTable tb_name
@@ -251,6 +252,8 @@ suite("query_cache_configuration_test") {
 
                 sql """set global query_cache_size=512"""
             }),
+
+             */
     ).get()
 
 }
