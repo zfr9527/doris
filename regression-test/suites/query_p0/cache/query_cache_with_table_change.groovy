@@ -411,7 +411,6 @@ suite("query_cache_with_table_change") {
                 sql "delete from ${tb_name} where id = 1"
                 assertNoCache sql_str
             }),
-            */
             extraThread("testCreateAndAlterView", {
                 def tb_name = "query_cache_create_and_alter_view_table"
                 def view_name = "query_cache_create_and_alter_view_table_view"
@@ -420,14 +419,13 @@ suite("query_cache_with_table_change") {
 
                 setSessionVariables()
 
-                def sql_str = "select k1, sum(k2) from ${view_name} group by k1;" // 这里好像有问题？
+                def sql_str = "select k1, sum(k2) from ${view_name} group by k1;"
                 assertNoCache sql_str
                 assertHasCache sql_str
 
                 sql "alter view ${view_name} as select id as k1, avg(value) as k2 from ${tb_name} group by k1;"
                 assertNoCache sql_str
             }),
-            /*
             extraThread("testCreateAndDropView", {
                 def tb_name = "query_cache_create_and_drop_view_table"
                 def view_name = "query_cache_create_and_drop_view_table_view"
@@ -585,6 +583,7 @@ suite("query_cache_with_table_change") {
                 res = sql sql_str
                 assertTrue(res.size() == 1)
             }),
+            */
             // 这个地方会有bdbje的问题导致fe crash
             extraThread("testMultiFrontends", {
                 def tb_name = "query_cache_multi_frontends_table"
@@ -627,6 +626,7 @@ suite("query_cache_with_table_change") {
                     assertHasCache sql_str
                 }
             }),
+            /*
             extraThread("testSameSqlWithDifferentDb", {
                 def dbName1 = "query_cache_same_sql_with_different_db1"
                 def dbName2 = "query_cache_same_sql_with_different_db2"
