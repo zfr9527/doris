@@ -243,6 +243,7 @@ suite("query_cache_all_base_table_types") {
 
             extraThread("testNonPartitionTable", {
                 def tb_name = "query_cache_non_partition_table"
+                sql """drop table if exists ${tb_name}"""
                 sql """
                     create table ${tb_name}
                     (
@@ -271,7 +272,7 @@ suite("query_cache_all_base_table_types") {
                 assertNoCache sql_str
                 assertHasCache sql_str
 
-                // 非分区表应该不能增加分区
+                // 非分区表不能增加分区
                 test {
                     sql """alter table ${tb_name} add partition p6 values[('6'),('7'))"""
                     exception "failed"
