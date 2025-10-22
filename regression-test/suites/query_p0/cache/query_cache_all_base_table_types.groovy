@@ -84,7 +84,7 @@ suite("query_cache_all_base_table_types") {
     sql "ADMIN SET FRONTEND CONFIG ('cache_last_version_interval_second' = '0')"
 
     combineFutures(
-            /*
+
             extraThread("testRangeOneKeyTable", {
                 def tb_name = "query_cache_range_one_key_table"
                 sql """
@@ -136,8 +136,8 @@ suite("query_cache_all_base_table_types") {
                 assertHasCache sql_str
             }),
 
-             */
 
+/*
             extraThread("testRangeTwoKeyTable", {
                 def tb_name = "query_cache_range_two_key_table"
                 sql """
@@ -188,7 +188,7 @@ suite("query_cache_all_base_table_types") {
                 assertNoCache sql_str
                 assertHasCache sql_str
             }),
-            /*
+
             extraThread("testListOneKeyTable", {
                 def tb_name = "query_cache_list_one_key_table"
                 sql """
