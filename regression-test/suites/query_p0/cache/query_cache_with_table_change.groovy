@@ -698,7 +698,7 @@ suite("query_cache_with_table_change") {
                 assertHasCache mv_sql
 
                 create_sync_mv(dbName, tb_name, mv_name1, mv_sql)
-                assertNoCache mv_sql  // mark 创建mv之后mv sql不再命中cache
+                assertNoCache mv_sql
                 assertNoCache mv_select_str
                 assertHasCache mv_select_str
 
@@ -716,13 +716,13 @@ suite("query_cache_with_table_change") {
 
                 // alter rename mv
                 sql """ALTER TABLE ${tb_name} RENAME ROLLUP ${mv_name1} ${mv_name2};"""
-                assertNoCache mv_sql  // mark rename mv之后cache也失效蓝
+                assertNoCache mv_sql
                 assertNoCache mv_select_str2
                 assertHasCache mv_select_str2
 
                 // drop mv
                 sql """drop materialized view ${mv_name2} on ${tb_name};"""
-                assertNoCache mv_sql // mark 删除mv之后cache也失效了
+                assertNoCache mv_sql
                 test {
                     sql mv_select_str2
                     exception """doesn't have materialized view"""
