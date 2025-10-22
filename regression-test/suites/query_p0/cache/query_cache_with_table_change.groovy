@@ -194,8 +194,6 @@ suite("query_cache_with_table_change") {
                 sql """alter table ${tb_name} add column bbb int default '0'"""
                 assertHasCache sql_str // mark 增加一列不会影响结果，仍然命中
             }),
-
-             */
             extraThread("testDropColumn", {
                 def tb_name = "query_cache_drop_column_table"
                 createTestTable tb_name
@@ -222,7 +220,6 @@ suite("query_cache_with_table_change") {
                     exception "Unknown column"
                 }
             }),
-/*
             extraThread("testModifyColumn", {
                 def tb_name = "query_cache_modify_column_table"
                 createTestTable tb_name
@@ -682,7 +679,7 @@ suite("query_cache_with_table_change") {
                 assertTrue(rs.size() == 5)
 
             }),
-
+            */
             extraThread("testChangeWithMv", {
                 def tb_name = "query_cache_change_with_mv_table"
                 def mv_name1 = "query_cache_change_with_mv_table_mv1"
@@ -731,8 +728,6 @@ suite("query_cache_with_table_change") {
                     exception """doesn't have materialized view"""
                 }
             })
-
- */
     ).get()
 
 }
