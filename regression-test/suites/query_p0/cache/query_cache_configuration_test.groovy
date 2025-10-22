@@ -113,12 +113,8 @@ suite("query_cache_configuration_test") {
                 assertNoCache sql_str
                 assertNoCache sql_str
             }),
-
-             */
-
             extraThread("testQueryCacheEntryMaxRows", {
                 def tb_name = "query_cache_entry_max_rows_table"
-//                createTestTable tb_name
 
                 sql """drop table if exists ${tb_name}"""
                 sql """
@@ -157,7 +153,9 @@ suite("query_cache_configuration_test") {
                 assertNoCache sql_str
                 assertNoCache sql_str
             }),
-            /*
+
+             */
+
             extraThread("testQueryCacheSize", {
                 def tb_name = "query_cache_size_table"
                 sql """drop table if exists ${tb_name}"""
@@ -167,7 +165,7 @@ suite("query_cache_configuration_test") {
                         payload_size INT,          
                         payload VARCHAR(65533) 
                     ) DUPLICATE KEY(id)
-                    DISTRIBUTED BY HASH(id) BUCKETS 3
+                    DISTRIBUTED BY HASH(id) BUCKETS 1
                     PROPERTIES("replication_num" = "1");"""
                 sql """
                     INSERT INTO ${tb_name} (id, group_key, payload_size, payload) VALUES 
@@ -285,8 +283,6 @@ suite("query_cache_configuration_test") {
 
                 sql """set global query_cache_size=512"""
             }),
-
-             */
     ).get()
 
 }
