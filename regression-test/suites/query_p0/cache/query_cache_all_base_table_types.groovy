@@ -272,8 +272,11 @@ suite("query_cache_all_base_table_types") {
                 assertHasCache sql_str
 
                 // 非分区表应该不能增加分区
-                sql """alter table ${tb_name} add partition p6 values[('6'),('7'))"""
-                assertHasCache sql_str // mark
+                test {
+                    sql """alter table ${tb_name} add partition p6 values[('6'),('7'))"""
+                    exception "failed"
+                }
+                assertHasCache sql_str
 
                 sql "insert into ${tb_name} values(6, 1)"
                 assertNoCache sql_str
