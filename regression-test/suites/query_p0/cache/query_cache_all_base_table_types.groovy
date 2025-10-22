@@ -134,7 +134,7 @@ suite("query_cache_all_base_table_types") {
                 sql "insert into ${tb_name} values(null, null)"
                 assertPartHasCache sql_str
                 assertHasCache sql_str
-            }),
+            })
 
 
 /*
