@@ -227,7 +227,7 @@ suite("mtmv_range_date_part_up_union_multi_pct_tables") {
     for (int i = 0; i < mv_name_list.size(); i++) {
         sql """refresh MATERIALIZED VIEW ${mv_name_list[i]} auto;"""
         def job_name = getJobName(db, mv_name_list[i])
-        if (i in [1, 3, 4, 5, 6, 7]) {
+        if (i in [1, 2, 3, 4, 5, 6, 7]) {
             localWaitingMTMVTaskFinished(job_name)
             def mv_task = sql "select TaskId,JobId,JobName,MvId,Status,MvName,MvDatabaseName,ErrorMsg from tasks('type'='mv') where JobName = '${job_name}' order by CreateTime DESC"
             logger.info("mv_task: " + mv_task)
