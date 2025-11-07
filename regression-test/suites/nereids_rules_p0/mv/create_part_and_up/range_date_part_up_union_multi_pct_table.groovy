@@ -223,7 +223,7 @@ suite("mtmv_range_date_part_up_union_multi_pct_tables") {
     sql """insert into ${tb_name1} values 
         (1, null, 3, 1, 5.5, 6.5, 7.5, 8.5, 'o', 'k', '2023-10-18', '2023-10-18', 'a', 'b', 'yyyyyyyyy', '2023-11-02')"""
 
-    mv_part = [5, -1, 5, -1, -1, -1, -1, -1, 1, 1]
+    mv_part = [5, -1, -1, -1, -1, -1, -1, -1, 1, 1]
     for (int i = 0; i < mv_name_list.size(); i++) {
         sql """refresh MATERIALIZED VIEW ${mv_name_list[i]} auto;"""
         def job_name = getJobName(db, mv_name_list[i])
