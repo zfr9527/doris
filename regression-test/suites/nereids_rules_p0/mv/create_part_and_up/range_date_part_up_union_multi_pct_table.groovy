@@ -241,11 +241,11 @@ suite("mtmv_range_date_part_up_union_multi_pct_tables") {
     sql """alter table ${tb_name2} add partition p5 values [("2023-11-02"), ("2023-12-02"));"""
     sql """insert into ${tb_name2} values (4, 2, 'o', 43.2, '2023-11-02', 'c','d',2, 'mm');"""
 
-    mv_part = [5, -1, 5, -1, -1, -1, -1, -1, 1, 1]
+    mv_part = [5, -1, -1, -1, -1, -1, -1, -1, 1, 1]
     for (int i = 0; i < mv_name_list.size(); i++) {
         sql """refresh MATERIALIZED VIEW ${mv_name_list[i]} auto;"""
         def job_name = getJobName(db, mv_name_list[i])
-        if (i in [1, 3, 4, 5, 6, 7]) {
+        if (i in [1, 2, 3, 4, 5, 6, 7]) {
             localWaitingMTMVTaskFinished(job_name)
             def mv_task = sql "select TaskId,JobId,JobName,MvId,Status,MvName,MvDatabaseName,ErrorMsg from tasks('type'='mv') where JobName = '${job_name}' order by CreateTime DESC"
             logger.info("mv_task: " + mv_task)
@@ -260,10 +260,10 @@ suite("mtmv_range_date_part_up_union_multi_pct_tables") {
     sql """insert into ${tb_name1} values 
         (1, null, 3, 1, 5.5, 6.5, 7.5, 8.5, 'o', 'k', '2023-10-18', '2023-10-18', 'a', 'b', 'yyyyyyyyy', '2024-12-01')"""
 
-    mv_part = [6, -1, 6, -1, -1, -1, -1, -1, -1, -1]
+    mv_part = [6, -1, -1, -1, -1, -1, -1, -1, -1, -1]
     for (int i = 0; i < mv_name_list.size(); i++) {
         sql """refresh MATERIALIZED VIEW ${mv_name_list[i]} auto;"""
-        if (i in [1, 3, 4, 5, 6, 7, 8, 9]) {
+        if (i in [1, 2, 3, 4, 5, 6, 7, 8, 9]) {
             def job_name = getJobName(db, mv_name_list[i])
             localWaitingMTMVTaskFinished(job_name)
             def mv_task = sql "select TaskId,JobId,JobName,MvId,Status,MvName,MvDatabaseName,ErrorMsg from tasks('type'='mv') where JobName = '${job_name}' order by CreateTime DESC"
@@ -278,10 +278,10 @@ suite("mtmv_range_date_part_up_union_multi_pct_tables") {
     sql """alter table ${tb_name2} add partition p6 values [("2023-12-02"), ("2024-12-02"));"""
     sql """insert into ${tb_name2} values (4, 2, 'o', 43.2, '2024-12-01', 'c','d',2, 'mm');"""
 
-    mv_part = [6, -1, 6, -1, -1, -1, -1, -1, -1, -1]
+    mv_part = [6, -1, -1, -1, -1, -1, -1, -1, -1, -1]
     for (int i = 0; i < mv_name_list.size(); i++) {
         sql """refresh MATERIALIZED VIEW ${mv_name_list[i]} auto;"""
-        if (i in [1, 3, 4, 5, 6, 7, 8, 9]) {
+        if (i in [1, 2, 3, 4, 5, 6, 7, 8, 9]) {
             def job_name = getJobName(db, mv_name_list[i])
             localWaitingMTMVTaskFinished(job_name)
             def mv_task = sql "select TaskId,JobId,JobName,MvId,Status,MvName,MvDatabaseName,ErrorMsg from tasks('type'='mv') where JobName = '${job_name}' order by CreateTime DESC"
