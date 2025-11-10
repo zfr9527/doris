@@ -65,8 +65,13 @@ suite("test_view_with_tb_change") {
         ('2025-10-01 11:00:00', 1002, 2, 20.00, 'Shanghai'),
         ('2025-10-02 12:00:00', 1001, 3, 5.50, 'Beijing'),
         ('2025-10-02 13:00:00', 1003, 1, 30.00, 'Guangzhou');"""
+//    sql """create view ${viewName} as
+//        SELECT DATE_TRUNC('day', event_time) AS trading_date,user_id,item_id,amount,city,amount * 0.1 AS tax
+//        FROM ${tbName}
+//        WHERE amount > 10.00
+//        group by trading_date,user_id,item_id,amount,city,tax;"""
     sql """create view ${viewName} as 
-        SELECT DATE_TRUNC('day', event_time) AS trading_date,user_id,item_id,amount,city,amount * 0.1 AS tax
+        SELECT event_time AS trading_date,user_id,item_id,amount,city,amount * 0.1 AS tax
         FROM ${tbName}
         WHERE amount > 10.00 
         group by trading_date,user_id,item_id,amount,city,tax;"""
