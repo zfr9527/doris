@@ -94,6 +94,7 @@ suite("test_view_with_tb_change") {
     sql """
         CREATE MATERIALIZED VIEW ${mtmvName}
         BUILD IMMEDIATE REFRESH AUTO ON MANUAL
+        partition by (trading_date)
         DISTRIBUTED BY RANDOM BUCKETS 2
         PROPERTIES (
         'replication_num' = '1'
