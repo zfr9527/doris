@@ -59,7 +59,7 @@ suite("test_view_with_tb_change") {
             logger.info("status is not success")
             return false
         }
-        Assert.assertEquals("FINISHED", status)
+        assertTrue(status == "FINISHED")
         return true
     }
 
