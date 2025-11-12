@@ -144,7 +144,7 @@ suite("test_view_with_tb_change") {
 
 
     // insert overwrite
-    sql """INSERT overwrite ${tbName} VALUES
+    sql """INSERT overwrite table ${tbName} VALUES
         ('2025-10-02 12:00:00', 1001, 1, 10.50, 'Beijing');"""
     mv_infos = sql "select State,SyncWithBaseTables from mv_infos('database'='${dbName}') where Name='${mtmvName}'"
     assertTrue(mv_infos.size() == 1)
