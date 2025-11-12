@@ -710,7 +710,7 @@ suite("test_view_with_tb_change") {
 
     // 构建view的语句的变化
     sql """ALTER VIEW ${viewName}
-        AS SELECT event_time AS trading_date,user_id+1,item_id,amount,city,amount * 0.1 AS tax
+        AS SELECT event_time AS trading_date,user_id+1 as user_id,item_id,amount,city,amount * 0.1 AS tax
         FROM ${tbName}
         WHERE amount > 10.00 
         group by trading_date,user_id,item_id,amount,city,tax;"""
