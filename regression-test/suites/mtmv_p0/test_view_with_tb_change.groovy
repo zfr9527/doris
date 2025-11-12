@@ -97,9 +97,9 @@ suite("test_view_with_tb_change") {
         ${sql_view_str}
         """
     waitingMTMVTaskFinishedByMvName(mtmvName)
-    mv_rewrite_success(sql_view_str, mtmvName)
+    mv_rewrite_success_without_check_chosen(sql_view_str, mtmvName)
     compare_res(sql_view_str)
-    mv_rewrite_success(sql_table_str, mtmvName)
+    mv_rewrite_success_without_check_chosen(sql_table_str, mtmvName)
     compare_res(sql_table_str)
 
 
@@ -116,16 +116,15 @@ suite("test_view_with_tb_change") {
     logger.info("part_info:" + part_info)
     assertTrue(part_info.size() == 2)
     for (int i = 0; i < part_info.size(); i++) {
-        logger.info("part_info[i][18].toString():" + part_info[i][18].toString())
         if (part_info[i][1].toString() == "p_20251001000000_20251002000000") {
             assertTrue(part_info[i][18].toString() == "false")
         } else {
             assertTrue(part_info[i][18].toString() == "true")
         }
     }
-    mv_rewrite_success(sql_view_str, mtmvName)
+    mv_rewrite_success_without_check_chosen(sql_view_str, mtmvName)
     compare_res(sql_view_str)
-    mv_rewrite_success(sql_table_str, mtmvName)
+    mv_rewrite_success_without_check_chosen(sql_table_str, mtmvName)
     compare_res(sql_table_str)
 
     sql """refresh MATERIALIZED VIEW ${mtmvName} auto"""
@@ -138,9 +137,9 @@ suite("test_view_with_tb_change") {
     assertTrue(mv_tasks[0][0] == "PARTIAL")
     assertTrue(mv_tasks[0][1] == "100.00% (1/1)")
     assertTrue(mv_tasks[0][2] == "SUCCESS")
-    mv_rewrite_success(sql_view_str, mtmvName)
+    mv_rewrite_success_without_check_chosen(sql_view_str, mtmvName)
     compare_res(sql_view_str)
-    mv_rewrite_success(sql_table_str, mtmvName)
+    mv_rewrite_success_without_check_chosen(sql_table_str, mtmvName)
     compare_res(sql_table_str)
 
 
@@ -154,15 +153,15 @@ suite("test_view_with_tb_change") {
     part_info = sql "show partitions from ${mtmvName}"
     assertTrue(part_info.size() == 2)
     for (int i = 0; i < part_info.size(); i++) {
-        if (part_info[i][1] == "p_20251001000000_20251002000000") {
-            assertTrue(part_info[i][18] == false)
+        if (part_info[i][1].toString() == "p_20251001000000_20251002000000") {
+            assertTrue(part_info[i][18].toString() == "false")
         } else {
-            assertTrue(part_info[i][18] == true)
+            assertTrue(part_info[i][18].toString() == "true")
         }
     }
-    mv_rewrite_success(sql_view_str, mtmvName)
+    mv_rewrite_success_without_check_chosen(sql_view_str, mtmvName)
     compare_res(sql_view_str)
-    mv_rewrite_success(sql_table_str, mtmvName)
+    mv_rewrite_success_without_check_chosen(sql_table_str, mtmvName)
     compare_res(sql_table_str)
 
     sql """refresh MATERIALIZED VIEW ${mtmvName} auto"""
@@ -175,12 +174,10 @@ suite("test_view_with_tb_change") {
     assertTrue(mv_tasks[0][0] == "PARTIAL")
     assertTrue(mv_tasks[0][1] == "100.00% (1/1)")
     assertTrue(mv_tasks[0][2] == "SUCCESS")
-    mv_rewrite_success(sql_view_str, mtmvName)
+    mv_rewrite_success_without_check_chosen(sql_view_str, mtmvName)
     compare_res(sql_view_str)
-    mv_rewrite_success(sql_table_str, mtmvName)
+    mv_rewrite_success_without_check_chosen(sql_table_str, mtmvName)
     compare_res(sql_table_str)
-
-
 
     // 基表分区变动
     // add partition
@@ -192,11 +189,11 @@ suite("test_view_with_tb_change") {
     part_info = sql "show partitions from ${mtmvName}"
     assertTrue(part_info.size() == 2)
     for (int i = 0; i < part_info.size(); i++) {
-        assertTrue(part_info[i][18] == true)
+        assertTrue(part_info[i][18].toString() == "true")
     }
-    mv_rewrite_success(sql_view_str, mtmvName)
+    mv_rewrite_success_without_check_chosen(sql_view_str, mtmvName)
     compare_res(sql_view_str)
-    mv_rewrite_success(sql_table_str, mtmvName)
+    mv_rewrite_success_without_check_chosen(sql_table_str, mtmvName)
     compare_res(sql_table_str)
 
     sql """refresh MATERIALIZED VIEW ${mtmvName} auto"""
@@ -209,9 +206,9 @@ suite("test_view_with_tb_change") {
     assertTrue(mv_tasks[0][0] == "PARTIAL")
     assertTrue(mv_tasks[0][1] == "100.00% (1/1)")
     assertTrue(mv_tasks[0][2] == "SUCCESS")
-    mv_rewrite_success(sql_view_str, mtmvName)
+    mv_rewrite_success_without_check_chosen(sql_view_str, mtmvName)
     compare_res(sql_view_str)
-    mv_rewrite_success(sql_table_str, mtmvName)
+    mv_rewrite_success_without_check_chosen(sql_table_str, mtmvName)
     compare_res(sql_table_str)
 
     // drop partition
@@ -223,15 +220,15 @@ suite("test_view_with_tb_change") {
     part_info = sql "show partitions from ${mtmvName}"
     assertTrue(part_info.size() == 3)
     for (int i = 0; i < part_info.size(); i++) {
-        if (part_info[0][1] == "p_20251003000000_20251004000000") {
-            assertTrue(part_info[i][18] == false)
+        if (part_info[0][1].toString() == "p_20251003000000_20251004000000") {
+            assertTrue(part_info[i][18].toString() == "false")
         } else {
-            assertTrue(part_info[i][18] == true)
+            assertTrue(part_info[i][18].toString() == "true")
         }
     }
-    mv_rewrite_success(sql_view_str, mtmvName)
+    mv_rewrite_success_without_check_chosen(sql_view_str, mtmvName)
     compare_res(sql_view_str)
-    mv_rewrite_success(sql_table_str, mtmvName)
+    mv_rewrite_success_without_check_chosen(sql_table_str, mtmvName)
     compare_res(sql_table_str)
 
     sql """refresh MATERIALIZED VIEW ${mtmvName} auto"""
@@ -244,9 +241,9 @@ suite("test_view_with_tb_change") {
     assertTrue(mv_tasks[0][0] == "PARTIAL")
     assertTrue(mv_tasks[0][1] == "100.00% (1/1)")
     assertTrue(mv_tasks[0][2] == "SUCCESS")
-    mv_rewrite_success(sql_view_str, mtmvName)
+    mv_rewrite_success_without_check_chosen(sql_view_str, mtmvName)
     compare_res(sql_view_str)
-    mv_rewrite_success(sql_table_str, mtmvName)
+    mv_rewrite_success_without_check_chosen(sql_table_str, mtmvName)
     compare_res(sql_table_str)
 
 
@@ -260,11 +257,11 @@ suite("test_view_with_tb_change") {
     part_info = sql "show partitions from ${mtmvName}"
     assertTrue(part_info.size() == 2)
     for (int i = 0; i < part_info.size(); i++) {
-        assertTrue(part_info[i][18] == true)
+        assertTrue(part_info[i][18].toString() == "true")
     }
-    mv_rewrite_success(sql_view_str, mtmvName)
+    mv_rewrite_success_without_check_chosen(sql_view_str, mtmvName)
     compare_res(sql_view_str)
-    mv_rewrite_success(sql_table_str, mtmvName)
+    mv_rewrite_success_without_check_chosen(sql_table_str, mtmvName)
     compare_res(sql_table_str)
 
     sql """refresh MATERIALIZED VIEW ${mtmvName} auto"""
@@ -277,9 +274,9 @@ suite("test_view_with_tb_change") {
     assertTrue(mv_tasks[0][0] == "NOT_REFRESH")
     assertTrue(mv_tasks[0][1] == "\\N")
     assertTrue(mv_tasks[0][2] == "SUCCESS")
-    mv_rewrite_success(sql_view_str, mtmvName)
+    mv_rewrite_success_without_check_chosen(sql_view_str, mtmvName)
     compare_res(sql_view_str)
-    mv_rewrite_success(sql_table_str, mtmvName)
+    mv_rewrite_success_without_check_chosen(sql_table_str, mtmvName)
     compare_res(sql_table_str)
 
     // drop column
@@ -291,7 +288,7 @@ suite("test_view_with_tb_change") {
     part_info = sql "show partitions from ${mtmvName}"
     assertTrue(part_info.size() == 2)
     for (int i = 0; i < part_info.size(); i++) {
-        assertTrue(part_info[i][18] == true)
+        assertTrue(part_info[i][18].toString() == "true")
     }
     mv_not_part_in(sql_view_str, mtmvName)
     compare_res(sql_view_str)
@@ -308,9 +305,9 @@ suite("test_view_with_tb_change") {
     assertTrue(mv_tasks[0][0] == "NOT_REFRESH")
     assertTrue(mv_tasks[0][1] == "\\N")
     assertTrue(mv_tasks[0][2] == "SUCCESS")
-    mv_rewrite_success(sql_view_str, mtmvName)
+    mv_rewrite_success_without_check_chosen(sql_view_str, mtmvName)
     compare_res(sql_view_str)
-    mv_rewrite_success(sql_table_str, mtmvName)
+    mv_rewrite_success_without_check_chosen(sql_table_str, mtmvName)
     compare_res(sql_table_str)
 
     // drop column that exists view
@@ -322,7 +319,7 @@ suite("test_view_with_tb_change") {
     part_info = sql "show partitions from ${mtmvName}"
     assertTrue(part_info.size() == 2)
     for (int i = 0; i < part_info.size(); i++) {
-        assertTrue(part_info[i][18] == true)
+        assertTrue(part_info[i][18].toString() == "true")
     }
     mv_not_part_in(sql_view_str, mtmvName)
     compare_res(sql_view_str)
@@ -339,7 +336,7 @@ suite("test_view_with_tb_change") {
     part_info = sql "show partitions from ${mtmvName}"
     assertTrue(part_info.size() == 2)
     for (int i = 0; i < part_info.size(); i++) {
-        assertTrue(part_info[i][18] == true)
+        assertTrue(part_info[i][18].toString() == "true")
     }
     mv_tasks = sql """select RefreshMode,Progress,Status from tasks("type"="mv") where MvName = '${mtmvName}' order by CreateTime desc limit 1"""
     assertTrue(mv_tasks[0][0] == "\\N")
@@ -363,9 +360,9 @@ suite("test_view_with_tb_change") {
     assertTrue(mv_tasks[0][0] == "NOT_REFRESH")
     assertTrue(mv_tasks[0][1] == "\\N")
     assertTrue(mv_tasks[0][2] == "SUCCESS")
-    mv_rewrite_success(sql_view_str, mtmvName)
+    mv_rewrite_success_without_check_chosen(sql_view_str, mtmvName)
     compare_res(sql_view_str)
-    mv_rewrite_success(sql_table_str, mtmvName)
+    mv_rewrite_success_without_check_chosen(sql_table_str, mtmvName)
     compare_res(sql_table_str)
 
 
@@ -378,7 +375,7 @@ suite("test_view_with_tb_change") {
     part_info = sql "show partitions from ${mtmvName}"
     assertTrue(part_info.size() == 2)
     for (int i = 0; i < part_info.size(); i++) {
-        assertTrue(part_info[i][18] == true)
+        assertTrue(part_info[i][18].toString() == "true")
     }
     mv_not_part_in(sql_view_str, mtmvName)
     compare_res(sql_view_str)
@@ -395,7 +392,7 @@ suite("test_view_with_tb_change") {
     part_info = sql "show partitions from ${mtmvName}"
     assertTrue(part_info.size() == 2)
     for (int i = 0; i < part_info.size(); i++) {
-        assertTrue(part_info[i][18] == true)
+        assertTrue(part_info[i][18].toString() == "true")
     }
     mv_tasks = sql """select RefreshMode,Progress,Status from tasks("type"="mv") where MvName = '${mtmvName}' order by CreateTime desc limit 1"""
     assertTrue(mv_tasks[0][0] == "\\N")
@@ -416,7 +413,7 @@ suite("test_view_with_tb_change") {
     part_info = sql "show partitions from ${mtmvName}"
     assertTrue(part_info.size() == 2)
     for (int i = 0; i < part_info.size(); i++) {
-        assertTrue(part_info[i][18] == false)
+        assertTrue(part_info[i][18].toString() == "false")
     }
     mv_not_part_in(sql_view_str, mtmvName)
     compare_res(sql_view_str)
@@ -433,7 +430,7 @@ suite("test_view_with_tb_change") {
     part_info = sql "show partitions from ${mtmvName}"
     assertTrue(part_info.size() == 2)
     for (int i = 0; i < part_info.size(); i++) {
-        assertTrue(part_info[i][18] == true)
+        assertTrue(part_info[i][18].toString() == "true")
     }
     mv_tasks = sql """select RefreshMode,Progress,Status from tasks("type"="mv") where MvName = '${mtmvName}' order by CreateTime desc limit 1"""
     assertTrue(mv_tasks[0][0] == "\\N")
@@ -477,15 +474,15 @@ suite("test_view_with_tb_change") {
     part_info = sql "show partitions from ${mtmvName}"
     assertTrue(part_info.size() == 2)
     for (int i = 0; i < part_info.size(); i++) {
-        assertTrue(part_info[i][18] == true)
+        assertTrue(part_info[i][18].toString() == "true")
     }
     mv_tasks = sql """select RefreshMode,Progress,Status from tasks("type"="mv") where MvName = '${mtmvName}' order by CreateTime desc limit 1"""
     assertTrue(mv_tasks[0][0] == "COMPLETE")
     assertTrue(mv_tasks[0][1] == "100.00% (2/2)")
     assertTrue(mv_tasks[0][2] == "SUCCESS")
-    mv_rewrite_success(sql_view_str, mtmvName)
+    mv_rewrite_success_without_check_chosen(sql_view_str, mtmvName)
     compare_res(sql_view_str)
-    mv_rewrite_success(sql_table_str, mtmvName)
+    mv_rewrite_success_without_check_chosen(sql_table_str, mtmvName)
     compare_res(sql_table_str)
 
     // view结构的变化
@@ -500,7 +497,7 @@ suite("test_view_with_tb_change") {
     part_info = sql "show partitions from ${mtmvName}"
     assertTrue(part_info.size() == 2)
     for (int i = 0; i < part_info.size(); i++) {
-        assertTrue(part_info[i][18] == true)
+        assertTrue(part_info[i][18].toString() == "true")
     }
     mv_not_part_in(sql_view_str, mtmvName)
     compare_res(sql_view_str)
@@ -517,7 +514,7 @@ suite("test_view_with_tb_change") {
     part_info = sql "show partitions from ${mtmvName}"
     assertTrue(part_info.size() == 2)
     for (int i = 0; i < part_info.size(); i++) {
-        assertTrue(part_info[i][18] == false)
+        assertTrue(part_info[i][18].toString() == "false")
     }
     mv_tasks = sql """select RefreshMode,Progress,Status from tasks("type"="mv") where MvName = '${mtmvName}' order by CreateTime desc limit 1"""
     assertTrue(mv_tasks[0][0] == "\\N")
@@ -544,15 +541,15 @@ suite("test_view_with_tb_change") {
     part_info = sql "show partitions from ${mtmvName}"
     assertTrue(part_info.size() == 2)
     for (int i = 0; i < part_info.size(); i++) {
-        assertTrue(part_info[i][18] == true)
+        assertTrue(part_info[i][18].toString() == "true")
     }
     mv_tasks = sql """select RefreshMode,Progress,Status from tasks("type"="mv") where MvName = '${mtmvName}' order by CreateTime desc limit 1"""
     assertTrue(mv_tasks[0][0] == "COMPLETE")
     assertTrue(mv_tasks[0][1] == "100.00% (2/2)")
     assertTrue(mv_tasks[0][2] == "SUCCESS")
-    mv_rewrite_success(sql_view_str, mtmvName)
+    mv_rewrite_success_without_check_chosen(sql_view_str, mtmvName)
     compare_res(sql_view_str)
-    mv_rewrite_success(sql_table_str, mtmvName)
+    mv_rewrite_success_without_check_chosen(sql_table_str, mtmvName)
     compare_res(sql_table_str)
 
     // modify view
@@ -577,7 +574,7 @@ suite("test_view_with_tb_change") {
     part_info = sql "show partitions from ${mtmvName}"
     assertTrue(part_info.size() == 2)
     for (int i = 0; i < part_info.size(); i++) {
-        assertTrue(part_info[i][18] == false)
+        assertTrue(part_info[i][18].toString() == "false")
     }
     mv_not_part_in(sql_view_str, mtmvName)
     compare_res(sql_view_str)
@@ -594,15 +591,15 @@ suite("test_view_with_tb_change") {
     part_info = sql "show partitions from ${mtmvName}"
     assertTrue(part_info.size() == 2)
     for (int i = 0; i < part_info.size(); i++) {
-        assertTrue(part_info[i][18] == true)
+        assertTrue(part_info[i][18].toString() == "true")
     }
     mv_tasks = sql """select RefreshMode,Progress,Status from tasks("type"="mv") where MvName = '${mtmvName}' order by CreateTime desc limit 1"""
     assertTrue(mv_tasks[0][0] == "COMPLETE")
     assertTrue(mv_tasks[0][1] == "100.00% (2/2)")
     assertTrue(mv_tasks[0][2] == "SUCCESS")
-    mv_rewrite_success(sql_view_str, mtmvName)
+    mv_rewrite_success_without_check_chosen(sql_view_str, mtmvName)
     compare_res(sql_view_str)
-    mv_rewrite_success(sql_table_str, mtmvName)
+    mv_rewrite_success_without_check_chosen(sql_table_str, mtmvName)
     compare_res(sql_table_str)
 
 
@@ -621,7 +618,7 @@ suite("test_view_with_tb_change") {
     part_info = sql "show partitions from ${mtmvName}"
     assertTrue(part_info.size() == 2)
     for (int i = 0; i < part_info.size(); i++) {
-        assertTrue(part_info[i][18] == false)
+        assertTrue(part_info[i][18].toString() == "false")
     }
     mv_not_part_in(sql_view_str, mtmvName)
     compare_res(sql_view_str)
@@ -639,15 +636,15 @@ suite("test_view_with_tb_change") {
     part_info = sql "show partitions from ${mtmvName}"
     assertTrue(part_info.size() == 2)
     for (int i = 0; i < part_info.size(); i++) {
-        assertTrue(part_info[i][18] == true)
+        assertTrue(part_info[i][18].toString() == "true")
     }
     mv_tasks = sql """select RefreshMode,Progress,Status from tasks("type"="mv") where MvName = '${mtmvName}' order by CreateTime desc limit 1"""
     assertTrue(mv_tasks[0][0] == "COMPLETE")
     assertTrue(mv_tasks[0][1] == "100.00% (2/2)")
     assertTrue(mv_tasks[0][2] == "SUCCESS")
-    mv_rewrite_success(sql_view_str, mtmvName)
+    mv_rewrite_success_without_check_chosen(sql_view_str, mtmvName)
     compare_res(sql_view_str)
-    mv_rewrite_success(sql_table_str, mtmvName)
+    mv_rewrite_success_without_check_chosen(sql_table_str, mtmvName)
     compare_res(sql_table_str)
 
     // 构建view的语句的变化
@@ -664,7 +661,7 @@ suite("test_view_with_tb_change") {
     part_info = sql "show partitions from ${mtmvName}"
     assertTrue(part_info.size() == 2)
     for (int i = 0; i < part_info.size(); i++) {
-        assertTrue(part_info[i][18] == false)
+        assertTrue(part_info[i][18].toString() == "false")
     }
     mv_not_part_in(sql_view_str, mtmvName)
     compare_res(sql_view_str)
@@ -681,7 +678,7 @@ suite("test_view_with_tb_change") {
     part_info = sql "show partitions from ${mtmvName}"
     assertTrue(part_info.size() == 2)
     for (int i = 0; i < part_info.size(); i++) {
-        assertTrue(part_info[i][18] == false)
+        assertTrue(part_info[i][18].toString() == "false")
     }
     mv_tasks = sql """select RefreshMode,Progress,Status from tasks("type"="mv") where MvName = '${mtmvName}' order by CreateTime desc limit 1"""
     assertTrue(mv_tasks[0][0] == "\\N")
