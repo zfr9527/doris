@@ -405,7 +405,7 @@ suite("test_view_with_tb_change") {
 
 
     // 基表列数据类型的变化
-    sql """ALTER TABLE ${mtmvName} MODIFY COLUMN amount decimal(20, 2);"""
+    sql """ALTER TABLE ${tbName} MODIFY COLUMN amount decimal(20, 2);"""
     waitingColumnTaskFinished(dbName, tbName)
     mv_infos = sql "select State,SyncWithBaseTables,RefreshState from mv_infos('database'='${dbName}') where Name='${mtmvName}'"
     assertTrue(mv_infos.size() == 1)
