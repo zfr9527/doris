@@ -735,18 +735,18 @@ suite("test_view_with_tb_change") {
     waitingMTMVTaskFinishedNotNeedSuccess(jobName)
     mv_infos = sql "select State,SyncWithBaseTables,RefreshState from mv_infos('database'='${dbName}') where Name='${mtmvName}'"
     assertTrue(mv_infos.size() == 1)
-    assertTrue(mv_infos[0][0] == "SCHEMA_CHANGE")
-    assertTrue(mv_infos[0][1] == false)
-    assertTrue(mv_infos[0][2] == "FAIL")
+    assertTrue(mv_infos[0][0] == "NORMAL")
+    assertTrue(mv_infos[0][1] == true)
+    assertTrue(mv_infos[0][2] == "SUCCESS")
     part_info = sql "show partitions from ${mtmvName}"
     assertTrue(part_info.size() == 2)
     for (int i = 0; i < part_info.size(); i++) {
-        assertTrue(part_info[i][18].toString() == "false")
+        assertTrue(part_info[i][18].toString() == "true")
     }
     mv_tasks = sql """select RefreshMode,Progress,Status from tasks("type"="mv") where MvName = '${mtmvName}' order by CreateTime desc limit 1"""
-    assertTrue(mv_tasks[0][0] == "\\N")
-    assertTrue(mv_tasks[0][1] == "\\N")
-    assertTrue(mv_tasks[0][2] == "FAILED")
+    assertTrue(mv_tasks[0][0] == "COMPLETE")
+    assertTrue(mv_tasks[0][1] == "100.00% (2/2)")
+    assertTrue(mv_tasks[0][2] == "SUCCESS")
     mv_not_part_in(sql_view_str, mtmvName)
     compare_res(sql_view_str)
     mv_not_part_in(sql_table_str, mtmvName)
