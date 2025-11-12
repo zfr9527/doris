@@ -348,10 +348,14 @@ suite("test_view_with_tb_change") {
     assertTrue(mv_tasks[0][0] == "\\N")
     assertTrue(mv_tasks[0][1] == "\\N")
     assertTrue(mv_tasks[0][2] == "FAILED")
-    mv_not_part_in(sql_view_str, mtmvName)
-    compare_res(sql_view_str)
-    mv_not_part_in(sql_table_str, mtmvName)
-    compare_res(sql_table_str)
+    test {
+        sql sql_view_str
+        exception "Unknown column"
+    }
+    test {
+        sql sql_table_str
+        exception "Unknown column"
+    }
 
     // add column
     sql """alter table ${tbName} add column city varchar(64)"""
