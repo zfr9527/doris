@@ -331,7 +331,7 @@ suite("test_view_with_tb_change") {
     }
 
     sql """refresh MATERIALIZED VIEW ${mtmvName} auto"""
-    waitingMTMVTaskFinishedByMvName(mtmvName)
+    waitingMTMVTaskFinishedNotNeedSuccess(mtmvName)
     mv_infos = sql "select State,SyncWithBaseTables,RefreshState from mv_infos('database'='${dbName}') where Name='${mtmvName}'"
     assertTrue(mv_infos.size() == 1)
     assertTrue(mv_infos[0][0] == "SCHEMA_CHANGE")
