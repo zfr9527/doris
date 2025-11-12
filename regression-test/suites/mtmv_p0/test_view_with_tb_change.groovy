@@ -477,7 +477,7 @@ suite("test_view_with_tb_change") {
     part_info = sql "show partitions from ${mtmvName}"
     assertTrue(part_info.size() == 2)
     for (int i = 0; i < part_info.size(); i++) {
-        assertTrue(part_info[i][18].toString() == "true")
+        assertTrue(part_info[i][18].toString() == "false")
     }
     mv_tasks = sql """select RefreshMode,Progress,Status from tasks("type"="mv") where MvName = '${mtmvName}' order by CreateTime desc limit 1"""
     assertTrue(mv_tasks[0][0] == "\\N")
