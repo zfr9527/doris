@@ -113,6 +113,7 @@ suite("test_view_with_tb_change") {
     assertTrue(mv_infos[0][0] == "NORMAL")
     assertTrue(mv_infos[0][1] == false)
     def part_info = sql "show partitions from ${mtmvName}"
+    logger.info("part_info:" + part_info)
     assertTrue(part_info.size() == 2)
     for (int i = 0; i < part_info.size(); i++) {
         if (part_info[i][1] == "p_20251001000000_20251002000000") {
