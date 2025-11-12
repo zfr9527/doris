@@ -365,7 +365,7 @@ suite("test_view_with_tb_change") {
     assertTrue(mv_infos.size() == 1)
     assertTrue(mv_infos[0][0] == "NORMAL")
     assertTrue(mv_infos[0][1] == true)
-    assertTrue(mv_infos[0][1] == "SUCCESS")
+    assertTrue(mv_infos[0][2] == "SUCCESS")
     mv_tasks = sql """select RefreshMode,Progress,Status from tasks("type"="mv") where MvName = '${mtmvName}' order by CreateTime desc limit 1"""
     assertTrue(mv_tasks[0][0] == "NOT_REFRESH")
     assertTrue(mv_tasks[0][1] == "\\N")
