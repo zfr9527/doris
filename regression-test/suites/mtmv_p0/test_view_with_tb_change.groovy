@@ -238,8 +238,8 @@ suite("test_view_with_tb_change") {
     assertTrue(mv_infos[0][0] == "NORMAL")
     assertTrue(mv_infos[0][1] == true)
     mv_tasks = sql """select RefreshMode,Progress,Status from tasks("type"="mv") where MvName = '${mtmvName}' order by CreateTime desc limit 1"""
-    assertTrue(mv_tasks[0][0] == "PARTIAL")
-    assertTrue(mv_tasks[0][1] == "100.00% (1/1)")
+    assertTrue(mv_tasks[0][0] == "NOT_REFRESH")
+    assertTrue(mv_tasks[0][1] == "\\N")
     assertTrue(mv_tasks[0][2] == "SUCCESS")
     mv_rewrite_success_without_check_chosen(sql_view_str, mtmvName)
     compare_res(sql_view_str)
