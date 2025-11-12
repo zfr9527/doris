@@ -747,9 +747,9 @@ suite("test_view_with_tb_change") {
     assertTrue(mv_tasks[0][0] == "COMPLETE")
     assertTrue(mv_tasks[0][1] == "100.00% (2/2)")
     assertTrue(mv_tasks[0][2] == "SUCCESS")
-    mv_not_part_in(sql_view_str, mtmvName)
+    mv_rewrite_success_without_check_chosen(sql_view_str, mtmvName)
     compare_res(sql_view_str)
-    mv_not_part_in(sql_table_str, mtmvName)
+    mv_rewrite_success_without_check_chosen(sql_table_str, mtmvName)
     compare_res(sql_table_str)
 
 
