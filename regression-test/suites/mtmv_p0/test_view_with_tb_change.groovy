@@ -39,6 +39,30 @@ suite("test_view_with_tb_change") {
         }
     }
 
+    def waitingColumnTaskFinished = { def cur_db_name, def cur_table_name ->
+        Thread.sleep(2000)
+        String showTasks = "SHOW ALTER TABLE COLUMN from ${cur_db_name} where TableName='${cur_table_name}' ORDER BY CreateTime ASC"
+        String status = "NULL"
+        List<List<Object>> result
+        long startTime = System.currentTimeMillis()
+        long timeoutTimestamp = startTime + 5 * 60 * 1000 // 5 min
+        do {
+            result = sql(showTasks)
+            logger.info("result: " + result.toString())
+            if (!result.isEmpty()) {
+                status = result.last().get(9)
+            }
+            logger.info("The state of ${showTasks} is ${status}")
+            Thread.sleep(1000)
+        } while (timeoutTimestamp > System.currentTimeMillis() && (status != 'FINISHED'))
+        if (status != "FINISHED") {
+            logger.info("status is not success")
+            return false
+        }
+        Assert.assertEquals("FINISHED", status)
+        return true
+    }
+
     sql """drop table if exists ${tbName}"""
     sql """drop view if exists ${viewName}"""
     sql """drop materialized view if exists ${mtmvName}"""
@@ -250,6 +274,7 @@ suite("test_view_with_tb_change") {
     // 基表结构变动，增加一列，或者删除一列
     // add column
     sql """alter table ${tbName} add column dt varchar(100)"""
+    waitingColumnTaskFinished(dbName, tbName)
     mv_infos = sql "select State,SyncWithBaseTables from mv_infos('database'='${dbName}') where Name='${mtmvName}'"
     assertTrue(mv_infos.size() == 1)
     assertTrue(mv_infos[0][0] == "NORMAL")
@@ -281,6 +306,7 @@ suite("test_view_with_tb_change") {
 
     // drop column
     sql """alter table ${tbName} drop column dt"""
+    waitingColumnTaskFinished(dbName, tbName)
     mv_infos = sql "select State,SyncWithBaseTables from mv_infos('database'='${dbName}') where Name='${mtmvName}'"
     assertTrue(mv_infos.size() == 1)
     assertTrue(mv_infos[0][0] == "SCHEMA_CHANGE")
@@ -312,6 +338,7 @@ suite("test_view_with_tb_change") {
 
     // drop column that exists view
     sql """alter table ${tbName} drop column city"""
+    waitingColumnTaskFinished(dbName, tbName)
     mv_infos = sql "select State,SyncWithBaseTables,RefreshState from mv_infos('database'='${dbName}') where Name='${mtmvName}'"
     assertTrue(mv_infos.size() == 1)
     assertTrue(mv_infos[0][0] == "SCHEMA_CHANGE")
@@ -359,6 +386,7 @@ suite("test_view_with_tb_change") {
 
     // add column
     sql """alter table ${tbName} add column city varchar(64)"""
+    waitingColumnTaskFinished(dbName, tbName)
     sql """refresh MATERIALIZED VIEW ${mtmvName} auto"""
     waitingMTMVTaskFinishedByMvName(mtmvName)
     mv_infos = sql "select State,SyncWithBaseTables,RefreshState from mv_infos('database'='${dbName}') where Name='${mtmvName}'"
@@ -378,6 +406,7 @@ suite("test_view_with_tb_change") {
 
     // 基表列数据类型的变化
     sql """ALTER TABLE ${mtmvName} MODIFY COLUMN amount decimal(20, 2);"""
+    waitingColumnTaskFinished(dbName, tbName)
     mv_infos = sql "select State,SyncWithBaseTables,RefreshState from mv_infos('database'='${dbName}') where Name='${mtmvName}'"
     assertTrue(mv_infos.size() == 1)
     assertTrue(mv_infos[0][0] == "SCHEMA_CHANGE")
