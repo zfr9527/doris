@@ -321,10 +321,14 @@ suite("test_view_with_tb_change") {
     for (int i = 0; i < part_info.size(); i++) {
         assertTrue(part_info[i][18].toString() == "true")
     }
-    mv_not_part_in(sql_view_str, mtmvName)
-    compare_res(sql_view_str)
-    mv_not_part_in(sql_table_str, mtmvName)
-    compare_res(sql_table_str)
+    test {
+        sql sql_view_str
+        exception "Unknown column"
+    }
+    test {
+        sql sql_table_str
+        exception "Unknown column"
+    }
 
     sql """refresh MATERIALIZED VIEW ${mtmvName} auto"""
     waitingMTMVTaskFinishedByMvName(mtmvName)
