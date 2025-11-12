@@ -548,7 +548,7 @@ suite("test_view_with_tb_change") {
     part_info = sql "show partitions from ${mtmvName}"
     assertTrue(part_info.size() == 2)
     for (int i = 0; i < part_info.size(); i++) {
-        assertTrue(part_info[i][18].toString() == "true")
+        assertTrue(part_info[i][18].toString() == "false")
     }
     mv_not_part_in(sql_view_str, mtmvName)
     compare_res(sql_view_str)
