@@ -220,7 +220,7 @@ suite("test_view_with_tb_change") {
     part_info = sql "show partitions from ${mtmvName}"
     assertTrue(part_info.size() == 3)
     for (int i = 0; i < part_info.size(); i++) {
-        if (part_info[0][1].toString() == "p_20251003000000_20251004000000") {
+        if (part_info[i][1].toString() == "p_20251003000000_20251004000000") {
             assertTrue(part_info[i][18].toString() == "false")
         } else {
             assertTrue(part_info[i][18].toString() == "true")
