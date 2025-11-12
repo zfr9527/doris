@@ -422,7 +422,9 @@ suite("test_view_with_tb_change") {
     compare_res(sql_table_str)
 
     sql """refresh MATERIALIZED VIEW ${mtmvName} auto"""
-    waitingMTMVTaskFinishedByMvName(mtmvName)
+//    waitingMTMVTaskFinishedByMvName(mtmvName)
+    jobName = getJobName(dbName, mtmvName)
+    waitingMTMVTaskFinishedNotNeedSuccess(jobName)
     mv_infos = sql "select State,SyncWithBaseTables,RefreshState from mv_infos('database'='${dbName}') where Name='${mtmvName}'"
     assertTrue(mv_infos.size() == 1)
     assertTrue(mv_infos[0][0] == "SCHEMA_CHANGE")
@@ -460,7 +462,9 @@ suite("test_view_with_tb_change") {
     compare_res(sql_table_str)
 
     sql """refresh MATERIALIZED VIEW ${mtmvName} auto"""
-    waitingMTMVTaskFinishedByMvName(mtmvName)
+//    waitingMTMVTaskFinishedByMvName(mtmvName)
+    jobName = getJobName(dbName, mtmvName)
+    waitingMTMVTaskFinishedNotNeedSuccess(jobName)
     mv_infos = sql "select State,SyncWithBaseTables,RefreshState from mv_infos('database'='${dbName}') where Name='${mtmvName}'"
     assertTrue(mv_infos.size() == 1)
     assertTrue(mv_infos[0][0] == "SCHEMA_CHANGE")
@@ -544,7 +548,9 @@ suite("test_view_with_tb_change") {
     compare_res(sql_table_str)
 
     sql """refresh MATERIALIZED VIEW ${mtmvName} auto"""
-    waitingMTMVTaskFinishedByMvName(mtmvName)
+//    waitingMTMVTaskFinishedByMvName(mtmvName)
+    jobName = getJobName(dbName, mtmvName)
+    waitingMTMVTaskFinishedNotNeedSuccess(jobName)
     mv_infos = sql "select State,SyncWithBaseTables,RefreshState from mv_infos('database'='${dbName}') where Name='${mtmvName}'"
     assertTrue(mv_infos.size() == 1)
     assertTrue(mv_infos[0][0] == "SCHEMA_CHANGE")
@@ -708,7 +714,9 @@ suite("test_view_with_tb_change") {
     compare_res(sql_table_str)
 
     sql """refresh MATERIALIZED VIEW ${mtmvName} auto"""
-    waitingMTMVTaskFinishedByMvName(mtmvName)
+//    waitingMTMVTaskFinishedByMvName(mtmvName)
+    jobName = getJobName(dbName, mtmvName)
+    waitingMTMVTaskFinishedNotNeedSuccess(jobName)
     mv_infos = sql "select State,SyncWithBaseTables,RefreshState from mv_infos('database'='${dbName}') where Name='${mtmvName}'"
     assertTrue(mv_infos.size() == 1)
     assertTrue(mv_infos[0][0] == "SCHEMA_CHANGE")
