@@ -112,7 +112,7 @@ suite("test_view_with_tb_change") {
     assertTrue(mv_infos.size() == 1)
     assertTrue(mv_infos[0][0] == "NORMAL")
     assertTrue(mv_infos[0][1] == false)
-    def part_info = "show partitions from ${mtmvName}"
+    def part_info = sql "show partitions from ${mtmvName}"
     assertTrue(part_info.size() == 2)
     for (int i = 0; i < part_info.size(); i++) {
         if (part_info[i][1] == "p_20251001000000_20251002000000") {
@@ -149,7 +149,7 @@ suite("test_view_with_tb_change") {
     assertTrue(mv_infos.size() == 1)
     assertTrue(mv_infos[0][0] == "NORMAL")
     assertTrue(mv_infos[0][1] == false)
-    part_info = "show partitions from ${mtmvName}"
+    part_info = sql "show partitions from ${mtmvName}"
     assertTrue(part_info.size() == 2)
     for (int i = 0; i < part_info.size(); i++) {
         if (part_info[i][1] == "p_20251001000000_20251002000000") {
@@ -187,7 +187,7 @@ suite("test_view_with_tb_change") {
     assertTrue(mv_infos.size() == 1)
     assertTrue(mv_infos[0][0] == "NORMAL")
     assertTrue(mv_infos[0][1] == true)
-    part_info = "show partitions from ${mtmvName}"
+    part_info = sql "show partitions from ${mtmvName}"
     assertTrue(part_info.size() == 2)
     for (int i = 0; i < part_info.size(); i++) {
         assertTrue(part_info[i][18] == true)
@@ -218,7 +218,7 @@ suite("test_view_with_tb_change") {
     assertTrue(mv_infos.size() == 1)
     assertTrue(mv_infos[0][0] == "NORMAL")
     assertTrue(mv_infos[0][1] == false)
-    part_info = "show partitions from ${mtmvName}"
+    part_info = sql "show partitions from ${mtmvName}"
     assertTrue(part_info.size() == 3)
     for (int i = 0; i < part_info.size(); i++) {
         if (part_info[0][1] == "p_20251003000000_20251004000000") {
@@ -255,7 +255,7 @@ suite("test_view_with_tb_change") {
     assertTrue(mv_infos.size() == 1)
     assertTrue(mv_infos[0][0] == "NORMAL")
     assertTrue(mv_infos[0][1] == true)
-    part_info = "show partitions from ${mtmvName}"
+    part_info = sql "show partitions from ${mtmvName}"
     assertTrue(part_info.size() == 2)
     for (int i = 0; i < part_info.size(); i++) {
         assertTrue(part_info[i][18] == true)
@@ -286,7 +286,7 @@ suite("test_view_with_tb_change") {
     assertTrue(mv_infos.size() == 1)
     assertTrue(mv_infos[0][0] == "SCHEMA_CHANGE")
     assertTrue(mv_infos[0][1] == true)
-    part_info = "show partitions from ${mtmvName}"
+    part_info = sql "show partitions from ${mtmvName}"
     assertTrue(part_info.size() == 2)
     for (int i = 0; i < part_info.size(); i++) {
         assertTrue(part_info[i][18] == true)
@@ -317,7 +317,7 @@ suite("test_view_with_tb_change") {
     assertTrue(mv_infos.size() == 1)
     assertTrue(mv_infos[0][0] == "SCHEMA_CHANGE")
     assertTrue(mv_infos[0][1] == true)
-    part_info = "show partitions from ${mtmvName}"
+    part_info = sql "show partitions from ${mtmvName}"
     assertTrue(part_info.size() == 2)
     for (int i = 0; i < part_info.size(); i++) {
         assertTrue(part_info[i][18] == true)
@@ -334,38 +334,29 @@ suite("test_view_with_tb_change") {
     assertTrue(mv_infos[0][0] == "SCHEMA_CHANGE")
     assertTrue(mv_infos[0][1] == true)
     assertTrue(mv_infos[0][2] == "FAIL")
-    part_info = "show partitions from ${mtmvName}"
+    part_info = sql "show partitions from ${mtmvName}"
     assertTrue(part_info.size() == 2)
     for (int i = 0; i < part_info.size(); i++) {
         assertTrue(part_info[i][18] == true)
     }
+    mv_tasks = sql """select RefreshMode,Progress,Status from tasks("type"="mv") where MvName = '${mtmvName}' order by CreateTime desc limit 1"""
+    assertTrue(mv_tasks[0][0] == "\\N")
+    assertTrue(mv_tasks[0][1] == "\\N")
+    assertTrue(mv_tasks[0][2] == "FAILED")
     mv_not_part_in(sql_view_str, mtmvName)
     compare_res(sql_view_str)
     mv_not_part_in(sql_table_str, mtmvName)
     compare_res(sql_table_str)
 
-
+    // add column
     sql """alter table ${tbName} add column city varchar(64)"""
-    mv_infos = sql "select State,SyncWithBaseTables from mv_infos('database'='${dbName}') where Name='${mtmvName}'"
-    assertTrue(mv_infos.size() == 1)
-    assertTrue(mv_infos[0][0] == "NORMAL")
-    assertTrue(mv_infos[0][1] == true)
-    part_info = "show partitions from ${mtmvName}"
-    assertTrue(part_info.size() == 2)
-    for (int i = 0; i < part_info.size(); i++) {
-        assertTrue(part_info[i][18] == true)
-    }
-    mv_rewrite_success(sql_view_str, mtmvName)
-    compare_res(sql_view_str)
-    mv_rewrite_success(sql_table_str, mtmvName)
-    compare_res(sql_table_str)
-
     sql """refresh MATERIALIZED VIEW ${mtmvName} auto"""
     waitingMTMVTaskFinishedByMvName(mtmvName)
-    mv_infos = sql "select State,SyncWithBaseTables from mv_infos('database'='${dbName}') where Name='${mtmvName}'"
+    mv_infos = sql "select State,SyncWithBaseTables,RefreshState from mv_infos('database'='${dbName}') where Name='${mtmvName}'"
     assertTrue(mv_infos.size() == 1)
     assertTrue(mv_infos[0][0] == "NORMAL")
     assertTrue(mv_infos[0][1] == true)
+    assertTrue(mv_infos[0][1] == "SUCCESS")
     mv_tasks = sql """select RefreshMode,Progress,Status from tasks("type"="mv") where MvName = '${mtmvName}' order by CreateTime desc limit 1"""
     assertTrue(mv_tasks[0][0] == "NOT_REFRESH")
     assertTrue(mv_tasks[0][1] == "\\N")
@@ -375,25 +366,329 @@ suite("test_view_with_tb_change") {
     mv_rewrite_success(sql_table_str, mtmvName)
     compare_res(sql_table_str)
 
-    /*
+
     // 基表列数据类型的变化
-    test {
-        sql """ALTER TABLE ${mtmvName} MODIFY COLUMN amount decimal(20, 2);"""
-        exception "Not allowed to perform current operation on async materialized view"
+    sql """ALTER TABLE ${mtmvName} MODIFY COLUMN amount decimal(20, 2);"""
+    mv_infos = sql "select State,SyncWithBaseTables,RefreshState from mv_infos('database'='${dbName}') where Name='${mtmvName}'"
+    assertTrue(mv_infos.size() == 1)
+    assertTrue(mv_infos[0][0] == "SCHEMA_CHANGE")
+    assertTrue(mv_infos[0][1] == true)
+    part_info = sql "show partitions from ${mtmvName}"
+    assertTrue(part_info.size() == 2)
+    for (int i = 0; i < part_info.size(); i++) {
+        assertTrue(part_info[i][18] == true)
     }
+    mv_not_part_in(sql_view_str, mtmvName)
+    compare_res(sql_view_str)
+    mv_not_part_in(sql_table_str, mtmvName)
+    compare_res(sql_table_str)
+
+    sql """refresh MATERIALIZED VIEW ${mtmvName} auto"""
+    waitingMTMVTaskFinishedByMvName(mtmvName)
+    mv_infos = sql "select State,SyncWithBaseTables,RefreshState from mv_infos('database'='${dbName}') where Name='${mtmvName}'"
+    assertTrue(mv_infos.size() == 1)
+    assertTrue(mv_infos[0][0] == "SCHEMA_CHANGE")
+    assertTrue(mv_infos[0][1] == true)
+    assertTrue(mv_infos[0][2] == "FAIL")
+    part_info = sql "show partitions from ${mtmvName}"
+    assertTrue(part_info.size() == 2)
+    for (int i = 0; i < part_info.size(); i++) {
+        assertTrue(part_info[i][18] == true)
+    }
+    mv_tasks = sql """select RefreshMode,Progress,Status from tasks("type"="mv") where MvName = '${mtmvName}' order by CreateTime desc limit 1"""
+    assertTrue(mv_tasks[0][0] == "\\N")
+    assertTrue(mv_tasks[0][1] == "\\N")
+    assertTrue(mv_tasks[0][2] == "FAILED")
+    mv_not_part_in(sql_view_str, mtmvName)
+    compare_res(sql_view_str)
+    mv_not_part_in(sql_table_str, mtmvName)
+    compare_res(sql_table_str)
+
     // 基表删除重建
     sql """drop table ${tbName}"""
+    mv_infos = sql "select State,SyncWithBaseTables,RefreshState from mv_infos('database'='${dbName}') where Name='${mtmvName}'"
+    assertTrue(mv_infos.size() == 1)
+    assertTrue(mv_infos[0][0] == "SCHEMA_CHANGE")
+    assertTrue(mv_infos[0][1] == false)
+    assertTrue(mv_infos[0][2] == "FAIL")
+    part_info = sql "show partitions from ${mtmvName}"
+    assertTrue(part_info.size() == 2)
+    for (int i = 0; i < part_info.size(); i++) {
+        assertTrue(part_info[i][18] == false)
+    }
+    mv_not_part_in(sql_view_str, mtmvName)
+    compare_res(sql_view_str)
+    mv_not_part_in(sql_table_str, mtmvName)
+    compare_res(sql_table_str)
 
-     */
+    sql """refresh MATERIALIZED VIEW ${mtmvName} auto"""
+    waitingMTMVTaskFinishedByMvName(mtmvName)
+    mv_infos = sql "select State,SyncWithBaseTables,RefreshState from mv_infos('database'='${dbName}') where Name='${mtmvName}'"
+    assertTrue(mv_infos.size() == 1)
+    assertTrue(mv_infos[0][0] == "SCHEMA_CHANGE")
+    assertTrue(mv_infos[0][1] == false)
+    assertTrue(mv_infos[0][2] == "FAIL")
+    part_info = sql "show partitions from ${mtmvName}"
+    assertTrue(part_info.size() == 2)
+    for (int i = 0; i < part_info.size(); i++) {
+        assertTrue(part_info[i][18] == true)
+    }
+    mv_tasks = sql """select RefreshMode,Progress,Status from tasks("type"="mv") where MvName = '${mtmvName}' order by CreateTime desc limit 1"""
+    assertTrue(mv_tasks[0][0] == "\\N")
+    assertTrue(mv_tasks[0][1] == "\\N")
+    assertTrue(mv_tasks[0][2] == "FAILED")
+    mv_not_part_in(sql_view_str, mtmvName)
+    compare_res(sql_view_str)
+    mv_not_part_in(sql_table_str, mtmvName)
+    compare_res(sql_table_str)
 
+// recreate table
+    sql """CREATE TABLE ${tbName}
+        (
+            `event_time` datetime NOT NULL,
+            `user_id` bigint(20) NOT NULL,
+            `item_id` int(11) NOT NULL,
+            `amount` decimal(10, 2) NOT NULL,
+            `city` varchar(64) NOT NULL
+        )
+        DUPLICATE KEY(`event_time`, `user_id`)
+        partition by range(`event_time`) (
+            partition p1 values [('2025-10-01 00:00:00'), ('2025-10-02 00:00:00')),
+            partition p2 values [('2025-10-02 00:00:00'), ('2025-10-03 00:00:00'))
+        )
+        DISTRIBUTED BY HASH(`user_id`) BUCKETS 2
+        PROPERTIES (
+            "replication_num" = "1"
+        );"""
+    sql """INSERT INTO ${tbName} VALUES
+        ('2025-10-01 10:00:00', 1001, 1, 10.50, 'Beijing'),
+        ('2025-10-01 11:00:00', 1002, 2, 20.00, 'Shanghai'),
+        ('2025-10-02 12:00:00', 1001, 3, 5.50, 'Beijing'),
+        ('2025-10-02 13:00:00', 1003, 1, 30.00, 'Guangzhou');"""
+    sql """refresh MATERIALIZED VIEW ${mtmvName} auto"""
+    waitingMTMVTaskFinishedByMvName(mtmvName)
+    mv_infos = sql "select State,SyncWithBaseTables,RefreshState from mv_infos('database'='${dbName}') where Name='${mtmvName}'"
+    assertTrue(mv_infos.size() == 1)
+    assertTrue(mv_infos[0][0] == "NORMAL")
+    assertTrue(mv_infos[0][1] == true)
+    assertTrue(mv_infos[0][2] == "SUCCESS")
+    part_info = sql "show partitions from ${mtmvName}"
+    assertTrue(part_info.size() == 2)
+    for (int i = 0; i < part_info.size(); i++) {
+        assertTrue(part_info[i][18] == true)
+    }
+    mv_tasks = sql """select RefreshMode,Progress,Status from tasks("type"="mv") where MvName = '${mtmvName}' order by CreateTime desc limit 1"""
+    assertTrue(mv_tasks[0][0] == "COMPLETE")
+    assertTrue(mv_tasks[0][1] == "100.00% (2/2)")
+    assertTrue(mv_tasks[0][2] == "SUCCESS")
+    mv_rewrite_success(sql_view_str, mtmvName)
+    compare_res(sql_view_str)
+    mv_rewrite_success(sql_table_str, mtmvName)
+    compare_res(sql_table_str)
 
     // view结构的变化
     // 表结构的变动可能造成view结构的变动，也可能不会造成view结构的变动
     // 删除重建一个相同结构的view
+    sql """drop view ${viewName}"""
+    mv_infos = sql "select State,SyncWithBaseTables,RefreshState from mv_infos('database'='${dbName}') where Name='${mtmvName}'"
+    assertTrue(mv_infos.size() == 1)
+    assertTrue(mv_infos[0][0] == "SCHEMA_CHANGE")
+    assertTrue(mv_infos[0][1] == false)
+//    assertTrue(mv_infos[0][2] == "FAIL")
+    part_info = sql "show partitions from ${mtmvName}"
+    assertTrue(part_info.size() == 2)
+    for (int i = 0; i < part_info.size(); i++) {
+        assertTrue(part_info[i][18] == true)
+    }
+    mv_not_part_in(sql_view_str, mtmvName)
+    compare_res(sql_view_str)
+    mv_not_part_in(sql_table_str, mtmvName)
+    compare_res(sql_table_str)
+
+    sql """refresh MATERIALIZED VIEW ${mtmvName} auto"""
+    waitingMTMVTaskFinishedByMvName(mtmvName)
+    mv_infos = sql "select State,SyncWithBaseTables,RefreshState from mv_infos('database'='${dbName}') where Name='${mtmvName}'"
+    assertTrue(mv_infos.size() == 1)
+    assertTrue(mv_infos[0][0] == "SCHEMA_CHANGE")
+    assertTrue(mv_infos[0][1] == false)
+    assertTrue(mv_infos[0][2] == "FAIL")
+    part_info = sql "show partitions from ${mtmvName}"
+    assertTrue(part_info.size() == 2)
+    for (int i = 0; i < part_info.size(); i++) {
+        assertTrue(part_info[i][18] == false)
+    }
+    mv_tasks = sql """select RefreshMode,Progress,Status from tasks("type"="mv") where MvName = '${mtmvName}' order by CreateTime desc limit 1"""
+    assertTrue(mv_tasks[0][0] == "\\N")
+    assertTrue(mv_tasks[0][1] == "\\N")
+    assertTrue(mv_tasks[0][2] == "FAILED")
+    mv_not_part_in(sql_view_str, mtmvName)
+    compare_res(sql_view_str)
+    mv_not_part_in(sql_table_str, mtmvName)
+    compare_res(sql_table_str)
+
+    // recreate same view
+    sql """create view ${viewName} as 
+        SELECT event_time AS trading_date,user_id,item_id,amount,city,amount * 0.1 AS tax
+        FROM ${tbName}
+        WHERE amount > 10.00 
+        group by trading_date,user_id,item_id,amount,city,tax;"""
+    sql """refresh MATERIALIZED VIEW ${mtmvName} auto"""
+    waitingMTMVTaskFinishedByMvName(mtmvName)
+    mv_infos = sql "select State,SyncWithBaseTables,RefreshState from mv_infos('database'='${dbName}') where Name='${mtmvName}'"
+    assertTrue(mv_infos.size() == 1)
+    assertTrue(mv_infos[0][0] == "NORMAL")
+    assertTrue(mv_infos[0][1] == true)
+    assertTrue(mv_infos[0][2] == "SUCCESS")
+    part_info = sql "show partitions from ${mtmvName}"
+    assertTrue(part_info.size() == 2)
+    for (int i = 0; i < part_info.size(); i++) {
+        assertTrue(part_info[i][18] == true)
+    }
+    mv_tasks = sql """select RefreshMode,Progress,Status from tasks("type"="mv") where MvName = '${mtmvName}' order by CreateTime desc limit 1"""
+    assertTrue(mv_tasks[0][0] == "COMPLETE")
+    assertTrue(mv_tasks[0][1] == "100.00% (2/2)")
+    assertTrue(mv_tasks[0][2] == "SUCCESS")
+    mv_rewrite_success(sql_view_str, mtmvName)
+    compare_res(sql_view_str)
+    mv_rewrite_success(sql_table_str, mtmvName)
+    compare_res(sql_table_str)
+
+    // modify view
+    sql """ALTER VIEW ${viewName}
+        (
+            trading_date COMMENT "column 1",
+            user_id COMMENT "column 2",
+            item_id COMMENT "column 3",
+            amount COMMENT "column 4",
+            city COMMENT "column 5",
+            tax COMMENT "column 6"
+        )
+        AS SELECT event_time AS trading_date,user_id,item_id,amount,city,amount * 0.1 AS tax
+        FROM ${tbName}
+        WHERE amount > 10.00 
+        group by trading_date,user_id,item_id,amount,city,tax;"""
+    mv_infos = sql "select State,SyncWithBaseTables,RefreshState from mv_infos('database'='${dbName}') where Name='${mtmvName}'"
+    assertTrue(mv_infos.size() == 1)
+    assertTrue(mv_infos[0][0] == "SCHEMA_CHANGE")
+    assertTrue(mv_infos[0][1] == false)
+//    assertTrue(mv_infos[0][2] == "FAIL")
+    part_info = sql "show partitions from ${mtmvName}"
+    assertTrue(part_info.size() == 2)
+    for (int i = 0; i < part_info.size(); i++) {
+        assertTrue(part_info[i][18] == false)
+    }
+    mv_not_part_in(sql_view_str, mtmvName)
+    compare_res(sql_view_str)
+    mv_not_part_in(sql_table_str, mtmvName)
+    compare_res(sql_table_str)
+
+    sql """refresh MATERIALIZED VIEW ${mtmvName} auto"""
+    waitingMTMVTaskFinishedByMvName(mtmvName)
+    mv_infos = sql "select State,SyncWithBaseTables,RefreshState from mv_infos('database'='${dbName}') where Name='${mtmvName}'"
+    assertTrue(mv_infos.size() == 1)
+    assertTrue(mv_infos[0][0] == "NORMAL")
+    assertTrue(mv_infos[0][1] == true)
+    assertTrue(mv_infos[0][2] == "SUCCESS")
+    part_info = sql "show partitions from ${mtmvName}"
+    assertTrue(part_info.size() == 2)
+    for (int i = 0; i < part_info.size(); i++) {
+        assertTrue(part_info[i][18] == true)
+    }
+    mv_tasks = sql """select RefreshMode,Progress,Status from tasks("type"="mv") where MvName = '${mtmvName}' order by CreateTime desc limit 1"""
+    assertTrue(mv_tasks[0][0] == "COMPLETE")
+    assertTrue(mv_tasks[0][1] == "100.00% (2/2)")
+    assertTrue(mv_tasks[0][2] == "SUCCESS")
+    mv_rewrite_success(sql_view_str, mtmvName)
+    compare_res(sql_view_str)
+    mv_rewrite_success(sql_table_str, mtmvName)
+    compare_res(sql_table_str)
+
+
     // 删除重建一个结构不同的view，增加一列，或者某列数据类型变化
+    sql """drop view ${viewName}"""
+    sql """create view ${viewName} as 
+        SELECT event_time AS trading_date,user_id,item_id,amount,city,amount * 0.1 AS tax, 1 
+        FROM ${tbName}
+        WHERE amount > 10.00 
+        group by trading_date,user_id,item_id,amount,city,tax;"""
+    mv_infos = sql "select State,SyncWithBaseTables,RefreshState from mv_infos('database'='${dbName}') where Name='${mtmvName}'"
+    assertTrue(mv_infos.size() == 1)
+    assertTrue(mv_infos[0][0] == "SCHEMA_CHANGE")
+    assertTrue(mv_infos[0][1] == false)
+//    assertTrue(mv_infos[0][2] == "FAIL")
+    part_info = sql "show partitions from ${mtmvName}"
+    assertTrue(part_info.size() == 2)
+    for (int i = 0; i < part_info.size(); i++) {
+        assertTrue(part_info[i][18] == false)
+    }
+    mv_not_part_in(sql_view_str, mtmvName)
+    compare_res(sql_view_str)
+    mv_not_part_in(sql_table_str, mtmvName)
+    compare_res(sql_table_str)
+
+
+    sql """refresh MATERIALIZED VIEW ${mtmvName} auto"""
+    waitingMTMVTaskFinishedByMvName(mtmvName)
+    mv_infos = sql "select State,SyncWithBaseTables,RefreshState from mv_infos('database'='${dbName}') where Name='${mtmvName}'"
+    assertTrue(mv_infos.size() == 1)
+    assertTrue(mv_infos[0][0] == "NORMAL")
+    assertTrue(mv_infos[0][1] == true)
+    assertTrue(mv_infos[0][2] == "SUCCESS")
+    part_info = sql "show partitions from ${mtmvName}"
+    assertTrue(part_info.size() == 2)
+    for (int i = 0; i < part_info.size(); i++) {
+        assertTrue(part_info[i][18] == true)
+    }
+    mv_tasks = sql """select RefreshMode,Progress,Status from tasks("type"="mv") where MvName = '${mtmvName}' order by CreateTime desc limit 1"""
+    assertTrue(mv_tasks[0][0] == "COMPLETE")
+    assertTrue(mv_tasks[0][1] == "100.00% (2/2)")
+    assertTrue(mv_tasks[0][2] == "SUCCESS")
+    mv_rewrite_success(sql_view_str, mtmvName)
+    compare_res(sql_view_str)
+    mv_rewrite_success(sql_table_str, mtmvName)
+    compare_res(sql_table_str)
+
     // 构建view的语句的变化
+    sql """ALTER VIEW ${viewName}
+        AS SELECT event_time AS trading_date,user_id+1,item_id,amount,city,amount * 0.1 AS tax
+        FROM ${tbName}
+        WHERE amount > 10.00 
+        group by trading_date,user_id,item_id,amount,city,tax;"""
+    mv_infos = sql "select State,SyncWithBaseTables,RefreshState from mv_infos('database'='${dbName}') where Name='${mtmvName}'"
+    assertTrue(mv_infos.size() == 1)
+    assertTrue(mv_infos[0][0] == "SCHEMA_CHANGE")
+    assertTrue(mv_infos[0][1] == false)
+//    assertTrue(mv_infos[0][2] == "FAIL")
+    part_info = sql "show partitions from ${mtmvName}"
+    assertTrue(part_info.size() == 2)
+    for (int i = 0; i < part_info.size(); i++) {
+        assertTrue(part_info[i][18] == false)
+    }
+    mv_not_part_in(sql_view_str, mtmvName)
+    compare_res(sql_view_str)
+    mv_not_part_in(sql_table_str, mtmvName)
+    compare_res(sql_table_str)
 
-
+    sql """refresh MATERIALIZED VIEW ${mtmvName} auto"""
+    waitingMTMVTaskFinishedByMvName(mtmvName)
+    mv_infos = sql "select State,SyncWithBaseTables,RefreshState from mv_infos('database'='${dbName}') where Name='${mtmvName}'"
+    assertTrue(mv_infos.size() == 1)
+    assertTrue(mv_infos[0][0] == "SCHEMA_CHANGE")
+    assertTrue(mv_infos[0][1] == false)
+    assertTrue(mv_infos[0][2] == "FAIL")
+    part_info = sql "show partitions from ${mtmvName}"
+    assertTrue(part_info.size() == 2)
+    for (int i = 0; i < part_info.size(); i++) {
+        assertTrue(part_info[i][18] == false)
+    }
+    mv_tasks = sql """select RefreshMode,Progress,Status from tasks("type"="mv") where MvName = '${mtmvName}' order by CreateTime desc limit 1"""
+    assertTrue(mv_tasks[0][0] == "\\N")
+    assertTrue(mv_tasks[0][1] == "\\N")
+    assertTrue(mv_tasks[0][2] == "FAILED")
+    mv_not_part_in(sql_view_str, mtmvName)
+    compare_res(sql_view_str)
+    mv_not_part_in(sql_table_str, mtmvName)
+    compare_res(sql_table_str)
 
 
 }
