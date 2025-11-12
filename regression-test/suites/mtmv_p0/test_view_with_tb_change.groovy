@@ -116,7 +116,7 @@ suite("test_view_with_tb_change") {
     logger.info("part_info:" + part_info)
     assertTrue(part_info.size() == 2)
     for (int i = 0; i < part_info.size(); i++) {
-        if (part_info[i][1] == "p_20251001000000_20251002000000") {
+        if (part_info[i][1].toString() == "p_20251001000000_20251002000000") {
             assertTrue(part_info[i][18] == false)
         } else {
             assertTrue(part_info[i][18] == true)
