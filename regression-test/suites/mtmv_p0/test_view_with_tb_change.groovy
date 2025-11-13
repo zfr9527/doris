@@ -69,13 +69,13 @@ suite("test_view_with_tb_change") {
 
     sql """CREATE TABLE ${tbName}
         (
-            `city` varchar(64) NOT NULL,            
             `event_time` datetime NOT NULL,
             `user_id` bigint(20) NOT NULL,
             `item_id` int(11) NOT NULL,
-            `amount` decimal(10, 2) NOT NULL
+            `amount` decimal(10, 2) NOT NULL,
+            `city` varchar(64) NOT NULL
         )
-        DUPLICATE KEY(`city`)
+        DUPLICATE KEY(`event_time`, `user_id`)
         partition by range(`event_time`) (
             partition p1 values [('2025-10-01 00:00:00'), ('2025-10-02 00:00:00')),
             partition p2 values [('2025-10-02 00:00:00'), ('2025-10-03 00:00:00'))
