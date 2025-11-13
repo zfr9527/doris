@@ -20,8 +20,11 @@ suite("test_view_with_tb_change") {
     String dbName = context.config.getDbNameByFile(context.file)
     String prefix = "mtmv_view_with_tb_change_"
     String tbName = prefix + "table"
+    String tbName2 = prefix + "table2"
     String viewName = prefix + "view"
+    String viewName2 = prefix + "view2"
     String mtmvName = prefix + "mtmv"
+    String mtmvName2 = prefix + "mtmv2"
 
     def compare_res = { def stmt ->
         sql "SET enable_materialized_view_rewrite=false"
@@ -64,6 +67,7 @@ suite("test_view_with_tb_change") {
     }
 
     sql """drop table if exists ${tbName}"""
+    sql """drop table if exists ${tbName2}"""
     sql """drop view if exists ${viewName}"""
     sql """drop materialized view if exists ${mtmvName}"""
 
@@ -89,6 +93,28 @@ suite("test_view_with_tb_change") {
         ('2025-10-01 11:00:00', 1002, 2, 20.00, 'Shanghai'),
         ('2025-10-02 12:00:00', 1001, 3, 5.50, 'Beijing'),
         ('2025-10-02 13:00:00', 1003, 1, 30.00, 'Guangzhou');"""
+    sql """CREATE TABLE ${tbName2}
+        (
+            `event_time` datetime NOT NULL,
+            `user_id` bigint(20) NOT NULL,
+            `item_id` int(11) NOT NULL,
+            `amount` decimal(10, 2) NOT NULL,
+            `city` varchar(64) NOT NULL
+        )
+        DUPLICATE KEY(`event_time`, `user_id`)
+        partition by range(`event_time`) (
+            partition p1 values [('2025-10-01 00:00:00'), ('2025-10-02 00:00:00')),
+            partition p2 values [('2025-10-02 00:00:00'), ('2025-10-03 00:00:00'))
+        )
+        DISTRIBUTED BY HASH(`user_id`) BUCKETS 2
+        PROPERTIES (
+            "replication_num" = "1"
+        );"""
+    sql """INSERT INTO ${tbName2} VALUES
+        ('2025-10-01 10:00:00', 1001, 1, 10.50, 'Beijing'),
+        ('2025-10-01 11:00:00', 1002, 2, 20.00, 'Shanghai'),
+        ('2025-10-02 12:00:00', 1001, 3, 5.50, 'Beijing'),
+        ('2025-10-02 13:00:00', 1003, 1, 30.00, 'Guangzhou');"""
 //    sql """create view ${viewName} as
 //        SELECT DATE_TRUNC('day', event_time) AS trading_date,user_id,item_id,amount,city,amount * 0.1 AS tax
 //        FROM ${tbName}
@@ -100,15 +126,12 @@ suite("test_view_with_tb_change") {
         WHERE amount > 10.00 
         group by trading_date,user_id,item_id,amount,city,tax;"""
     def sql_view_str = """SELECT * FROM ${viewName} ORDER BY 1,2,3,4,5"""
-    def sql_table_str = """SELECT
-            trading_date,
-            city,
-            COUNT(DISTINCT user_id) AS distinct_users,
-            SUM(amount) AS total_amount,
-            SUM(tax) AS total_tax
-        FROM (SELECT * FROM ${viewName} ORDER BY 1,2,3,4,5) as vw
-        GROUP BY trading_date, city
-        ORDER BY 1,2,3,4,5"""
+    def sql_table_str = """
+        SELECT * FROM (SELECT event_time AS trading_date,user_id,item_id,amount,city,amount * 0.1 AS tax
+        FROM ${tbName}
+        WHERE amount > 10.00 
+        group by trading_date,user_id,item_id,amount,city,tax) as t ORDER BY 1,2,3,4,5
+        """
     sql """
         CREATE MATERIALIZED VIEW ${mtmvName}
         BUILD IMMEDIATE REFRESH AUTO ON MANUAL
@@ -126,9 +149,6 @@ suite("test_view_with_tb_change") {
     mv_rewrite_success_without_check_chosen(sql_table_str, mtmvName)
     compare_res(sql_table_str)
 
-
-// 检查物化视图状态，和查询是否可以命中
-    // 刷新物化视图，检查物化视图状态，和查询是否可以命中
     // insert into
     sql """INSERT INTO ${tbName} VALUES
         ('2025-10-01 12:00:00', 1001, 1, 10.50, 'Beijing');"""
@@ -781,21 +801,101 @@ suite("test_view_with_tb_change") {
     waitingMTMVTaskFinishedNotNeedSuccess(jobName)
     mv_infos = sql "select State,SyncWithBaseTables,RefreshState from mv_infos('database'='${dbName}') where Name='${mtmvName}'"
     assertTrue(mv_infos.size() == 1)
-    assertTrue(mv_infos[0][0] == "NORMAL")
-    assertTrue(mv_infos[0][1] == true)
-    assertTrue(mv_infos[0][2] == "SUCCESS")
+    assertTrue(mv_infos[0][0] == "SCHEMA_CHANGE")
+    assertTrue(mv_infos[0][1] == false)
+    assertTrue(mv_infos[0][2] == "FAIL")
     part_info = sql "show partitions from ${mtmvName}"
     assertTrue(part_info.size() == 2)
     for (int i = 0; i < part_info.size(); i++) {
-        assertTrue(part_info[i][18].toString() == "true")
+        assertTrue(part_info[i][18].toString() == "false")
     }
     mv_tasks = sql """select RefreshMode,Progress,Status from tasks("type"="mv") where MvName = '${mtmvName}' order by CreateTime desc limit 1"""
-    assertTrue(mv_tasks[0][0] == "COMPLETE")
-    assertTrue(mv_tasks[0][1] == "100.00% (2/2)")
-    assertTrue(mv_tasks[0][2] == "SUCCESS")
-    mv_rewrite_success_without_check_chosen(sql_view_str, mtmvName)
+    assertTrue(mv_tasks[0][0] == "\\N")
+    assertTrue(mv_tasks[0][1] == "\\N")
+    assertTrue(mv_tasks[0][2] == "FAILED")
+    mv_not_part_in(sql_view_str, mtmvName)
     compare_res(sql_view_str)
-    mv_rewrite_success_without_check_chosen(sql_table_str, mtmvName)
+    mv_not_part_in(sql_table_str, mtmvName)
+    compare_res(sql_table_str)
+
+    // pct table column change
+    sql """create view ${viewName2} as
+        SELECT t1.event_time AS trading_date, t2.user_id as user_id, t1.item_id as item_id, 
+        t2.amount as amount, t1.city as city, t2.amount * 0.1 AS tax
+        FROM ${tbName} as t1 inner join ${tbName2} as t2 
+        on t1.event_time = t2.event_time
+        WHERE t1.amount > 10.00 
+        group by trading_date,user_id,item_id,amount,city,tax;"""
+    sql_view_str = """SELECT * FROM ${viewName2} ORDER BY 1,2,3,4,5"""
+    sql_table_str = """
+        SELECT * FROM (SELECT t1.event_time AS trading_date, t2.user_id as user_id, t1.item_id as item_id, 
+        t2.amount as amount, t1.city as city, t2.amount * 0.1 AS tax
+        FROM ${tbName} as t1 inner join ${tbName2} as t2 
+        on t1.event_time = t2.event_time
+        WHERE t1.amount > 10.00 
+        group by trading_date,user_id,item_id,amount,city,tax) as t ORDER BY 1,2,3,4,5
+        """
+    sql """
+        CREATE MATERIALIZED VIEW ${mtmvName2}
+        BUILD IMMEDIATE REFRESH AUTO ON MANUAL
+        partition by (trading_date)
+        DISTRIBUTED BY RANDOM BUCKETS 2
+        PROPERTIES (
+        'replication_num' = '1'
+        )
+        AS
+        ${sql_view_str}
+        """
+    waitingMTMVTaskFinishedByMvName(mtmvName2)
+    mv_rewrite_success_without_check_chosen(sql_view_str, mtmvName2)
+    compare_res(sql_view_str)
+    mv_rewrite_success_without_check_chosen(sql_table_str, mtmvName2)
+    compare_res(sql_table_str)
+
+    //
+    sql """ALTER VIEW ${viewName2} AS 
+        SELECT t2.event_time AS trading_date, t2.user_id as user_id, t1.item_id as item_id, 
+        t2.amount as amount, t1.city as city, t2.amount * 0.1 AS tax
+        FROM ${tbName} as t1 inner join ${tbName2} as t2 
+        on t1.event_time = t2.event_time
+        WHERE t1.amount > 10.00 
+        group by trading_date,user_id,item_id,amount,city,tax;"""
+    mv_infos = sql "select State,SyncWithBaseTables,RefreshState from mv_infos('database'='${dbName}') where Name='${mtmvName}'"
+    assertTrue(mv_infos.size() == 1)
+    assertTrue(mv_infos[0][0] == "SCHEMA_CHANGE")
+    assertTrue(mv_infos[0][1] == false)
+//    assertTrue(mv_infos[0][2] == "FAIL")
+    part_info = sql "show partitions from ${mtmvName}"
+    assertTrue(part_info.size() == 2)
+    for (int i = 0; i < part_info.size(); i++) {
+        assertTrue(part_info[i][18].toString() == "false")
+    }
+    mv_not_part_in(sql_view_str, mtmvName)
+    compare_res(sql_view_str)
+    mv_not_part_in(sql_table_str, mtmvName)
+    compare_res(sql_table_str)
+
+    sql """refresh MATERIALIZED VIEW ${mtmvName} auto"""
+//    waitingMTMVTaskFinishedByMvName(mtmvName)
+    jobName = getJobName(dbName, mtmvName)
+    waitingMTMVTaskFinishedNotNeedSuccess(jobName)
+    mv_infos = sql "select State,SyncWithBaseTables,RefreshState from mv_infos('database'='${dbName}') where Name='${mtmvName}'"
+    assertTrue(mv_infos.size() == 1)
+    assertTrue(mv_infos[0][0] == "SCHEMA_CHANGE")
+    assertTrue(mv_infos[0][1] == false)
+    assertTrue(mv_infos[0][2] == "FAIL")
+    part_info = sql "show partitions from ${mtmvName}"
+    assertTrue(part_info.size() == 2)
+    for (int i = 0; i < part_info.size(); i++) {
+        assertTrue(part_info[i][18].toString() == "false")
+    }
+    mv_tasks = sql """select RefreshMode,Progress,Status from tasks("type"="mv") where MvName = '${mtmvName}' order by CreateTime desc limit 1"""
+    assertTrue(mv_tasks[0][0] == "\\N")
+    assertTrue(mv_tasks[0][1] == "\\N")
+    assertTrue(mv_tasks[0][2] == "FAILED")
+    mv_not_part_in(sql_view_str, mtmvName)
+    compare_res(sql_view_str)
+    mv_not_part_in(sql_table_str, mtmvName)
     compare_res(sql_table_str)
 
 
