@@ -767,7 +767,7 @@ suite("test_view_with_tb_change") {
     assertTrue(mv_tasks[0][2] == "SUCCESS")
     mv_rewrite_success_without_check_chosen(sql_view_str, mtmvName)
     compare_res(sql_view_str)
-    mv_rewrite_success_without_check_chosen(sql_table_str, mtmvName)
+    mv_rewrite_fail(sql_table_str, mtmvName)
     compare_res(sql_table_str)
 
     // 构建view的语句的变化  int+1会变成bigint
