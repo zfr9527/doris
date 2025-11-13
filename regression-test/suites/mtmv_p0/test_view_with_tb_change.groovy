@@ -576,10 +576,8 @@ suite("test_view_with_tb_change") {
         sql sql_view_str
         exception "does not exist"
     }
-    test {
-        sql sql_table_str
-        exception "does not exist"
-    }
+    mv_not_part_in(sql_table_str, mtmvName)
+    compare_res(sql_table_str)
 
     sql """refresh MATERIALIZED VIEW ${mtmvName} auto"""
 //    waitingMTMVTaskFinishedByMvName(mtmvName)
@@ -603,10 +601,8 @@ suite("test_view_with_tb_change") {
         sql sql_view_str
         exception "does not exist"
     }
-    test {
-        sql sql_table_str
-        exception "does not exist"
-    }
+    mv_not_part_in(sql_table_str, mtmvName)
+    compare_res(sql_table_str)
 
     // recreate same view
     sql """create view ${viewName} as 
