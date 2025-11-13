@@ -69,11 +69,11 @@ suite("test_view_with_tb_change") {
 
     sql """CREATE TABLE ${tbName}
         (
+            `city` varchar(64) NOT NULL,            
             `event_time` datetime NOT NULL,
             `user_id` bigint(20) NOT NULL,
             `item_id` int(11) NOT NULL,
-            `amount` decimal(10, 2) NOT NULL,
-            `city` varchar(64) NOT NULL
+            `amount` decimal(10, 2) NOT NULL
         )
         DUPLICATE KEY(`city`)
         partition by range(`event_time`) (
