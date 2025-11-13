@@ -75,7 +75,7 @@ suite("test_view_with_tb_change") {
             `amount` decimal(10, 2) NOT NULL,
             `city` varchar(64) NOT NULL
         )
-        DUPLICATE KEY(`event_time`, `user_id`)
+        DUPLICATE KEY(`city`)
         partition by range(`event_time`) (
             partition p1 values [('2025-10-01 00:00:00'), ('2025-10-02 00:00:00')),
             partition p2 values [('2025-10-02 00:00:00'), ('2025-10-03 00:00:00'))
@@ -385,6 +385,7 @@ suite("test_view_with_tb_change") {
     }
 
     // add column
+    // mark
     sql """alter table ${tbName} add column city varchar(64)"""
     waitingColumnTaskFinished(dbName, tbName)
     sql """refresh MATERIALIZED VIEW ${mtmvName} auto"""
@@ -395,7 +396,7 @@ suite("test_view_with_tb_change") {
     assertTrue(mv_infos[0][1] == true)
     assertTrue(mv_infos[0][2] == "SUCCESS")
     mv_tasks = sql """select RefreshMode,Progress,Status from tasks("type"="mv") where MvName = '${mtmvName}' order by CreateTime desc limit 1"""
-    assertTrue(mv_tasks[0][0] == "NOT_REFRESH")
+    assertTrue(mv_tasks[0][0] == "NOT_REFRESH") // complete
     assertTrue(mv_tasks[0][1] == "\\N")
     assertTrue(mv_tasks[0][2] == "SUCCESS")
     mv_rewrite_success_without_check_chosen(sql_view_str, mtmvName)
@@ -444,6 +445,7 @@ suite("test_view_with_tb_change") {
     mv_not_part_in(sql_table_str, mtmvName)
     compare_res(sql_table_str)
 
+    // mark 需要恢复mtmv的健康再继续删除
     // 基表删除重建
     sql """drop table ${tbName}"""
     mv_infos = sql "select State,SyncWithBaseTables,RefreshState from mv_infos('database'='${dbName}') where Name='${mtmvName}'"
@@ -711,6 +713,50 @@ suite("test_view_with_tb_change") {
     // 构建view的语句的变化
     sql """ALTER VIEW ${viewName}
         AS SELECT event_time AS trading_date,user_id+1 as user_id,item_id,amount,city,amount * 0.1 AS tax
+        FROM ${tbName}
+        WHERE amount > 10.00 
+        group by trading_date,user_id,item_id,amount,city,tax;"""
+    mv_infos = sql "select State,SyncWithBaseTables,RefreshState from mv_infos('database'='${dbName}') where Name='${mtmvName}'"
+    assertTrue(mv_infos.size() == 1)
+    assertTrue(mv_infos[0][0] == "SCHEMA_CHANGE")
+    assertTrue(mv_infos[0][1] == false)
+//    assertTrue(mv_infos[0][2] == "FAIL")
+    part_info = sql "show partitions from ${mtmvName}"
+    assertTrue(part_info.size() == 2)
+    for (int i = 0; i < part_info.size(); i++) {
+        assertTrue(part_info[i][18].toString() == "false")
+    }
+    mv_not_part_in(sql_view_str, mtmvName)
+    compare_res(sql_view_str)
+    mv_not_part_in(sql_table_str, mtmvName)
+    compare_res(sql_table_str)
+
+    sql """refresh MATERIALIZED VIEW ${mtmvName} auto"""
+//    waitingMTMVTaskFinishedByMvName(mtmvName)
+    jobName = getJobName(dbName, mtmvName)
+    waitingMTMVTaskFinishedNotNeedSuccess(jobName)
+    mv_infos = sql "select State,SyncWithBaseTables,RefreshState from mv_infos('database'='${dbName}') where Name='${mtmvName}'"
+    assertTrue(mv_infos.size() == 1)
+    assertTrue(mv_infos[0][0] == "NORMAL")
+    assertTrue(mv_infos[0][1] == true)
+    assertTrue(mv_infos[0][2] == "SUCCESS")
+    part_info = sql "show partitions from ${mtmvName}"
+    assertTrue(part_info.size() == 2)
+    for (int i = 0; i < part_info.size(); i++) {
+        assertTrue(part_info[i][18].toString() == "true")
+    }
+    mv_tasks = sql """select RefreshMode,Progress,Status from tasks("type"="mv") where MvName = '${mtmvName}' order by CreateTime desc limit 1"""
+    assertTrue(mv_tasks[0][0] == "COMPLETE")
+    assertTrue(mv_tasks[0][1] == "100.00% (2/2)")
+    assertTrue(mv_tasks[0][2] == "SUCCESS")
+    mv_rewrite_success_without_check_chosen(sql_view_str, mtmvName)
+    compare_res(sql_view_str)
+    mv_rewrite_success_without_check_chosen(sql_table_str, mtmvName)
+    compare_res(sql_table_str)
+
+    // 构建view的语句的变化  int+1会变成bigint
+    sql """ALTER VIEW ${viewName}
+        AS SELECT event_time AS trading_date,user_id,item_id+1 as item_id,amount,city,amount * 0.1 AS tax
         FROM ${tbName}
         WHERE amount > 10.00 
         group by trading_date,user_id,item_id,amount,city,tax;"""
