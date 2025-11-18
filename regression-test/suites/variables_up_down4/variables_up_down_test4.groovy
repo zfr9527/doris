@@ -61,7 +61,7 @@ suite("variables_up_down_test4") {
     qt_directe_sql256 """refresh materialized view mv_var_1 complete"""
     waitingMTMVTaskFinishedByMvName("mv_var_1")
     sql "set enable_decimal256=false;"
-    sql """refersh materialized view mv_var_1 complete"""
+    sql """refresh materialized view mv_var_1 complete"""
     waitingMTMVTaskFinishedByMvName("mv_var_1")
 
 }
