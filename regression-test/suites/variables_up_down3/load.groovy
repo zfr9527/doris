@@ -91,6 +91,11 @@ suite("variables_up_down_load3") {
         PROPERTIES("replication_num" = "1");
     """
     sql "set enable_decimal256=false;"
+    test {
+        sql "insert into t_gen_col_complex values(1.12343,1.123457,default,default,default);"
+        exception "Not Supported"
+    }
+    sql "set enable_decimal256=true;"
     sql "insert into t_gen_col_complex values(1.12343,1.123457,default,default,default);"
     qt_complex_expr "select * from t_gen_col_complex;"
 
