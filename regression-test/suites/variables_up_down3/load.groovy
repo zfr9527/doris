@@ -44,6 +44,11 @@ suite("variables_up_down_load3") {
         PROPERTIES("replication_num" = "1");
     """
     sql "set enable_decimal256=false;"
+    test {
+        sql "insert into t_gen_col_add_sub_mod_decimalv3 values(1.012345678,1.0123456789,default,default,default);"
+        exception "Not Supported"
+    }
+    sql "set enable_decimal256=true;"
     sql "insert into t_gen_col_add_sub_mod_decimalv3 values(1.012345678,1.0123456789,default,default,default);"
     qt_add_sub_mod "select * from t_gen_col_add_sub_mod_decimalv3;"
 
