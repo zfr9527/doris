@@ -25,7 +25,13 @@ suite("variables_up_down_load3") {
         PROPERTIES("replication_num" = "1");
     """
     sql "set enable_decimal256=false;"
+    test {
+        sql "insert into t_gen_col_divide_decimalv3 values(100.123456789012345678,2.123456789012345678,default);"
+        exception "Not Supported"
+    }
+    sql "set enable_decimal256=true;"
     sql "insert into t_gen_col_divide_decimalv3 values(100.123456789012345678,2.123456789012345678,default);"
+
     qt_divide_scale "select * from t_gen_col_divide_decimalv3;"
 
     // ========== 测试2: 加法运算 ==========
