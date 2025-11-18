@@ -23,7 +23,7 @@ suite("variables_up_down_load6") {
              """
     */
 
-    sql "set enable_decimal256=true;"
+    sql "set enable_decimal256=false;"
     sql """ DROP TABLE IF EXISTS t01; """
     sql """
         create table t01(id int, col_sum agg_state<sum(decimalv3(76,6))> generic, col_avg agg_state<avg(decimalv3(76,6))> generic)  properties ("replication_num" = "1");
@@ -36,6 +36,12 @@ suite("variables_up_down_load6") {
     select sum_merge(col_sum) from t01 group by id order by id;
     """
     qt_avg_256_0 """ select avg_merge(col_avg) from t01 group by id order by id;
+             """
+    sql "set enable_decimal256=true;"
+    qt_sum_256_256 """
+    select sum_merge(col_sum) from t01 group by id order by id;
+    """
+    qt_avg_256_256 """ select avg_merge(col_avg) from t01 group by id order by id;
              """
 
     /*
