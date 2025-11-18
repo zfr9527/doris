@@ -40,6 +40,7 @@ suite("variables_up_down_test6") {
 //    sql """
 //    insert into t01 values (1, sum_state(10.1), avg_state(10.1)), (1, sum_state(20.1), avg_state(20.1)), (2, sum_state(10.2), avg_state(10.2)), (2, sum_state(11.0), avg_state(11.0));
 //    """
+
     sql "set enable_decimal256=false;"
     qt_sum_256_0 """
     select sum_merge(col_sum) from t01 group by id order by id;
