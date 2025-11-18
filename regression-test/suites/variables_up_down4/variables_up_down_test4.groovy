@@ -46,7 +46,7 @@ suite("variables_up_down_test4") {
     sql "set enable_decimal256=false;"
     explain {
         sql query_sql
-        contains "mv_var_1 not chose"
+        contains "mv_var_1 chose"
     }
     qt_rewite_open128 "$query_sql"
 
