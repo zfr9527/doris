@@ -1,4 +1,4 @@
-suite("variables_up_down_test1") {
+suite("variables_up_down_test2") {
 
     sql "set enable_decimal256=false;"
     qt_sum1 "select * from v_test_array_sum order by 1,2,3,4,5,6, 7;"

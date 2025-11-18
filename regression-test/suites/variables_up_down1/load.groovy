@@ -1,4 +1,4 @@
-suite("variables_up_down_load") {
+suite("variables_up_down_load1") {
 
     multi_sql """
     drop table if exists test_decimal_mul_overflow1;

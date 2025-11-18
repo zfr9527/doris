@@ -1,4 +1,4 @@
-suite("variables_up_down_load") {
+suite("variables_up_down_load3") {
 
     // ========== 测试1: 乘法运算 ==========
     // 打开enable_decimal256建表

@@ -1,4 +1,4 @@
-suite("variables_up_down_load") {
+suite("variables_up_down_load2") {
 
     multi_sql """
     set enable_decimal256=true;

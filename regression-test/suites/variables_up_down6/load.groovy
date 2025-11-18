@@ -1,4 +1,4 @@
-suite("variables_up_down_load") {
+suite("variables_up_down_load6") {
 
     sql "set enable_agg_state=true"
     sql "set enable_decimal256=false;"

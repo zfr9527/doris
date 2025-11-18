@@ -1,4 +1,4 @@
-suite("variables_up_down_test1") {
+suite("variables_up_down_test4") {
 
     // 旧版本需要执行一遍
     // 新版本再执行一遍
