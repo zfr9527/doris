@@ -19,12 +19,12 @@ suite("variables_up_down_test6") {
 
     sql "set enable_decimal256=true;"
     test {
-        qt_sum0 """ select sum_merge(col_sum) from t01 group by id order by id;"""
+        sql """ select sum_merge(col_sum) from t01 group by id order by id;"""
         exception "INTERNAL_ERROR"
     }
 
     test {
-        qt_avg0 """ select avg_merge(col_avg) from t01 group by id order by id;"""
+        sql """ select avg_merge(col_avg) from t01 group by id order by id;"""
         exception "INTERNAL_ERROR"
     }
 
@@ -56,12 +56,12 @@ suite("variables_up_down_test6") {
              """
     sql "set enable_decimal256=true;"
     test {
-        qt_sum_256_0 """select sum_merge(col_sum) from t01 group by id order by id;"""
+        sql """select sum_merge(col_sum) from t01 group by id order by id;"""
         exception "INTERNAL_ERROR"
     }
 
     test {
-        qt_avg_256_0 """ select avg_merge(col_avg) from t01 group by id order by id;"""
+        sql """ select avg_merge(col_avg) from t01 group by id order by id;"""
         exception "INTERNAL_ERROR"
     }
 
