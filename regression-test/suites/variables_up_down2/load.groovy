@@ -1,6 +1,32 @@
 suite("variables_up_down_load2") {
 
     multi_sql """
+        drop table if exists test_decimal_mul_overflow1;
+        CREATE TABLE `test_decimal_mul_overflow1` (
+            `f1` decimal(20,5) NULL,
+            `f2` decimal(21,6) NULL
+        )DISTRIBUTED BY HASH(f1)
+        PROPERTIES("replication_num" = "1");
+        insert into test_decimal_mul_overflow1 values(999999999999999.12345,999999999999999.123456);
+    """
+
+    multi_sql """
+        drop table if exists t_decimalv3;
+        create table t_decimalv3(a decimal(38,9),b decimal(38,10))
+        DISTRIBUTED BY HASH(a)
+        PROPERTIES("replication_num" = "1");
+        insert into t_decimalv3 values(1.012345678,1.0123456789);
+    """
+
+    multi_sql """
+        drop table if exists t_decimalv3_for_compare;
+        create table t_decimalv3_for_compare(a decimal(38,9),b decimal(38,10))
+        DISTRIBUTED BY HASH(a)
+        PROPERTIES("replication_num" = "1");
+        insert into t_decimalv3_for_compare values(1.012345678,1.0123456781);
+    """
+
+    multi_sql """
     set enable_decimal256=true;
     drop table if EXISTS test_array_agg_view;
     create table test_array_agg_view (
@@ -25,24 +51,36 @@ suite("variables_up_down_load2") {
         [9999999999999999999.9999999999999999999, 9999999999999999999.9999999999999999999])
         ;
     """
-
     multi_sql """set enable_decimal256=true;
     drop view if EXISTS v_test_array_sum;
     create view v_test_array_sum as select kint, array_sum(a_int), array_sum(a_float), array_sum(a_double), array_sum(a_dec_v3_64), array_sum(a_dec_v3_128), array_sum(a_dec_v3_256) from test_array_agg_view;"""
-
+    qt_sum1 "select * from v_test_array_sum order by 1,2,3,4,5,6, 7;"
+    sql "set enable_decimal256=false;"
+    qt_sum2 "select * from v_test_array_sum order by 1,2,3,4,5,6, 7;"
 
     multi_sql """set enable_decimal256=true;
     drop view if EXISTS v_test_array_avg;
     create view v_test_array_avg as select kint, array_avg(a_int), array_avg(a_float), array_avg(a_double), array_avg(a_dec_v3_64), array_avg(a_dec_v3_128), array_avg(a_dec_v3_256) from test_array_agg_view;"""
-
+    qt_avg1 "select * from v_test_array_avg order by 1,2,3,4,5,6, 7;"
+    sql "set enable_decimal256=false;"
+    qt_avg2 "select * from v_test_array_avg order by 1,2,3,4,5,6, 7;"
 
     multi_sql """set enable_decimal256=true;
     drop view if EXISTS v_test_array_product;
     create view v_test_array_product as select kint, array_product(a_int), array_product(a_float), array_product(a_double), array_product(a_dec_v3_64), array_product(a_dec_v3_128), array_product(a_dec_v3_256) from test_array_agg_view;"""
+    qt_product1 "select * from v_test_array_product order by 1,2,3,4,5,6, 7;"
+    sql "set enable_decimal256=false;"
+    qt_product2 "select * from v_test_array_product order by 1,2,3,4,5,6, 7;"
 
+    sql """set enable_decimal256=true; """
+    qt_cum_sum1 "select *, array_cum_sum(a_int), array_cum_sum(a_float), array_cum_sum(a_double), array_cum_sum(a_dec_v3_64), array_cum_sum(a_dec_v3_128), array_cum_sum(a_dec_v3_256) from test_array_agg_view order by 1,2,3,4,5,6, 7;"
+    sql "set enable_decimal256=false;"
+    qt_cum_sum2 "select *, array_cum_sum(a_int), array_cum_sum(a_float), array_cum_sum(a_double), array_cum_sum(a_dec_v3_64), array_cum_sum(a_dec_v3_128), array_cum_sum(a_dec_v3_256) from test_array_agg_view order by 1,2,3,4,5,6, 7;"
 
     multi_sql """set enable_decimal256=true;
     drop view if EXISTS v_test_array_cum_sum;
     create view v_test_array_cum_sum as select *, array_cum_sum(a_int), array_cum_sum(a_float), array_cum_sum(a_double), array_cum_sum(a_dec_v3_64), array_cum_sum(a_dec_v3_128), array_cum_sum(a_dec_v3_256) from test_array_agg_view order by 1,2,3,4,5,6,7;"""
-
+    qt_cum_sum_view1 "select * from v_test_array_cum_sum order by 1,2,3,4,5,6, 7;"
+    sql "set enable_decimal256=false;"
+    qt_cum_sum_view2 "select * from v_test_array_cum_sum order by 1,2,3,4,5,6, 7;"
 }
