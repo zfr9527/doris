@@ -16,14 +16,14 @@
 // under the License.
 
 
-suite("ldap_and_doris_auth_same_user_test") {
+suite("ldap_and_doris_auth_same_user_test_with_ip") {
     String enabled = context.config.otherConfigs.get("enableLdapTest")
     if (enabled == null || !enabled.equalsIgnoreCase("true")) {
         logger.info("LDAP test is disabled in regression-conf.groovy, skipping.")
         return
     }
 
-    String prefix_str = "z10086_"
+    String prefix_str = "z10087_"
     String dbName = prefix_str + "db"
     String tbName = prefix_str + "tb"
     String tbName2 = prefix_str + "tb2"
@@ -77,11 +77,11 @@ suite("ldap_and_doris_auth_same_user_test") {
             deleteLdapEntry("""ldap://${ldapHost}:${ldapPort}""", ldapAdminUser, ldapAdminPassword, dn)
         }
     }
-    sql """REFRESH LDAP FOR ${testUser};"""
+    sql """REFRESH LDAP FOR ${testUser}@'127.0.0.1';"""
 
-    sql """drop user if exists '${testUser}'"""
-    sql """CREATE USER '${testUser}' IDENTIFIED BY '${testUserPlaintextPassword}';"""
-    sql """GRANT SELECT_PRIV ON ${dbName}.${tbName} TO '${testUser}';"""
+    sql """drop user if exists '${testUser}'@'127.0.0.1'"""
+    sql """CREATE USER '${testUser}'@'127.0.0.1' IDENTIFIED BY '${testUserPlaintextPassword}';"""
+    sql """GRANT SELECT_PRIV ON ${dbName}.${tbName} TO '${testUser}'@'127.0.0.1';"""
 
     def tokens = context.config.jdbcUrl.split('/')
     def url = tokens[0] + "//" + tokens[2] + "/" + "${dbName}?authenticationPlugins=org.apache.doris.regression.util.MysqlClearPasswordPluginWithoutSSL&defaultAuthenticationPlugin=org.apache.doris.regression.util.MysqlClearPasswordPluginWithoutSSL&disabledAuthenticationPlugins=org.apache.doris.regression.util.MysqlClearPasswordPlugin"
@@ -114,9 +114,9 @@ suite("ldap_and_doris_auth_same_user_test") {
     addLdapEntry("""ldap://${ldapHost}:${ldapPort}""", ldapAdminUser, ldapAdminPassword, ldifContent)
     sql """REFRESH LDAP FOR ${testUser};"""
     // Step 2: Create a role in Doris and a mapping for the LDAP group
-    sql """drop role if exists ${testGroup}"""
-    sql "CREATE ROLE '${testGroup}';"
-    sql "GRANT SELECT_PRIV ON ${dbName}.${tbName2} TO ROLE '${testGroup}';" // Grant some privilege to the role
+    sql """drop role if exists ${testGroup}@'127.0.0.1'"""
+    sql "CREATE ROLE '${testGroup}'@'127.0.0.1';"
+    sql "GRANT SELECT_PRIV ON ${dbName}.${tbName2} TO ROLE '${testGroup}'@'127.0.0.1';" // Grant some privilege to the role
     logger.info("Successfully created role '${testGroup}' in Doris.")
 
     connect(testUser, testUserPlaintextPassword, url) {
