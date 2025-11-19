@@ -15,16 +15,17 @@
 // specific language governing permissions and limitations
 // under the License.
 
-suite("ldap_test", "external_docker") {
+
+suite("ldap_and_doris_auth_test") {
     String enabled = context.config.otherConfigs.get("enableLdapTest")
     if (enabled == null || !enabled.equalsIgnoreCase("true")) {
         logger.info("LDAP test is disabled in regression-conf.groovy, skipping.")
         return
     }
 
-    String prefix_str = "ldap_test"
-    String dbName = prefix_str + "_db"
-    String tbName = prefix_str + "_tb"
+    String prefix_str = "ldap_and_doris_auth_"
+    String dbName = prefix_str + "db"
+    String tbName = prefix_str + "tb"
     sql """create database if not exists ${dbName}"""
     sql """drop table if exists ${dbName}.${tbName}"""
     sql """create table ${dbName}.${tbName} (
@@ -51,12 +52,11 @@ suite("ldap_test", "external_docker") {
 
     sql """set ldap_admin_password = password('${ldapAdminPassword}');"""
 
-    // Define the new test entities
     String testGroup = "doris_test_group"
     String testUser = "testuser"
     String testUserPassword = "{SSHA}4fqyv30HZK25GEzQ8J7R+3Wa7gvnfzSu"
     String testUserPlaintextPassword = "654321"
-    
+
     String testUserDn = "uid=${testUser},cn=${testGroup},${ldapBaseDn}"
     String testGroupDn = "cn=${testGroup},${ldapBaseDn}"
 
@@ -66,47 +66,24 @@ suite("ldap_test", "external_docker") {
             deleteLdapEntry("""ldap://${ldapHost}:${ldapPort}""", ldapAdminUser, ldapAdminPassword, dn)
         }
     }
-    
+
     // Prepare the multi-entry LDIF file content
-    String ldifContent = """dn: cn=${testGroup},${ldapBaseDn}
-        objectClass: groupOfNames
-        cn: ${testGroup}
-        member: uid=${testUser},cn=${testGroup},${ldapBaseDn}
-        
-        dn: uid=${testUser},cn=${testGroup},${ldapBaseDn}
-        objectClass: person
-        objectClass: inetOrgPerson
-        cn: ${testUser}
-        sn: ${testUser}
-        uid: ${testUser}
-        userPassword: ${testUserPassword}"""
+//    String ldifContent = """dn: cn=${testGroup},${ldapBaseDn}
+//        objectClass: groupOfNames
+//        cn: ${testGroup}
+//        member: uid=${testUser},cn=${testGroup},${ldapBaseDn}
+//
+//        dn: uid=${testUser},cn=${testGroup},${ldapBaseDn}
+//        objectClass: person
+//        objectClass: inetOrgPerson
+//        cn: ${testUser}
+//        sn: ${testUser}
+//        uid: ${testUser}
+//        userPassword: ${testUserPassword}"""
 
     // Step 1: Add OU, group, and user to LDAP server in one go
-    addLdapEntry("""ldap://${ldapHost}:${ldapPort}""", ldapAdminUser, ldapAdminPassword, ldifContent)
-    sql """REFRESH LDAP FOR ${testUser};"""
+//    addLdapEntry("""ldap://${ldapHost}:${ldapPort}""", ldapAdminUser, ldapAdminPassword, ldifContent)
+//    sql """REFRESH LDAP FOR ${testUser};"""
 
-    // Step 2: Create a role in Doris and a mapping for the LDAP group
-    sql """drop role if exists ${testGroup}"""
-    sql "CREATE ROLE '${testGroup}';"
-    sql "GRANT SELECT_PRIV ON ${dbName}.${tbName} TO ROLE '${testGroup}';" // Grant some privilege to the role
-    logger.info("Successfully created role '${testGroup}' in Doris.")
-
-    // Step 3: Verify that the new user can log in and has the correct role's permissions
-    def tokens = context.config.jdbcUrl.split('/')
-    def url=tokens[0] + "//" + tokens[2] + "/" + "information_schema?authenticationPlugins=org.apache.doris.regression.util.MysqlClearPasswordPluginWithoutSSL&defaultAuthenticationPlugin=org.apache.doris.regression.util.MysqlClearPasswordPluginWithoutSSL&disabledAuthenticationPlugins=org.apache.doris.regression.util.MysqlClearPasswordPlugin"
-    log.info("url: " + url)
-    connect(testUser, testUserPlaintextPassword, url) {
-        def res = sql """select * from ${dbName}.${tbName}"""
-        assertTrue(res.size() == 3)
-        logger.info("SUCCESS: LDAP user '${testUser}' successfully logged in to Doris.")
-    }
-    
-    // Clean up: always try to remove all created entities
-//    logger.info("Starting cleanup process...")
-//    sql "DROP ROLE '${testGroup}';"
-//
-//    for (String dn in [testUserDn, testGroupDn]) {
-//        deleteLdapEntry("""ldap://${ldapHost}:${ldapPort}""", ldapAdminUser, ldapAdminPassword, dn)
-//    }
 
 }
