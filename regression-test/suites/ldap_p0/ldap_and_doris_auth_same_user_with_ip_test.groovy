@@ -77,7 +77,7 @@ suite("ldap_and_doris_auth_same_user_test_with_ip") {
             deleteLdapEntry("""ldap://${ldapHost}:${ldapPort}""", ldapAdminUser, ldapAdminPassword, dn)
         }
     }
-    sql """REFRESH LDAP FOR ${testUser}@'127.0.0.1';"""
+    sql """REFRESH LDAP FOR ${testUser};"""
 
     sql """drop user if exists '${testUser}'@'127.0.0.1'"""
     sql """CREATE USER '${testUser}'@'127.0.0.1' IDENTIFIED BY '${testUserPlaintextPassword}';"""
