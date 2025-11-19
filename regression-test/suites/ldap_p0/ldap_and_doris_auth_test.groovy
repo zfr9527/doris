@@ -78,8 +78,51 @@ suite("ldap_and_doris_auth_same_user_test") {
         logger.info("SUCCESS: doris user '${testUser}' successfully logged in to Doris.")
     }
 
-    logger.info("Starting cleanup process...")
-    sql "DROP USER '${testUser}';"
+    // Prepare the multi-entry LDIF file content
+    String ldifContent = """dn: cn=${testGroup},${ldapBaseDn}
+        objectClass: groupOfNames
+        cn: ${testGroup}
+        member: uid=${testUser},cn=${testGroup},${ldapBaseDn}
+        
+        dn: uid=${testUser},cn=${testGroup},${ldapBaseDn}
+        objectClass: person
+        objectClass: inetOrgPerson
+        cn: ${testUser}
+        sn: ${testUser}
+        uid: ${testUser}
+        userPassword: ${testUserPassword}"""
+
+    // Step 1: Add OU, group, and user to LDAP server in one go
+    addLdapEntry("""ldap://${ldapHost}:${ldapPort}""", ldapAdminUser, ldapAdminPassword, ldifContent)
+    sql """REFRESH LDAP FOR ${testUser};"""
+    // Step 2: Create a role in Doris and a mapping for the LDAP group
+    sql """drop role if exists ${testGroup}"""
+    sql "CREATE ROLE '${testGroup}';"
+    sql "GRANT SELECT_PRIV ON ${dbName}.${tbName} TO ROLE '${testGroup}';" // Grant some privilege to the role
+    logger.info("Successfully created role '${testGroup}' in Doris.")
+
+    connect(testUser, testUserPlaintextPassword, url) {
+        def grants = sql """show grants"""
+        logger.info("grants:" + grants)
+        def res = sql """select * from ${dbName}.${tbName}"""
+        assertTrue(res.size() == 3)
+        logger.info("SUCCESS: doris user '${testUser}' successfully logged in to Doris.")
+    }
+
+
+    url = tokens[0] + "//" + tokens[2] + "/" + "information_schema?authenticationPlugins=org.apache.doris.regression.util.MysqlClearPasswordPluginWithoutSSL&defaultAuthenticationPlugin=org.apache.doris.regression.util.MysqlClearPasswordPluginWithoutSSL&disabledAuthenticationPlugins=org.apache.doris.regression.util.MysqlClearPasswordPlugin"
+    log.info("url: " + url)
+    connect(testUser, testUserPlaintextPassword, url) {
+        def grants = sql """show grants"""
+        logger.info("grants:" + grants)
+        def res = sql """select * from ${dbName}.${tbName}"""
+        assertTrue(res.size() == 3)
+        logger.info("SUCCESS: LDAP user '${testUser}' successfully logged in to Doris.")
+    }
+
+
+//    logger.info("Starting cleanup process...")
+//    sql "DROP USER '${testUser}';"
 
 
     // Prepare the multi-entry LDIF file content
