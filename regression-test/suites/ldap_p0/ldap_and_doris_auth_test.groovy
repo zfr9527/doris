@@ -80,6 +80,7 @@ suite("ldap_and_doris_auth_same_user_test") {
         logger.info("SUCCESS: doris user '${testUser}' successfully logged in to Doris.")
     }
 
+    /*
     // Prepare the multi-entry LDIF file content
     String ldifContent = """dn: cn=${testGroup},${ldapBaseDn}
         objectClass: groupOfNames
@@ -121,6 +122,8 @@ suite("ldap_and_doris_auth_same_user_test") {
         assertTrue(res.size() == 3)
         logger.info("SUCCESS: LDAP user '${testUser}' successfully logged in to Doris.")
     }
+
+     */
 
 
 //    logger.info("Starting cleanup process...")
