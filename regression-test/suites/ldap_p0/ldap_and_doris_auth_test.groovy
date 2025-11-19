@@ -68,6 +68,7 @@ suite("ldap_and_doris_auth_same_user_test") {
         }
     }
 
+    sql """drop user if exists '${testUser}'"""
     sql """CREATE USER '${testUser}' IDENTIFIED BY '${testUserPlaintextPassword}';"""
     sql """GRANT SELECT_PRIV ON ${dbName}.${tbName} TO '${testUser}'@'%';"""
 
