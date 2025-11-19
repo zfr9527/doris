@@ -30,6 +30,7 @@ suite("ldap_and_doris_auth_same_user_test") {
     String tbName2 = prefix_str + "tb2"
     sql """create database if not exists ${dbName}"""
     sql """drop table if exists ${dbName}.${tbName}"""
+    sql """drop table if exists ${dbName}.${tbName2}"""
     sql """create table ${dbName}.${tbName} (
                 id BIGINT,
                 username VARCHAR(20)
