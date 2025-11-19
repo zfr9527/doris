@@ -86,6 +86,10 @@ suite("ldap_and_doris_auth_same_user_test") {
     def tokens = context.config.jdbcUrl.split('/')
     def url = tokens[0] + "//" + tokens[2] + "/" + "${dbName}?authenticationPlugins=org.apache.doris.regression.util.MysqlClearPasswordPluginWithoutSSL&defaultAuthenticationPlugin=org.apache.doris.regression.util.MysqlClearPasswordPluginWithoutSSL&disabledAuthenticationPlugins=org.apache.doris.regression.util.MysqlClearPasswordPlugin"
     connect(testUser, testUserPlaintextPassword, url) {
+        def grants = sql """show grants;"""
+        logger.info("grants:" + grants)
+        assertTrue(grants.toString().contains("internal.${dbName}.${tbName}"))
+        assertFalse(grants.toString().contains("internal.${dbName}.${tbName2}"))
         def res = sql """select * from ${dbName}.${tbName}"""
         assertTrue(res.size() == 3)
         logger.info("SUCCESS: doris user '${testUser}' successfully logged in to Doris.")
@@ -118,6 +122,8 @@ suite("ldap_and_doris_auth_same_user_test") {
     connect(testUser, testUserPlaintextPassword, url) {
         def grants = sql """show grants"""
         logger.info("grants:" + grants)
+        assertTrue(grants.toString().contains("internal.${dbName}.${tbName}"))
+        assertTrue(grants.toString().contains("internal.${dbName}.${tbName2}"))
         def res = sql """select * from ${dbName}.${tbName}"""
         assertTrue(res.size() == 3)
         logger.info("SUCCESS: doris user '${testUser}' successfully logged in to Doris.")
