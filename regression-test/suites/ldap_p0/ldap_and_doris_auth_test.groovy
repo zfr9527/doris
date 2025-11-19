@@ -23,7 +23,7 @@ suite("ldap_and_doris_auth_same_user_test") {
         return
     }
 
-    String prefix_str = "ldap_and_doris_auth_same_user_"
+    String prefix_str = "doris_auth_same_user_"
     String dbName = prefix_str + "db"
     String tbName = prefix_str + "tb"
     sql """create database if not exists ${dbName}"""
