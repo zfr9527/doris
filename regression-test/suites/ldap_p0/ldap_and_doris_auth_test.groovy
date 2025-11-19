@@ -51,7 +51,7 @@ suite("ldap_and_doris_auth_same_user_test") {
     String ldapAdminPassword = context.config.otherConfigs.get("ldapPassword")
     String ldapBaseDn = context.config.otherConfigs.get("ldapBaseDn")
 
-    sql """set ldap_admin_password = password('${ldapAdminPassword}');"""
+//    sql """set ldap_admin_password = password('${ldapAdminPassword}');"""
 
     String testGroup = prefix_str + "group"
     String testUser = prefix_str + "user"
@@ -61,19 +61,19 @@ suite("ldap_and_doris_auth_same_user_test") {
     String testUserDn = "uid=${testUser},cn=${testGroup},${ldapBaseDn}"
     String testGroupDn = "cn=${testGroup},${ldapBaseDn}"
 
-    for (String dn in [testUserDn, testGroupDn]) {
-        def isExist = checkLdapEntryExist("""ldap://${ldapHost}:${ldapPort}""", ldapAdminUser, ldapAdminPassword, dn)
-        if (isExist) {
-            deleteLdapEntry("""ldap://${ldapHost}:${ldapPort}""", ldapAdminUser, ldapAdminPassword, dn)
-        }
-    }
+//    for (String dn in [testUserDn, testGroupDn]) {
+//        def isExist = checkLdapEntryExist("""ldap://${ldapHost}:${ldapPort}""", ldapAdminUser, ldapAdminPassword, dn)
+//        if (isExist) {
+//            deleteLdapEntry("""ldap://${ldapHost}:${ldapPort}""", ldapAdminUser, ldapAdminPassword, dn)
+//        }
+//    }
 
     sql """drop user if exists '${testUser}'"""
     sql """CREATE USER '${testUser}' IDENTIFIED BY '${testUserPlaintextPassword}';"""
     sql """GRANT SELECT_PRIV ON ${dbName}.${tbName} TO '${testUser}'@'%';"""
 
     def tokens = context.config.jdbcUrl.split('/')
-    def url = tokens[0] + "//" + tokens[2] + "/" + dbName + "?sslMode=DISABLED"
+    def url = tokens[0] + "//" + tokens[2] + "/" + dbName + "?"
     connect(testUser, testUserPlaintextPassword, url) {
         def res = sql """select * from ${dbName}.${tbName}"""
         assertTrue(res.size() == 3)
