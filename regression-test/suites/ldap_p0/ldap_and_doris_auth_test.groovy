@@ -16,14 +16,14 @@
 // under the License.
 
 
-suite("ldap_and_doris_auth_test") {
+suite("ldap_and_doris_auth_same_user_test") {
     String enabled = context.config.otherConfigs.get("enableLdapTest")
     if (enabled == null || !enabled.equalsIgnoreCase("true")) {
         logger.info("LDAP test is disabled in regression-conf.groovy, skipping.")
         return
     }
 
-    String prefix_str = "ldap_and_doris_auth_"
+    String prefix_str = "ldap_and_doris_auth_same_user_"
     String dbName = prefix_str + "db"
     String tbName = prefix_str + "tb"
     sql """create database if not exists ${dbName}"""
@@ -52,8 +52,8 @@ suite("ldap_and_doris_auth_test") {
 
     sql """set ldap_admin_password = password('${ldapAdminPassword}');"""
 
-    String testGroup = "doris_test_group"
-    String testUser = "testuser"
+    String testGroup = prefix_str + "group"
+    String testUser = prefix_str + "user"
     String testUserPassword = "{SSHA}4fqyv30HZK25GEzQ8J7R+3Wa7gvnfzSu"
     String testUserPlaintextPassword = "654321"
 
@@ -66,6 +66,21 @@ suite("ldap_and_doris_auth_test") {
             deleteLdapEntry("""ldap://${ldapHost}:${ldapPort}""", ldapAdminUser, ldapAdminPassword, dn)
         }
     }
+
+    sql """CREATE USER '${testUser}' IDENTIFIED BY '${testUserPlaintextPassword}';"""
+    sql """GRANT SELECT_PRIV ON ${dbName}.${tbName} TO '${testUser}'@'%';"""
+
+    def tokens = context.config.jdbcUrl.split('/')
+    def url = tokens[0] + "//" + tokens[2] + "/" + dbName + "?"
+    connect(testUser, testUserPlaintextPassword, url) {
+        def res = sql """select * from ${dbName}.${tbName}"""
+        assertTrue(res.size() == 3)
+        logger.info("SUCCESS: doris user '${testUser}' successfully logged in to Doris.")
+    }
+
+    logger.info("Starting cleanup process...")
+    sql "DROP USER '${testUser}';"
+
 
     // Prepare the multi-entry LDIF file content
 //    String ldifContent = """dn: cn=${testGroup},${ldapBaseDn}

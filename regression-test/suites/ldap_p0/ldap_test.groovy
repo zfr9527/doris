@@ -93,7 +93,7 @@ suite("ldap_test", "external_docker") {
 
     // Step 3: Verify that the new user can log in and has the correct role's permissions
     def tokens = context.config.jdbcUrl.split('/')
-    def url=tokens[0] + "//" + tokens[2] + "/" + "information_schema?authenticationPlugins=org.apache.doris.regression.util.MysqlClearPasswordPluginWithoutSSL&defaultAuthenticationPlugin=org.apache.doris.regression.util.MysqlClearPasswordPluginWithoutSSL&disabledAuthenticationPlugins=org.apache.doris.regression.util.MysqlClearPasswordPlugin"
+    def url = tokens[0] + "//" + tokens[2] + "/" + "information_schema?authenticationPlugins=org.apache.doris.regression.util.MysqlClearPasswordPluginWithoutSSL&defaultAuthenticationPlugin=org.apache.doris.regression.util.MysqlClearPasswordPluginWithoutSSL&disabledAuthenticationPlugins=org.apache.doris.regression.util.MysqlClearPasswordPlugin"
     log.info("url: " + url)
     connect(testUser, testUserPlaintextPassword, url) {
         def res = sql """select * from ${dbName}.${tbName}"""
