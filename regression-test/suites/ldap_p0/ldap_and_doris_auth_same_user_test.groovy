@@ -24,7 +24,7 @@ suite("ldap_and_doris_auth_same_user_test") {
     }
 
 //    String prefix_str = "doris_auth_same_user_"
-    String prefix_str = "10086_"
+    String prefix_str = "z10086_"
     String dbName = prefix_str + "db"
     String tbName = prefix_str + "tb"
     String tbName2 = prefix_str + "tb2"
