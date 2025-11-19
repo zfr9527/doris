@@ -83,7 +83,7 @@ suite("ldap_and_doris_auth_same_user_test") {
     sql """GRANT SELECT_PRIV ON ${dbName}.${tbName} TO '${testUser}'@'%';"""
 
     def tokens = context.config.jdbcUrl.split('/')
-    def url = tokens[0] + "//" + tokens[2] + "/" + "information_schema?"
+    def url = tokens[0] + "//" + tokens[2] + "/" + "${dbName}?authenticationPlugins=org.apache.doris.regression.util.MysqlClearPasswordPluginWithoutSSL&defaultAuthenticationPlugin=org.apache.doris.regression.util.MysqlClearPasswordPluginWithoutSSL&disabledAuthenticationPlugins=org.apache.doris.regression.util.MysqlClearPasswordPlugin"
     connect(testUser, testUserPlaintextPassword, url) {
         def res = sql """select * from ${dbName}.${tbName}"""
         assertTrue(res.size() == 3)
