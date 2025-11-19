@@ -23,8 +23,8 @@ suite("ldap_and_doris_auth_same_user_test") {
         return
     }
 
-//    String prefix_str = "doris_auth_same_user_"
-    String prefix_str = "aaaa"
+    String prefix_str = "doris_auth_same_user_"
+//    String prefix_str = "10086_"
     String dbName = prefix_str + "db"
     String tbName = prefix_str + "tb"
     String tbName2 = prefix_str + "tb2"
@@ -131,27 +131,11 @@ suite("ldap_and_doris_auth_same_user_test") {
 
 
 
-//    logger.info("Starting cleanup process...")
-//    sql "DROP USER '${testUser}';"
+    logger.info("Starting cleanup process...")
+    sql "DROP USER '${testUser}';"
 
-
-    // Prepare the multi-entry LDIF file content
-//    String ldifContent = """dn: cn=${testGroup},${ldapBaseDn}
-//        objectClass: groupOfNames
-//        cn: ${testGroup}
-//        member: uid=${testUser},cn=${testGroup},${ldapBaseDn}
-//
-//        dn: uid=${testUser},cn=${testGroup},${ldapBaseDn}
-//        objectClass: person
-//        objectClass: inetOrgPerson
-//        cn: ${testUser}
-//        sn: ${testUser}
-//        uid: ${testUser}
-//        userPassword: ${testUserPassword}"""
-
-    // Step 1: Add OU, group, and user to LDAP server in one go
-//    addLdapEntry("""ldap://${ldapHost}:${ldapPort}""", ldapAdminUser, ldapAdminPassword, ldifContent)
-//    sql """REFRESH LDAP FOR ${testUser};"""
-
+    for (String dn in [testUserDn, testGroupDn]) {
+        deleteLdapEntry("""ldap://${ldapHost}:${ldapPort}""", ldapAdminUser, ldapAdminPassword, dn)
+    }
 
 }
