@@ -27,6 +27,7 @@ suite("ldap_and_doris_auth_same_user_test") {
     String prefix_str = "aaaa"
     String dbName = prefix_str + "db"
     String tbName = prefix_str + "tb"
+    String tbName2 = prefix_str + "tb2"
     sql """create database if not exists ${dbName}"""
     sql """drop table if exists ${dbName}.${tbName}"""
     sql """create table ${dbName}.${tbName} (
@@ -44,6 +45,15 @@ suite("ldap_and_doris_auth_same_user_test") {
         (3, "333");
         """
 
+    sql """create table ${dbName}.${tbName2} (
+                id BIGINT,
+                username VARCHAR(20)
+            )
+            DISTRIBUTED BY HASH(id) BUCKETS 2
+            PROPERTIES (
+                "replication_num" = "1"
+            );"""
+
     // Get LDAP connection details from config
     String ldapHost = context.config.otherConfigs.get("ldapHost")
     String ldapPort = context.config.otherConfigs.get("ldapPort")
@@ -51,7 +61,7 @@ suite("ldap_and_doris_auth_same_user_test") {
     String ldapAdminPassword = context.config.otherConfigs.get("ldapPassword")
     String ldapBaseDn = context.config.otherConfigs.get("ldapBaseDn")
 
-//    sql """set ldap_admin_password = password('${ldapAdminPassword}');"""
+    sql """set ldap_admin_password = password('${ldapAdminPassword}');"""
 
     String testGroup = prefix_str + "group"
     String testUser = prefix_str + "user"
@@ -61,26 +71,26 @@ suite("ldap_and_doris_auth_same_user_test") {
     String testUserDn = "uid=${testUser},cn=${testGroup},${ldapBaseDn}"
     String testGroupDn = "cn=${testGroup},${ldapBaseDn}"
 
-//    for (String dn in [testUserDn, testGroupDn]) {
-//        def isExist = checkLdapEntryExist("""ldap://${ldapHost}:${ldapPort}""", ldapAdminUser, ldapAdminPassword, dn)
-//        if (isExist) {
-//            deleteLdapEntry("""ldap://${ldapHost}:${ldapPort}""", ldapAdminUser, ldapAdminPassword, dn)
-//        }
-//    }
+    for (String dn in [testUserDn, testGroupDn]) {
+        def isExist = checkLdapEntryExist("""ldap://${ldapHost}:${ldapPort}""", ldapAdminUser, ldapAdminPassword, dn)
+        if (isExist) {
+            deleteLdapEntry("""ldap://${ldapHost}:${ldapPort}""", ldapAdminUser, ldapAdminPassword, dn)
+        }
+    }
 
     sql """drop user if exists '${testUser}'"""
     sql """CREATE USER '${testUser}' IDENTIFIED BY '${testUserPlaintextPassword}';"""
     sql """GRANT SELECT_PRIV ON ${dbName}.${tbName} TO '${testUser}'@'%';"""
 
     def tokens = context.config.jdbcUrl.split('/')
-    def url = tokens[0] + "//" + tokens[2] + "/" + dbName + "?"
+    def url = tokens[0] + "//" + tokens[2] + "/" + "information_schema?authenticationPlugins=org.apache.doris.regression.util.MysqlClearPasswordPluginWithoutSSL&defaultAuthenticationPlugin=org.apache.doris.regression.util.MysqlClearPasswordPluginWithoutSSL&disabledAuthenticationPlugins=org.apache.doris.regression.util.MysqlClearPasswordPlugin"
     connect(testUser, testUserPlaintextPassword, url) {
         def res = sql """select * from ${dbName}.${tbName}"""
         assertTrue(res.size() == 3)
         logger.info("SUCCESS: doris user '${testUser}' successfully logged in to Doris.")
     }
 
-    /*
+
     // Prepare the multi-entry LDIF file content
     String ldifContent = """dn: cn=${testGroup},${ldapBaseDn}
         objectClass: groupOfNames
@@ -101,29 +111,17 @@ suite("ldap_and_doris_auth_same_user_test") {
     // Step 2: Create a role in Doris and a mapping for the LDAP group
     sql """drop role if exists ${testGroup}"""
     sql "CREATE ROLE '${testGroup}';"
-    sql "GRANT SELECT_PRIV ON ${dbName}.${tbName} TO ROLE '${testGroup}';" // Grant some privilege to the role
+    sql "GRANT SELECT_PRIV ON ${dbName}.${tbName2} TO ROLE '${testGroup}';" // Grant some privilege to the role
     logger.info("Successfully created role '${testGroup}' in Doris.")
 
-//    connect(testUser, testUserPlaintextPassword, url) {
-//        def grants = sql """show grants"""
-//        logger.info("grants:" + grants)
-//        def res = sql """select * from ${dbName}.${tbName}"""
-//        assertTrue(res.size() == 3)
-//        logger.info("SUCCESS: doris user '${testUser}' successfully logged in to Doris.")
-//    }
-
-
-    url = tokens[0] + "//" + tokens[2] + "/" + "information_schema?authenticationPlugins=org.apache.doris.regression.util.MysqlClearPasswordPluginWithoutSSL&defaultAuthenticationPlugin=org.apache.doris.regression.util.MysqlClearPasswordPluginWithoutSSL&disabledAuthenticationPlugins=org.apache.doris.regression.util.MysqlClearPasswordPlugin"
-    log.info("url: " + url)
     connect(testUser, testUserPlaintextPassword, url) {
         def grants = sql """show grants"""
         logger.info("grants:" + grants)
         def res = sql """select * from ${dbName}.${tbName}"""
         assertTrue(res.size() == 3)
-        logger.info("SUCCESS: LDAP user '${testUser}' successfully logged in to Doris.")
+        logger.info("SUCCESS: doris user '${testUser}' successfully logged in to Doris.")
     }
 
-     */
 
 
 //    logger.info("Starting cleanup process...")
