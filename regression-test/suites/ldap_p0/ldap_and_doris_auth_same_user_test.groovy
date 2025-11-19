@@ -126,7 +126,7 @@ suite("ldap_and_doris_auth_same_user_test") {
         assertTrue(grants.toString().contains("internal.${dbName}.${tbName2}"))
         def res = sql """select * from ${dbName}.${tbName}"""
         assertTrue(res.size() == 3)
-        logger.info("SUCCESS: doris user '${testUser}' successfully logged in to Doris.")
+        logger.info("SUCCESS: user '${testUser}' successfully logged in to Doris.")
     }
 
 
