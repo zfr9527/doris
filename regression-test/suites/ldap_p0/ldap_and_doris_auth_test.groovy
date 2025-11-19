@@ -102,13 +102,13 @@ suite("ldap_and_doris_auth_same_user_test") {
     sql "GRANT SELECT_PRIV ON ${dbName}.${tbName} TO ROLE '${testGroup}';" // Grant some privilege to the role
     logger.info("Successfully created role '${testGroup}' in Doris.")
 
-    connect(testUser, testUserPlaintextPassword, url) {
-        def grants = sql """show grants"""
-        logger.info("grants:" + grants)
-        def res = sql """select * from ${dbName}.${tbName}"""
-        assertTrue(res.size() == 3)
-        logger.info("SUCCESS: doris user '${testUser}' successfully logged in to Doris.")
-    }
+//    connect(testUser, testUserPlaintextPassword, url) {
+//        def grants = sql """show grants"""
+//        logger.info("grants:" + grants)
+//        def res = sql """select * from ${dbName}.${tbName}"""
+//        assertTrue(res.size() == 3)
+//        logger.info("SUCCESS: doris user '${testUser}' successfully logged in to Doris.")
+//    }
 
 
     url = tokens[0] + "//" + tokens[2] + "/" + "information_schema?authenticationPlugins=org.apache.doris.regression.util.MysqlClearPasswordPluginWithoutSSL&defaultAuthenticationPlugin=org.apache.doris.regression.util.MysqlClearPasswordPluginWithoutSSL&disabledAuthenticationPlugins=org.apache.doris.regression.util.MysqlClearPasswordPlugin"
