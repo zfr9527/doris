@@ -78,6 +78,7 @@ suite("ldap_and_doris_auth_same_user_test") {
             deleteLdapEntry("""ldap://${ldapHost}:${ldapPort}""", ldapAdminUser, ldapAdminPassword, dn)
         }
     }
+    sql """REFRESH LDAP FOR ${testUser};"""
 
     sql """drop user if exists '${testUser}'"""
     sql """CREATE USER '${testUser}' IDENTIFIED BY '${testUserPlaintextPassword}';"""
