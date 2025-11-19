@@ -132,7 +132,9 @@ suite("ldap_and_doris_auth_same_user_test_with_ip") {
 
 
     logger.info("Starting cleanup process...")
-    sql "DROP USER '${testUser}';"
+    sql "DROP USER '${testUser}'@'127.0.0.1';"
+    sql """drop role ${testGroup}"""
+
 
     for (String dn in [testUserDn, testGroupDn]) {
         deleteLdapEntry("""ldap://${ldapHost}:${ldapPort}""", ldapAdminUser, ldapAdminPassword, dn)

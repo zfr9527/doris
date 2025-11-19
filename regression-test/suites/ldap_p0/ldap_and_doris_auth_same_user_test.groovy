@@ -133,6 +133,7 @@ suite("ldap_and_doris_auth_same_user_test") {
 
     logger.info("Starting cleanup process...")
     sql "DROP USER '${testUser}';"
+    sql """drop role ${testGroup}"""
 
     for (String dn in [testUserDn, testGroupDn]) {
         deleteLdapEntry("""ldap://${ldapHost}:${ldapPort}""", ldapAdminUser, ldapAdminPassword, dn)

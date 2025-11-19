@@ -102,11 +102,12 @@ suite("ldap_test", "external_docker") {
     }
     
     // Clean up: always try to remove all created entities
-//    logger.info("Starting cleanup process...")
-//    sql "DROP ROLE '${testGroup}';"
-//
-//    for (String dn in [testUserDn, testGroupDn]) {
-//        deleteLdapEntry("""ldap://${ldapHost}:${ldapPort}""", ldapAdminUser, ldapAdminPassword, dn)
-//    }
+    logger.info("Starting cleanup process...")
+    sql "DROP ROLE '${testGroup}';"
+    sql """drop role ${testGroup}"""
+
+    for (String dn in [testUserDn, testGroupDn]) {
+        deleteLdapEntry("""ldap://${ldapHost}:${ldapPort}""", ldapAdminUser, ldapAdminPassword, dn)
+    }
 
 }
