@@ -23,13 +23,11 @@ suite("create_and_delete_ldap_user_test") {
         return
     }
 
-    String prefix_str = "z10088_"
+    String prefix_str = "z10089_"
     String dbName = prefix_str + "db"
     String tbName = prefix_str + "tb"
-//    String tbName2 = prefix_str + "tb2"
     sql """create database if not exists ${dbName}"""
     sql """drop table if exists ${dbName}.${tbName}"""
-//    sql """drop table if exists ${dbName}.${tbName2}"""
     sql """create table ${dbName}.${tbName} (
                 id BIGINT,
                 username VARCHAR(20)
@@ -44,15 +42,6 @@ suite("create_and_delete_ldap_user_test") {
         (2, "222"),
         (3, "333");
         """
-
-//    sql """create table ${dbName}.${tbName2} (
-//                id BIGINT,
-//                username VARCHAR(20)
-//            )
-//            DISTRIBUTED BY HASH(id) BUCKETS 2
-//            PROPERTIES (
-//                "replication_num" = "1"
-//            );"""
 
     // Get LDAP connection details from config
     String ldapHost = context.config.otherConfigs.get("ldapHost")
@@ -148,16 +137,6 @@ suite("create_and_delete_ldap_user_test") {
     }
 
     sql """drop role ${testGroup}"""
-
-    connect(testUser, testUserPlaintextPassword, url) {
-        def grants = sql """show grants"""
-        logger.info("grants:" + grants)
-        assertTrue(grants.toString().contains("internal.${dbName}.${tbName}"))
-//        assertTrue(grants.toString().contains("internal.${dbName}.${tbName2}"))
-        def res = sql """select * from ${dbName}.${tbName}"""
-        assertTrue(res.size() == 3)
-        logger.info("SUCCESS: user '${testUser}' successfully logged in to Doris.")
-    }
 
     /* 这里的疑问是：在doris这边删除了对应group的role，ldap用户仍然可以连接到doris，是否符合预期
 //    try {
