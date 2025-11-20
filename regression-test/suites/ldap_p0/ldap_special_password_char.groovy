@@ -63,9 +63,9 @@ suite("ldap_special_password_char", "external_docker") {
         uid: ${testUser}
         userPassword: ${testUserPassword}"""
 
-        sql """drop role if exists ${testGroup}"""
+        sql """drop role if exists '${testGroup}'"""
         addLdapEntry("""ldap://${ldapHost}:${ldapPort}""", ldapAdminUser, ldapAdminPassword, ldifContent)
-        sql """REFRESH LDAP FOR ${testUser};"""
+        sql """REFRESH LDAP FOR '${testUser}';"""
 
         def tokens = context.config.jdbcUrl.split('/')
         def url = tokens[0] + "//" + tokens[2] + "/" + "information_schema?authenticationPlugins=org.apache.doris.regression.util.MysqlClearPasswordPluginWithoutSSL&defaultAuthenticationPlugin=org.apache.doris.regression.util.MysqlClearPasswordPluginWithoutSSL&disabledAuthenticationPlugins=org.apache.doris.regression.util.MysqlClearPasswordPlugin"
@@ -78,7 +78,6 @@ suite("ldap_special_password_char", "external_docker") {
 
         // Clean up: always try to remove all created entities
         logger.info("Starting cleanup process...")
-
 
         for (String dn in [testUserDn, testGroupDn]) {
             deleteLdapEntry("""ldap://${ldapHost}:${ldapPort}""", ldapAdminUser, ldapAdminPassword, dn)
