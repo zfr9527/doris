@@ -1917,18 +1917,19 @@ class Suite implements GroovyInterceptable {
     }
 
     def checkLdapEntryExist = { def ldapUrl, def bindDn, def password, def dn ->
-
         def sLdapUrl = ldapUrl.toString()
         def sBindDn = bindDn.toString()
         def sPassword = password.toString()
         def sDn = dn.toString()
+
+        def sDnEscapedForShell = sDn.replaceAll("'", "'\\\\''")
 
         def cmdList = [
                 "ldapsearch",
                 "-H", sLdapUrl,
                 "-D", sBindDn,
                 "-w", sPassword,
-                "-b", sDn,
+                "-b", sDnEscapedForShell,
                 "-s", "base",
                 "-LLL",
                 "objectClass=*"
