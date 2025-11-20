@@ -132,35 +132,21 @@ suite("create_and_delete_ldap_user_test") {
 //    sql "DROP USER '${testUser}';"
 //    sql """drop role ${testGroup}"""
 
-//    for (String dn in [testUserDn, testGroupDn]) {
-//        deleteLdapEntry("""ldap://${ldapHost}:${ldapPort}""", ldapAdminUser, ldapAdminPassword, dn)
-//    }
-//
-//    connect(testUser, testUserPlaintextPassword, url) {
-//        def grants = sql """show grants"""
-//        logger.info("grants:" + grants)
-//        assertTrue(grants.toString().contains("internal.${dbName}.${tbName}"))
-////        assertTrue(grants.toString().contains("internal.${dbName}.${tbName2}"))
-//        def res = sql """select * from ${dbName}.${tbName}"""
-//        assertTrue(res.size() == 3)
-//        logger.info("SUCCESS: user '${testUser}' successfully logged in to Doris.")
-//    }
-
-    /*
-    sql """drop role ${testGroup}"""
+    for (String dn in [testUserDn, testGroupDn]) {
+        deleteLdapEntry("""ldap://${ldapHost}:${ldapPort}""", ldapAdminUser, ldapAdminPassword, dn)
+    }
 
     connect(testUser, testUserPlaintextPassword, url) {
         def grants = sql """show grants"""
         logger.info("grants:" + grants)
-        assertFalse(grants.toString().contains("internal.${dbName}.${tbName}"))
+        assertTrue(grants.toString().contains("internal.${dbName}.${tbName}"))
 //        assertTrue(grants.toString().contains("internal.${dbName}.${tbName2}"))
         def res = sql """select * from ${dbName}.${tbName}"""
         assertTrue(res.size() == 3)
         logger.info("SUCCESS: user '${testUser}' successfully logged in to Doris.")
     }
 
-
-     */
+    sql """drop role ${testGroup}"""
 
     /* 这里的疑问是：在doris这边删除了对应group的role，ldap用户仍然可以连接到doris，是否符合预期
 //    try {
@@ -184,16 +170,15 @@ suite("create_and_delete_ldap_user_test") {
 
      */
 
-//
-//    sql """REFRESH LDAP FOR ${testUser};"""
-//
-//    try {
-//        connect(testUser, testUserPlaintextPassword, url) {
-//            assert false
-//        }
-//    } catch (Exception e) {
-//        log.info("e.getMessage(): " + e.getMessage())
-//        assertTrue(e.getMessage().contains('Access denied'))
-//    }
+    sql """REFRESH LDAP FOR ${testUser};"""
+
+    try {
+        connect(testUser, testUserPlaintextPassword, url) {
+            assert false
+        }
+    } catch (Exception e) {
+        log.info("e.getMessage(): " + e.getMessage())
+        assertTrue(e.getMessage().contains('Access denied'))
+    }
 
 }
