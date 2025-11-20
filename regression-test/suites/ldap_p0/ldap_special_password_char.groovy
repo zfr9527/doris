@@ -74,6 +74,69 @@ suite("ldap_special_password_char", "external_docker") {
             assertTrue(e.getMessage().contains('invalid DN'))
         }
 
+//        sql """REFRESH LDAP FOR '${testUser}';"""
+//
+//        def tokens = context.config.jdbcUrl.split('/')
+//        def url = tokens[0] + "//" + tokens[2] + "/" + "information_schema?authenticationPlugins=org.apache.doris.regression.util.MysqlClearPasswordPluginWithoutSSL&defaultAuthenticationPlugin=org.apache.doris.regression.util.MysqlClearPasswordPluginWithoutSSL&disabledAuthenticationPlugins=org.apache.doris.regression.util.MysqlClearPasswordPlugin"
+//        log.info("url: " + url)
+//        connect(testUser, testUserPlaintextPassword, url) {
+//            def grants = sql """show grants;"""
+//            logger.info("grants:" + grants)
+//            logger.info("SUCCESS: LDAP user '${testUser}' successfully logged in to Doris.")
+//        }
+//
+//        // Clean up: always try to remove all created entities
+//        logger.info("Starting cleanup process...")
+//
+//        for (String dn in [testUserDn, testGroupDn]) {
+//            deleteLdapEntry("""ldap://${ldapHost}:${ldapPort}""", ldapAdminUser, ldapAdminPassword, dn)
+//        }
+    }
+
+
+/*
+
+    // "test#comment","user' OR 1=1--","user\$(id)","\"test\"", "test user","user\\00","一",
+    def special_character = ["test,group", "test+admin", "test\\user", "user;rm -rf /", "😊"]
+
+    for (def each_it : special_character) {
+        logger.info("each_it: " + each_it)
+        // Define the new test entities
+        String testGroup = each_it
+        String testUser = prefix_str + "user"
+        String testUserPassword = "C123_567p"
+        String testUserPlaintextPassword = "C123_567p"
+
+        String testUserDn = "uid=${testUser},cn=${testGroup},${ldapBaseDn}"
+        String testGroupDn = "cn=${testGroup},${ldapBaseDn}"
+
+        for (String dn in [testUserDn, testGroupDn]) {
+            deleteLdapEntry("""ldap://${ldapHost}:${ldapPort}""", ldapAdminUser, ldapAdminPassword, dn)
+        }
+
+        // Prepare the multi-entry LDIF file content
+        String ldifContent = """dn: cn=${testGroup},${ldapBaseDn}
+        objectClass: groupOfNames
+        cn: ${testGroup}
+        member: uid=${testUser},cn=${testGroup},${ldapBaseDn}
+
+        dn: uid=${testUser},cn=${testGroup},${ldapBaseDn}
+        objectClass: person
+        objectClass: inetOrgPerson
+        cn: ${testUser}
+        sn: ${testUser}
+        uid: ${testUser}
+        userPassword: ${testUserPassword}"""
+
+//        sql """drop role if exists '${testGroup}'"""
+        try {
+            addLdapEntry("""ldap://${ldapHost}:${ldapPort}""", ldapAdminUser, ldapAdminPassword, ldifContent)
+            assert false
+        } catch (Exception e) {
+            log.info("e.getMessage(): " + e.getMessage())
+            assertTrue(e.getMessage().contains('invalid DN'))
+        }
+
         sql """REFRESH LDAP FOR '${testUser}';"""
 
         def tokens = context.config.jdbcUrl.split('/')
@@ -92,6 +155,10 @@ suite("ldap_special_password_char", "external_docker") {
             deleteLdapEntry("""ldap://${ldapHost}:${ldapPort}""", ldapAdminUser, ldapAdminPassword, dn)
         }
     }
+
+
+ */
+
 
 
 
