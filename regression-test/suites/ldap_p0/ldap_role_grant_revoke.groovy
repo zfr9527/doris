@@ -22,7 +22,7 @@ suite("ldap_role_grant_revoke") {
         return
     }
 
-    String prefix_str = "z10092_"
+    String prefix_str = "z10093_"
     String dbName = prefix_str + "_db"
     String tbName = prefix_str + "_tb"
     String tbName2 = prefix_str + "_tb2"
@@ -69,8 +69,8 @@ suite("ldap_role_grant_revoke") {
     sql """set ldap_admin_password = password('${ldapAdminPassword}');"""
 
     // Define the new test entities
-    String testGroup = "doris_test_group"
-    String testUser = "testuser"
+    String testGroup = prefix_str + "group"
+    String testUser = prefix_str + "user"
     String testUserPassword = "{SSHA}4fqyv30HZK25GEzQ8J7R+3Wa7gvnfzSu"
     String testUserPlaintextPassword = "654321"
     
@@ -119,7 +119,7 @@ suite("ldap_role_grant_revoke") {
         logger.info("SUCCESS: LDAP user '${testUser}' successfully logged in to Doris.")
     }
 
-    sql "GRANT SELECT_PRIV ON ${dbName}.${tbName2} TO '${testUser}';" // Grant some privilege to the role
+    sql "GRANT SELECT_PRIV ON ${dbName}.${tbName2} TO '${testUser}';"
     connect(testUser, testUserPlaintextPassword, url) {
         def grants = sql """show grants;"""
         logger.info("grants:" + grants)
