@@ -33,9 +33,7 @@ suite("ldap_special_password_char", "external_docker") {
 
     sql """set ldap_admin_password = password('${ldapAdminPassword}');"""
 
-    // "test#comment","user' OR 1=1--","user\$(id)","\"test\"", "test user","user\\00","一",
-    def special_character = ["test,group", "test+admin", "test\\user", "user;rm -rf /", "😊"]
-
+    def special_character = ["test,group", "test+admin", "test\\user", "user;rm -rf /"]
     for (def each_it : special_character) {
         logger.info("each_it: " + each_it)
         // Define the new test entities
@@ -93,12 +91,7 @@ suite("ldap_special_password_char", "external_docker") {
 //        }
     }
 
-
-/*
-
-    // "test#comment","user' OR 1=1--","user\$(id)","\"test\"", "test user","user\\00","一",
-    def special_character = ["test,group", "test+admin", "test\\user", "user;rm -rf /", "😊"]
-
+    special_character = ["test#comment","user' OR 1=1--","user\$(id)","\"test\"", "test user","user\\00","一", "😊"]
     for (def each_it : special_character) {
         logger.info("each_it: " + each_it)
         // Define the new test entities
@@ -128,15 +121,7 @@ suite("ldap_special_password_char", "external_docker") {
         uid: ${testUser}
         userPassword: ${testUserPassword}"""
 
-//        sql """drop role if exists '${testGroup}'"""
-        try {
-            addLdapEntry("""ldap://${ldapHost}:${ldapPort}""", ldapAdminUser, ldapAdminPassword, ldifContent)
-            assert false
-        } catch (Exception e) {
-            log.info("e.getMessage(): " + e.getMessage())
-            assertTrue(e.getMessage().contains('invalid DN'))
-        }
-
+        addLdapEntry("""ldap://${ldapHost}:${ldapPort}""", ldapAdminUser, ldapAdminPassword, ldifContent)
         sql """REFRESH LDAP FOR '${testUser}';"""
 
         def tokens = context.config.jdbcUrl.split('/')
@@ -145,6 +130,7 @@ suite("ldap_special_password_char", "external_docker") {
         connect(testUser, testUserPlaintextPassword, url) {
             def grants = sql """show grants;"""
             logger.info("grants:" + grants)
+            assertTrue(grants.toString().contains("ldapDefaultRole"))
             logger.info("SUCCESS: LDAP user '${testUser}' successfully logged in to Doris.")
         }
 
@@ -155,10 +141,6 @@ suite("ldap_special_password_char", "external_docker") {
             deleteLdapEntry("""ldap://${ldapHost}:${ldapPort}""", ldapAdminUser, ldapAdminPassword, dn)
         }
     }
-
-
- */
-
 
 
 
