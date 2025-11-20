@@ -63,7 +63,7 @@ suite("ldap_special_password_char", "external_docker") {
         uid: ${testUser}
         userPassword: ${testUserPassword}"""
 
-        sql """drop role if exists '${testGroup}'"""
+//        sql """drop role if exists '${testGroup}'"""
         addLdapEntry("""ldap://${ldapHost}:${ldapPort}""", ldapAdminUser, ldapAdminPassword, ldifContent)
         sql """REFRESH LDAP FOR '${testUser}';"""
 
