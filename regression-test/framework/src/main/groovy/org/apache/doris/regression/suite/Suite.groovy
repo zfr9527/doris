@@ -1922,7 +1922,7 @@ class Suite implements GroovyInterceptable {
         def sPassword = password.toString()
         def sDn = dn.toString()
 
-        def sDnEscapedForShell = sDn.replaceAll("'", "'\\\\''")
+        def sDnEscapedForShell = sDn.replaceAll("'", "\\\\27")
 
         def cmdList = [
                 "ldapsearch",
