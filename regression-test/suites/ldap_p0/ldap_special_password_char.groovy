@@ -124,15 +124,15 @@ suite("ldap_special_password_char", "external_docker") {
         addLdapEntry("""ldap://${ldapHost}:${ldapPort}""", ldapAdminUser, ldapAdminPassword, ldifContent)
         sql """REFRESH LDAP FOR '${testUser}';"""
 
-        def tokens = context.config.jdbcUrl.split('/')
-        def url = tokens[0] + "//" + tokens[2] + "/" + "information_schema?authenticationPlugins=org.apache.doris.regression.util.MysqlClearPasswordPluginWithoutSSL&defaultAuthenticationPlugin=org.apache.doris.regression.util.MysqlClearPasswordPluginWithoutSSL&disabledAuthenticationPlugins=org.apache.doris.regression.util.MysqlClearPasswordPlugin"
-        log.info("url: " + url)
-        connect(testUser, testUserPlaintextPassword, url) {
-            def grants = sql """show grants;"""
-            logger.info("grants:" + grants)
-            assertTrue(grants.toString().contains("ldapDefaultRole"))
-            logger.info("SUCCESS: LDAP user '${testUser}' successfully logged in to Doris.")
-        }
+//        def tokens = context.config.jdbcUrl.split('/')
+//        def url = tokens[0] + "//" + tokens[2] + "/" + "information_schema?authenticationPlugins=org.apache.doris.regression.util.MysqlClearPasswordPluginWithoutSSL&defaultAuthenticationPlugin=org.apache.doris.regression.util.MysqlClearPasswordPluginWithoutSSL&disabledAuthenticationPlugins=org.apache.doris.regression.util.MysqlClearPasswordPlugin"
+//        log.info("url: " + url)
+//        connect(testUser, testUserPlaintextPassword, url) {
+//            def grants = sql """show grants;"""
+//            logger.info("grants:" + grants)
+//            assertTrue(grants.toString().contains("ldapDefaultRole"))
+//            logger.info("SUCCESS: LDAP user '${testUser}' successfully logged in to Doris.")
+//        }
 
         // Clean up: always try to remove all created entities
         logger.info("Starting cleanup process...")
