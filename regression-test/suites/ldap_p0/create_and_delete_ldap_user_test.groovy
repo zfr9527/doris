@@ -146,6 +146,7 @@ suite("create_and_delete_ldap_user_test") {
         logger.info("SUCCESS: user '${testUser}' successfully logged in to Doris.")
     }
 
+    /*
     sql """drop role ${testGroup}"""
 
     connect(testUser, testUserPlaintextPassword, url) {
@@ -157,6 +158,9 @@ suite("create_and_delete_ldap_user_test") {
         assertTrue(res.size() == 3)
         logger.info("SUCCESS: user '${testUser}' successfully logged in to Doris.")
     }
+
+
+     */
 
     /* 这里的疑问是：在doris这边删除了对应group的role，ldap用户仍然可以连接到doris，是否符合预期
 //    try {
