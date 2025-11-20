@@ -73,10 +73,7 @@ suite("ldap_and_doris_auth_same_user_test") {
     String testGroupDn = "cn=${testGroup},${ldapBaseDn}"
 
     for (String dn in [testUserDn, testGroupDn]) {
-        def isExist = checkLdapEntryExist("""ldap://${ldapHost}:${ldapPort}""", ldapAdminUser, ldapAdminPassword, dn)
-        if (isExist) {
-            deleteLdapEntry("""ldap://${ldapHost}:${ldapPort}""", ldapAdminUser, ldapAdminPassword, dn)
-        }
+        deleteLdapEntry("""ldap://${ldapHost}:${ldapPort}""", ldapAdminUser, ldapAdminPassword, dn)
     }
     sql """REFRESH LDAP FOR ${testUser};"""
 

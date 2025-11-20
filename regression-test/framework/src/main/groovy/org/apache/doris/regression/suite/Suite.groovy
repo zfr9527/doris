@@ -1948,6 +1948,9 @@ class Suite implements GroovyInterceptable {
     }
 
     def addLdapEntry = { def ldapUrl, def bindDn, def password, def ldifContent ->
+        if (checkLdapEntryExist(ldapUrl, bindDn, password, ldifContent)) {
+            return true
+        }
         def sLdapUrl = ldapUrl.toString()
         def sBindDn = bindDn.toString()
         def sPassword = password.toString()
@@ -1977,6 +1980,9 @@ class Suite implements GroovyInterceptable {
     }
 
     def deleteLdapEntry = { def ldapUrl, def bindDn, def password, def dnToDelete ->
+        if (!checkLdapEntryExist(ldapUrl, bindDn, password, dnToDelete)) {
+            return true
+        }
         def sLdapUrl = ldapUrl.toString()
         def sBindDn = bindDn.toString()
         def sPassword = password.toString()

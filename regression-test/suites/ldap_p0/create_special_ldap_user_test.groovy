@@ -62,10 +62,7 @@ suite("create_special_ldap_user_test") {
 
     sql """REFRESH LDAP FOR ${testUser};"""
     for (String dn in [testUserDn, testGroupDn]) {
-        def isExist = checkLdapEntryExist("""ldap://${ldapHost}:${ldapPort}""", ldapAdminUser, ldapAdminPassword, dn)
-        if (isExist) {
-            deleteLdapEntry("""ldap://${ldapHost}:${ldapPort}""", ldapAdminUser, ldapAdminPassword, dn)
-        }
+        deleteLdapEntry("""ldap://${ldapHost}:${ldapPort}""", ldapAdminUser, ldapAdminPassword, dn)
     }
     sql """REFRESH LDAP FOR ${testUser};"""
 
