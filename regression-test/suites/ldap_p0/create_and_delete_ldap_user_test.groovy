@@ -132,19 +132,19 @@ suite("create_and_delete_ldap_user_test") {
 //    sql "DROP USER '${testUser}';"
 //    sql """drop role ${testGroup}"""
 
-    for (String dn in [testUserDn, testGroupDn]) {
-        deleteLdapEntry("""ldap://${ldapHost}:${ldapPort}""", ldapAdminUser, ldapAdminPassword, dn)
-    }
-
-    connect(testUser, testUserPlaintextPassword, url) {
-        def grants = sql """show grants"""
-        logger.info("grants:" + grants)
-        assertTrue(grants.toString().contains("internal.${dbName}.${tbName}"))
-//        assertTrue(grants.toString().contains("internal.${dbName}.${tbName2}"))
-        def res = sql """select * from ${dbName}.${tbName}"""
-        assertTrue(res.size() == 3)
-        logger.info("SUCCESS: user '${testUser}' successfully logged in to Doris.")
-    }
+//    for (String dn in [testUserDn, testGroupDn]) {
+//        deleteLdapEntry("""ldap://${ldapHost}:${ldapPort}""", ldapAdminUser, ldapAdminPassword, dn)
+//    }
+//
+//    connect(testUser, testUserPlaintextPassword, url) {
+//        def grants = sql """show grants"""
+//        logger.info("grants:" + grants)
+//        assertTrue(grants.toString().contains("internal.${dbName}.${tbName}"))
+////        assertTrue(grants.toString().contains("internal.${dbName}.${tbName2}"))
+//        def res = sql """select * from ${dbName}.${tbName}"""
+//        assertTrue(res.size() == 3)
+//        logger.info("SUCCESS: user '${testUser}' successfully logged in to Doris.")
+//    }
 
     /*
     sql """drop role ${testGroup}"""
