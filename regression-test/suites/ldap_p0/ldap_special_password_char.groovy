@@ -23,24 +23,6 @@ suite("ldap_special_password_char", "external_docker") {
     }
 
     String prefix_str = "z10091_"
-    String dbName = prefix_str + "_db"
-    String tbName = prefix_str + "_tb"
-//    sql """create database if not exists ${dbName}"""
-//    sql """drop table if exists ${dbName}.${tbName}"""
-//    sql """create table ${dbName}.${tbName} (
-//                id BIGINT,
-//                username VARCHAR(20)
-//            )
-//            DISTRIBUTED BY HASH(id) BUCKETS 2
-//            PROPERTIES (
-//                "replication_num" = "1"
-//            );"""
-//    sql """
-//        insert into ${dbName}.`${tbName}` values
-//        (1, "111"),
-//        (2, "222"),
-//        (3, "333");
-//        """
 
     // Get LDAP connection details from config
     String ldapHost = context.config.otherConfigs.get("ldapHost")
@@ -78,17 +60,10 @@ suite("ldap_special_password_char", "external_docker") {
         uid: ${testUser}
         userPassword: ${testUserPassword}"""
 
-    // Step 1: Add OU, group, and user to LDAP server in one go
+    sql """drop role if exists ${testGroup}"""
     addLdapEntry("""ldap://${ldapHost}:${ldapPort}""", ldapAdminUser, ldapAdminPassword, ldifContent)
     sql """REFRESH LDAP FOR ${testUser};"""
 
-    // Step 2: Create a role in Doris and a mapping for the LDAP group
-//    sql """drop role if exists ${testGroup}"""
-//    sql "CREATE ROLE '${testGroup}';"
-//    sql "GRANT SELECT_PRIV ON ${dbName}.${tbName} TO ROLE '${testGroup}';" // Grant some privilege to the role
-//    logger.info("Successfully created role '${testGroup}' in Doris.")
-
-    // Step 3: Verify that the new user can log in and has the correct role's permissions
     def tokens = context.config.jdbcUrl.split('/')
     def url = tokens[0] + "//" + tokens[2] + "/" + "information_schema?authenticationPlugins=org.apache.doris.regression.util.MysqlClearPasswordPluginWithoutSSL&defaultAuthenticationPlugin=org.apache.doris.regression.util.MysqlClearPasswordPluginWithoutSSL&disabledAuthenticationPlugins=org.apache.doris.regression.util.MysqlClearPasswordPlugin"
     log.info("url: " + url)
@@ -100,7 +75,7 @@ suite("ldap_special_password_char", "external_docker") {
     
     // Clean up: always try to remove all created entities
     logger.info("Starting cleanup process...")
-//    sql "DROP ROLE '${testGroup}';"
+
 
     for (String dn in [testUserDn, testGroupDn]) {
         deleteLdapEntry("""ldap://${ldapHost}:${ldapPort}""", ldapAdminUser, ldapAdminPassword, dn)
