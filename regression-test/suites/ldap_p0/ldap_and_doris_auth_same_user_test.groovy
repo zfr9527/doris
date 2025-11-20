@@ -168,6 +168,7 @@ suite("ldap_and_doris_auth_same_user_test") {
 
     sql """drop role ${testGroup}"""
 
+    // 这里会有一点问题，role的权限到底应不应该保留
     connect(testUser, testUserPlaintextPassword, url) {
         def grants = sql """show grants"""
         logger.info("grants:" + grants)

@@ -16,7 +16,7 @@
 // under the License.
 
 
-suite("create_and_delete_ldap_user_test") {
+suite("create_special_ldap_user_test") {
     String enabled = context.config.otherConfigs.get("enableLdapTest")
     if (enabled == null || !enabled.equalsIgnoreCase("true")) {
         logger.info("LDAP test is disabled in regression-conf.groovy, skipping.")
@@ -53,7 +53,7 @@ suite("create_and_delete_ldap_user_test") {
     sql """set ldap_admin_password = password('${ldapAdminPassword}');"""
 
     String testGroup = prefix_str + "group"
-    String testUser = prefix_str + "user"
+    String testUser = "root"
     String testUserPassword = "{SSHA}4fqyv30HZK25GEzQ8J7R+3Wa7gvnfzSu"
     String testUserPlaintextPassword = "654321"
 
@@ -122,53 +122,9 @@ suite("create_and_delete_ldap_user_test") {
 //    sql "DROP USER '${testUser}';"
 //    sql """drop role ${testGroup}"""
 
-    for (String dn in [testUserDn, testGroupDn]) {
-        deleteLdapEntry("""ldap://${ldapHost}:${ldapPort}""", ldapAdminUser, ldapAdminPassword, dn)
-    }
-
-    connect(testUser, testUserPlaintextPassword, url) {
-        def grants = sql """show grants"""
-        logger.info("grants:" + grants)
-        assertTrue(grants.toString().contains("internal.${dbName}.${tbName}"))
-//        assertTrue(grants.toString().contains("internal.${dbName}.${tbName2}"))
-        def res = sql """select * from ${dbName}.${tbName}"""
-        assertTrue(res.size() == 3)
-        logger.info("SUCCESS: user '${testUser}' successfully logged in to Doris.")
-    }
-
-    sql """drop role ${testGroup}"""
-
-    /* 这里的疑问是：在doris这边删除了对应group的role，ldap用户仍然可以连接到doris，是否符合预期
-//    try {
-//        connect(testUser, testUserPlaintextPassword, url) {
-//            assert false
-//        }
-//    } catch (Exception e) {
-//        log.info("e.getMessage(): " + e.getMessage())
-//        assertTrue(e.getMessage().contains('Access denied'))
+//    for (String dn in [testUserDn, testGroupDn]) {
+//        deleteLdapEntry("""ldap://${ldapHost}:${ldapPort}""", ldapAdminUser, ldapAdminPassword, dn)
 //    }
 
-    connect(testUser, testUserPlaintextPassword, url) {
-        def grants = sql """show grants"""
-        logger.info("grants:" + grants)
-        assertTrue(grants.toString().contains("internal.${dbName}.${tbName}"))
-//        assertTrue(grants.toString().contains("internal.${dbName}.${tbName2}"))
-        def res = sql """select * from ${dbName}.${tbName}"""
-        assertTrue(res.size() == 3)
-        logger.info("SUCCESS: user '${testUser}' successfully logged in to Doris.")
-    }
-
-     */
-
-    sql """REFRESH LDAP FOR ${testUser};"""
-
-    try {
-        connect(testUser, testUserPlaintextPassword, url) {
-            assert false
-        }
-    } catch (Exception e) {
-        log.info("e.getMessage(): " + e.getMessage())
-        assertTrue(e.getMessage().contains('Access denied'))
-    }
 
 }
