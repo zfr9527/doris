@@ -91,7 +91,7 @@ suite("ldap_special_password_char", "external_docker") {
 //        }
     }
 
-    special_character = ["test#comment", "user'' OR 1=1--", "user\$\$(id)", "\"test\"", "test user", "user\\00", "一", "😊"]
+    special_character = ["test#comment", "user\'\' OR 1=1--", "user\$\$(id)", "\"test\"", "test user", "user\\00", "一", "😊"]
     for (def each_it : special_character) {
         logger.info("each_it: " + each_it)
         // Define the new test entities
