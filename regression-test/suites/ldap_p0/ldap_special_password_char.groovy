@@ -64,9 +64,12 @@ suite("ldap_special_password_char", "external_docker") {
         userPassword: ${testUserPassword}"""
 
 //        sql """drop role if exists '${testGroup}'"""
-        test {
+        try {
             addLdapEntry("""ldap://${ldapHost}:${ldapPort}""", ldapAdminUser, ldapAdminPassword, ldifContent)
-            exception "invalid DN"
+            assert false
+        } catch (exception e) {
+            log.info("e.getMessage(): " + e.getMessage())
+            assertTrue(e.getMessage().contains('invalid DN'))
         }
 
 //        sql """REFRESH LDAP FOR '${testUser}';"""
