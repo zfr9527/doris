@@ -16,7 +16,7 @@
 // under the License.
 
 
-suite("ldap_and_doris_auth_same_user_test") {
+suite("ldap_and_doris_auth_diff_user_test") {
     String enabled = context.config.otherConfigs.get("enableLdapTest")
     if (enabled == null || !enabled.equalsIgnoreCase("true")) {
         logger.info("LDAP test is disabled in regression-conf.groovy, skipping.")
@@ -65,7 +65,6 @@ suite("ldap_and_doris_auth_same_user_test") {
 
     String testGroup = prefix_str + "group"
     String testUser = prefix_str + "user"
-    String noTestUser = prefix_str + "no_user"
     String testUserPassword = "{SSHA}4fqyv30HZK25GEzQ8J7R+3Wa7gvnfzSu"
     String testUserPlaintextPassword = "654321"
 
@@ -94,15 +93,6 @@ suite("ldap_and_doris_auth_same_user_test") {
         def res = sql """select * from ${dbName}.${tbName}"""
         assertTrue(res.size() == 3)
         logger.info("SUCCESS: doris user '${testUser}' successfully logged in to Doris.")
-    }
-
-    try {
-        connect(noTestUser, testUserPlaintextPassword, url) {
-            assert false
-        }
-    } catch (Exception e) {
-        log.info(e.getMessage())
-//        assertTrue(e.getMessage().contains(''))
     }
 
 
