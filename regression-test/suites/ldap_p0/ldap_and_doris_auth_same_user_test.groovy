@@ -149,11 +149,46 @@ suite("ldap_and_doris_auth_same_user_test") {
     }
 
     logger.info("Starting cleanup process...")
-    sql "DROP USER '${testUser}';"
-    sql """drop role ${testGroup}"""
+//    sql "DROP USER '${testUser}';"
+//    sql """drop role ${testGroup}"""
 
     for (String dn in [testUserDn, testGroupDn]) {
         deleteLdapEntry("""ldap://${ldapHost}:${ldapPort}""", ldapAdminUser, ldapAdminPassword, dn)
     }
+
+    connect(testUser, testUserPlaintextPassword, url) {
+        def grants = sql """show grants"""
+        logger.info("grants:" + grants)
+        assertTrue(grants.toString().contains("internal.${dbName}.${tbName}"))
+        assertTrue(grants.toString().contains("internal.${dbName}.${tbName2}"))
+        def res = sql """select * from ${dbName}.${tbName}"""
+        assertTrue(res.size() == 3)
+        logger.info("SUCCESS: user '${testUser}' successfully logged in to Doris.")
+    }
+
+    sql """REFRESH LDAP FOR ${testUser};"""
+
+    connect(testUser, testUserPlaintextPassword, url) {
+        def grants = sql """show grants;"""
+        logger.info("grants:" + grants)
+        assertTrue(grants.toString().contains("internal.${dbName}.${tbName}"))
+//        assertFalse(grants.toString().contains("internal.${dbName}.${tbName2}"))
+        def res = sql """select * from ${dbName}.${tbName}"""
+        assertTrue(res.size() == 3)
+        logger.info("SUCCESS: doris user '${testUser}' successfully logged in to Doris.")
+    }
+
+    sql "DROP USER '${testUser}';"
+
+    try {
+        connect(testUser, testUserPlaintextPassword, url) {
+            assert false
+        }
+    } catch (Exception e) {
+        log.info("e.getMessage(): " + e.getMessage())
+        assertTrue(e.getMessage().contains('Access denied'))
+    }
+
+
 
 }
