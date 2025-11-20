@@ -67,7 +67,7 @@ suite("ldap_special_password_char", "external_docker") {
         try {
             addLdapEntry("""ldap://${ldapHost}:${ldapPort}""", ldapAdminUser, ldapAdminPassword, ldifContent)
             assert false
-        } catch (exception e) {
+        } catch (Exception e) {
             log.info("e.getMessage(): " + e.getMessage())
             assertTrue(e.getMessage().contains('invalid DN'))
         }
