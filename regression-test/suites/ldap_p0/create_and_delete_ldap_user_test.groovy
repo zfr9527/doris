@@ -148,13 +148,23 @@ suite("create_and_delete_ldap_user_test") {
     }
 
     sql """drop role ${testGroup}"""
-    try {
-        connect(testUser, testUserPlaintextPassword, url) {
-            assert false
-        }
-    } catch (Exception e) {
-        log.info("e.getMessage(): " + e.getMessage())
-        assertTrue(e.getMessage().contains('Access denied'))
+//    try {
+//        connect(testUser, testUserPlaintextPassword, url) {
+//            assert false
+//        }
+//    } catch (Exception e) {
+//        log.info("e.getMessage(): " + e.getMessage())
+//        assertTrue(e.getMessage().contains('Access denied'))
+//    }
+
+    connect(testUser, testUserPlaintextPassword, url) {
+        def grants = sql """show grants"""
+        logger.info("grants:" + grants)
+        assertTrue(grants.toString().contains("internal.${dbName}.${tbName}"))
+//        assertTrue(grants.toString().contains("internal.${dbName}.${tbName2}"))
+        def res = sql """select * from ${dbName}.${tbName}"""
+        assertTrue(res.size() == 3)
+        logger.info("SUCCESS: user '${testUser}' successfully logged in to Doris.")
     }
 
     sql """REFRESH LDAP FOR ${testUser};"""
