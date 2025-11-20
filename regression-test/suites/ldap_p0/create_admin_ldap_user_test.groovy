@@ -60,11 +60,10 @@ suite("create_admin_special_ldap_user_test") {
     String testUserDn = "uid=${testUser},cn=${testGroup},${ldapBaseDn}"
     String testGroupDn = "cn=${testGroup},${ldapBaseDn}"
 
-    sql """REFRESH LDAP FOR ${testUser};"""
     for (String dn in [testUserDn, testGroupDn]) {
         deleteLdapEntry("""ldap://${ldapHost}:${ldapPort}""", ldapAdminUser, ldapAdminPassword, dn)
     }
-    sql """REFRESH LDAP FOR ${testUser};"""
+    sql """REFRESH LDAP FOR '${testUser}';"""
 
     def tokens = context.config.jdbcUrl.split('/')
     def url = tokens[0] + "//" + tokens[2] + "/" + "${dbName}?authenticationPlugins=org.apache.doris.regression.util.MysqlClearPasswordPluginWithoutSSL&defaultAuthenticationPlugin=org.apache.doris.regression.util.MysqlClearPasswordPluginWithoutSSL&disabledAuthenticationPlugins=org.apache.doris.regression.util.MysqlClearPasswordPlugin"
