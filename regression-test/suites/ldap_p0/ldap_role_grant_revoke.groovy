@@ -134,8 +134,10 @@ suite("ldap_role_grant_revoke") {
         def grants = sql """show grants;"""
         logger.info("grants:" + grants)
         assertFalse(grants.toString().contains("internal.${dbName}.${tbName}"))
-        res = sql """select * from ${dbName}.${tbName2}"""
-        assertTrue(res.size() == 3)
+        test {
+            sql """select * from ${dbName}.${tbName2}"""
+            exception "Permission denied"
+        }
         logger.info("SUCCESS: LDAP user '${testUser}' successfully logged in to Doris.")
     }
     
