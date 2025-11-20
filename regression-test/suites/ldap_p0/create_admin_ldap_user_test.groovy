@@ -84,7 +84,7 @@ suite("create_admin_special_ldap_user_test") {
 
     // Step 1: Add OU, group, and user to LDAP server in one go
     addLdapEntry("""ldap://${ldapHost}:${ldapPort}""", ldapAdminUser, ldapAdminPassword, ldifContent)
-    sql """REFRESH LDAP FOR ${testUser};"""
+    sql """REFRESH LDAP FOR '${testUser}';"""
     // Step 2: Create a role in Doris and a mapping for the LDAP group
     sql """drop role if exists ${testGroup}"""
     sql "CREATE ROLE '${testGroup}';"
