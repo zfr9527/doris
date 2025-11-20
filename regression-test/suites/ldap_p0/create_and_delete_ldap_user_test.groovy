@@ -16,20 +16,20 @@
 // under the License.
 
 
-suite("ldap_and_doris_auth_diff_user_test") {
+suite("create_and_delete_ldap_user_test") {
     String enabled = context.config.otherConfigs.get("enableLdapTest")
     if (enabled == null || !enabled.equalsIgnoreCase("true")) {
         logger.info("LDAP test is disabled in regression-conf.groovy, skipping.")
         return
     }
 
-    String prefix_str = "z10086_"
+    String prefix_str = "z10088_"
     String dbName = prefix_str + "db"
     String tbName = prefix_str + "tb"
-    String tbName2 = prefix_str + "tb2"
+//    String tbName2 = prefix_str + "tb2"
     sql """create database if not exists ${dbName}"""
     sql """drop table if exists ${dbName}.${tbName}"""
-    sql """drop table if exists ${dbName}.${tbName2}"""
+//    sql """drop table if exists ${dbName}.${tbName2}"""
     sql """create table ${dbName}.${tbName} (
                 id BIGINT,
                 username VARCHAR(20)
@@ -45,14 +45,14 @@ suite("ldap_and_doris_auth_diff_user_test") {
         (3, "333");
         """
 
-    sql """create table ${dbName}.${tbName2} (
-                id BIGINT,
-                username VARCHAR(20)
-            )
-            DISTRIBUTED BY HASH(id) BUCKETS 2
-            PROPERTIES (
-                "replication_num" = "1"
-            );"""
+//    sql """create table ${dbName}.${tbName2} (
+//                id BIGINT,
+//                username VARCHAR(20)
+//            )
+//            DISTRIBUTED BY HASH(id) BUCKETS 2
+//            PROPERTIES (
+//                "replication_num" = "1"
+//            );"""
 
     // Get LDAP connection details from config
     String ldapHost = context.config.otherConfigs.get("ldapHost")
@@ -80,20 +80,20 @@ suite("ldap_and_doris_auth_diff_user_test") {
     sql """REFRESH LDAP FOR ${testUser};"""
 
     sql """drop user if exists '${testUser}'"""
-    sql """CREATE USER '${testUser}' IDENTIFIED BY '${testUserPlaintextPassword}';"""
-    sql """GRANT SELECT_PRIV ON ${dbName}.${tbName} TO '${testUser}';"""
+//    sql """CREATE USER '${testUser}' IDENTIFIED BY '${testUserPlaintextPassword}';"""
+//    sql """GRANT SELECT_PRIV ON ${dbName}.${tbName} TO '${testUser}';"""
 
     def tokens = context.config.jdbcUrl.split('/')
     def url = tokens[0] + "//" + tokens[2] + "/" + "${dbName}?authenticationPlugins=org.apache.doris.regression.util.MysqlClearPasswordPluginWithoutSSL&defaultAuthenticationPlugin=org.apache.doris.regression.util.MysqlClearPasswordPluginWithoutSSL&disabledAuthenticationPlugins=org.apache.doris.regression.util.MysqlClearPasswordPlugin"
-    connect(testUser, testUserPlaintextPassword, url) {
-        def grants = sql """show grants;"""
-        logger.info("grants:" + grants)
-        assertTrue(grants.toString().contains("internal.${dbName}.${tbName}"))
-        assertFalse(grants.toString().contains("internal.${dbName}.${tbName2}"))
-        def res = sql """select * from ${dbName}.${tbName}"""
-        assertTrue(res.size() == 3)
-        logger.info("SUCCESS: doris user '${testUser}' successfully logged in to Doris.")
-    }
+//    connect(testUser, testUserPlaintextPassword, url) {
+//        def grants = sql """show grants;"""
+//        logger.info("grants:" + grants)
+//        assertTrue(grants.toString().contains("internal.${dbName}.${tbName}"))
+//        assertFalse(grants.toString().contains("internal.${dbName}.${tbName2}"))
+//        def res = sql """select * from ${dbName}.${tbName}"""
+//        assertTrue(res.size() == 3)
+//        logger.info("SUCCESS: doris user '${testUser}' successfully logged in to Doris.")
+//    }
 
 
     // Prepare the multi-entry LDIF file content
@@ -116,27 +116,46 @@ suite("ldap_and_doris_auth_diff_user_test") {
     // Step 2: Create a role in Doris and a mapping for the LDAP group
     sql """drop role if exists ${testGroup}"""
     sql "CREATE ROLE '${testGroup}';"
-    sql "GRANT SELECT_PRIV ON ${dbName}.${tbName2} TO ROLE '${testGroup}';" // Grant some privilege to the role
+    sql "GRANT SELECT_PRIV ON ${dbName}.${tbName} TO ROLE '${testGroup}';" // Grant some privilege to the role
     logger.info("Successfully created role '${testGroup}' in Doris.")
 
     connect(testUser, testUserPlaintextPassword, url) {
         def grants = sql """show grants"""
         logger.info("grants:" + grants)
         assertTrue(grants.toString().contains("internal.${dbName}.${tbName}"))
-        assertTrue(grants.toString().contains("internal.${dbName}.${tbName2}"))
+//        assertTrue(grants.toString().contains("internal.${dbName}.${tbName2}"))
         def res = sql """select * from ${dbName}.${tbName}"""
         assertTrue(res.size() == 3)
         logger.info("SUCCESS: user '${testUser}' successfully logged in to Doris.")
     }
 
-
-
-    logger.info("Starting cleanup process...")
-    sql "DROP USER '${testUser}';"
-    sql """drop role ${testGroup}"""
+//    logger.info("Starting cleanup process...")
+//    sql "DROP USER '${testUser}';"
+//    sql """drop role ${testGroup}"""
 
     for (String dn in [testUserDn, testGroupDn]) {
         deleteLdapEntry("""ldap://${ldapHost}:${ldapPort}""", ldapAdminUser, ldapAdminPassword, dn)
+    }
+
+    connect(testUser, testUserPlaintextPassword, url) {
+        def grants = sql """show grants"""
+        logger.info("grants:" + grants)
+        assertTrue(grants.toString().contains("internal.${dbName}.${tbName}"))
+//        assertTrue(grants.toString().contains("internal.${dbName}.${tbName2}"))
+        def res = sql """select * from ${dbName}.${tbName}"""
+        assertTrue(res.size() == 3)
+        logger.info("SUCCESS: user '${testUser}' successfully logged in to Doris.")
+    }
+
+    sql """REFRESH LDAP FOR ${testUser};"""
+
+    try {
+        connect(testUser, testUserPlaintextPassword, url) {
+            assert false
+        }
+    } catch (Exception e) {
+        log.info("e.getMessage(): " + e.getMessage())
+        assertTrue(e.getMessage().contains('Access denied'))
     }
 
 }

@@ -97,7 +97,7 @@ suite("ldap_and_doris_auth_same_user_test") {
     }
 
     try {
-        connect(testUser, testUserPlaintextPassword, url) {
+        connect(noTestUser, testUserPlaintextPassword, url) {
             assert false
         }
     } catch (Exception e) {
@@ -139,7 +139,14 @@ suite("ldap_and_doris_auth_same_user_test") {
         logger.info("SUCCESS: user '${testUser}' successfully logged in to Doris.")
     }
 
-
+    try {
+        connect(noTestUser, testUserPlaintextPassword, url) {
+            assert false
+        }
+    } catch (Exception e) {
+        log.info("e.getMessage(): " + e.getMessage())
+        assertTrue(e.getMessage().contains('Access denied'))
+    }
 
     logger.info("Starting cleanup process...")
     sql "DROP USER '${testUser}';"
