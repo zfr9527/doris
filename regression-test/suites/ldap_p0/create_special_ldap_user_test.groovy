@@ -68,22 +68,8 @@ suite("create_special_ldap_user_test") {
     }
     sql """REFRESH LDAP FOR ${testUser};"""
 
-    sql """drop user if exists '${testUser}'"""
-//    sql """CREATE USER '${testUser}' IDENTIFIED BY '${testUserPlaintextPassword}';"""
-//    sql """GRANT SELECT_PRIV ON ${dbName}.${tbName} TO '${testUser}';"""
-
     def tokens = context.config.jdbcUrl.split('/')
     def url = tokens[0] + "//" + tokens[2] + "/" + "${dbName}?authenticationPlugins=org.apache.doris.regression.util.MysqlClearPasswordPluginWithoutSSL&defaultAuthenticationPlugin=org.apache.doris.regression.util.MysqlClearPasswordPluginWithoutSSL&disabledAuthenticationPlugins=org.apache.doris.regression.util.MysqlClearPasswordPlugin"
-//    connect(testUser, testUserPlaintextPassword, url) {
-//        def grants = sql """show grants;"""
-//        logger.info("grants:" + grants)
-//        assertTrue(grants.toString().contains("internal.${dbName}.${tbName}"))
-//        assertFalse(grants.toString().contains("internal.${dbName}.${tbName2}"))
-//        def res = sql """select * from ${dbName}.${tbName}"""
-//        assertTrue(res.size() == 3)
-//        logger.info("SUCCESS: doris user '${testUser}' successfully logged in to Doris.")
-//    }
-
 
     // Prepare the multi-entry LDIF file content
     String ldifContent = """dn: cn=${testGroup},${ldapBaseDn}
