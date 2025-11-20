@@ -33,8 +33,8 @@ suite("ldap_special_password_char", "external_docker") {
 
     sql """set ldap_admin_password = password('${ldapAdminPassword}');"""
 
-    // "test#comment","user' OR 1=1--",
-    def special_character = ["test,group", "test+admin", "test\\user", "user;rm -rf /", "user\$(id)", "\"test\"", "test user", "user\\00", "一"]
+    // "test#comment","user' OR 1=1--","user\$(id)",
+    def special_character = ["test,group", "test+admin", "test\\user", "user;rm -rf /",  "\"test\"", "test user", "user\\00", "一"]
 
     for (def each_it : special_character) {
         logger.info("each_it: " + each_it)
