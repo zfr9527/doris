@@ -103,7 +103,10 @@ suite("create_special_ldap_user_test") {
     }
 
     logger.info("Starting cleanup process...")
-    sql "DROP USER '${testUser}';"
+    test {
+        sql "DROP USER '${testUser}';"
+        exception "Can not drop system user"
+    }
     sql """drop role ${testGroup}"""
 
     for (String dn in [testUserDn, testGroupDn]) {
