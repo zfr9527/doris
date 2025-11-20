@@ -113,45 +113,31 @@ suite("ldap_role_grant_revoke") {
         def grants = sql """show grants;"""
         logger.info("grants:" + grants)
         assertTrue(grants.toString().contains("internal.${dbName}.${tbName}"))
-        assertFalse(grants.toString().contains("internal.${dbName}.${tbName2}"))
         def res = sql """select * from ${dbName}.${tbName}"""
         assertTrue(res.size() == 3)
         logger.info("SUCCESS: LDAP user '${testUser}' successfully logged in to Doris.")
     }
 
-    sql "GRANT SELECT_PRIV ON ${dbName}.${tbName2} TO '${testUser}';"
-    connect(testUser, testUserPlaintextPassword, url) {
-        def grants = sql """show grants;"""
-        logger.info("grants:" + grants)
-        assertTrue(grants.toString().contains("internal.${dbName}.${tbName}"))
-        assertTrue(grants.toString().contains("internal.${dbName}.${tbName2}"))
-        def res = sql """select * from ${dbName}.${tbName}"""
-        assertTrue(res.size() == 3)
-        res = sql """select * from ${dbName}.${tbName2}"""
-        assertTrue(res.size() == 3)
-        logger.info("SUCCESS: LDAP user '${testUser}' successfully logged in to Doris.")
+    test {
+        sql "GRANT SELECT_PRIV ON ${dbName}.${tbName2} TO '${testUser}';"
+        exception "does not exist"
     }
+
+    test {
+        sql "REVOKE SELECT_PRIV ON ${dbName}.${tbName2} FROM '${testUser}';"
+        exception "does not exist"
+    }
+
 
     sql "REVOKE SELECT_PRIV ON ${dbName}.${tbName} FROM ROLE '${testGroup}';" // Grant some privilege to the role
     connect(testUser, testUserPlaintextPassword, url) {
         def grants = sql """show grants;"""
         logger.info("grants:" + grants)
         assertFalse(grants.toString().contains("internal.${dbName}.${tbName}"))
-        assertTrue(grants.toString().contains("internal.${dbName}.${tbName2}"))
         res = sql """select * from ${dbName}.${tbName2}"""
         assertTrue(res.size() == 3)
         logger.info("SUCCESS: LDAP user '${testUser}' successfully logged in to Doris.")
     }
-
-    sql "REVOKE SELECT_PRIV ON ${dbName}.${tbName2} FROM '${testUser}';" // Grant some privilege to the role
-    connect(testUser, testUserPlaintextPassword, url) {
-        def grants = sql """show grants;"""
-        logger.info("grants:" + grants)
-        assertFalse(grants.toString().contains("internal.${dbName}.${tbName}"))
-        assertFalse(grants.toString().contains("internal.${dbName}.${tbName2}"))
-        logger.info("SUCCESS: LDAP user '${testUser}' successfully logged in to Doris.")
-    }
-
     
     // Clean up: always try to remove all created entities
     logger.info("Starting cleanup process...")
