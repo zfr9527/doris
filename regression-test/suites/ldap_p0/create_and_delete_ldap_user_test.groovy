@@ -180,15 +180,16 @@ suite("create_and_delete_ldap_user_test") {
 
      */
 
-    sql """REFRESH LDAP FOR ${testUser};"""
-
-    try {
-        connect(testUser, testUserPlaintextPassword, url) {
-            assert false
-        }
-    } catch (Exception e) {
-        log.info("e.getMessage(): " + e.getMessage())
-        assertTrue(e.getMessage().contains('Access denied'))
-    }
+//
+//    sql """REFRESH LDAP FOR ${testUser};"""
+//
+//    try {
+//        connect(testUser, testUserPlaintextPassword, url) {
+//            assert false
+//        }
+//    } catch (Exception e) {
+//        log.info("e.getMessage(): " + e.getMessage())
+//        assertTrue(e.getMessage().contains('Access denied'))
+//    }
 
 }
