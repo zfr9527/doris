@@ -33,21 +33,24 @@ suite("ldap_special_password_char", "external_docker") {
 
     sql """set ldap_admin_password = password('${ldapAdminPassword}');"""
 
-    // Define the new test entities
-    String testGroup = prefix_str + "group"
-    String testUser = prefix_str + "user"
-    String testUserPassword = "C123_567p"
-    String testUserPlaintextPassword = "C123_567p"
-    
-    String testUserDn = "uid=${testUser},cn=${testGroup},${ldapBaseDn}"
-    String testGroupDn = "cn=${testGroup},${ldapBaseDn}"
+    def special_character = ["test,group", "test+admin", "test\\user", "test#comment", "user;rm -rf /", "user' OR 1=1--", "user\$(id)", "\"test\"", "test user", "user\\00", "一"]
 
-    for (String dn in [testUserDn, testGroupDn]) {
-        deleteLdapEntry("""ldap://${ldapHost}:${ldapPort}""", ldapAdminUser, ldapAdminPassword, dn)
-    }
-    
-    // Prepare the multi-entry LDIF file content
-    String ldifContent = """dn: cn=${testGroup},${ldapBaseDn}
+    for (def each_it : special_character) {
+        // Define the new test entities
+        String testGroup = each_it
+        String testUser = prefix_str + "user"
+        String testUserPassword = "C123_567p"
+        String testUserPlaintextPassword = "C123_567p"
+
+        String testUserDn = "uid=${testUser},cn=${testGroup},${ldapBaseDn}"
+        String testGroupDn = "cn=${testGroup},${ldapBaseDn}"
+
+        for (String dn in [testUserDn, testGroupDn]) {
+            deleteLdapEntry("""ldap://${ldapHost}:${ldapPort}""", ldapAdminUser, ldapAdminPassword, dn)
+        }
+
+        // Prepare the multi-entry LDIF file content
+        String ldifContent = """dn: cn=${testGroup},${ldapBaseDn}
         objectClass: groupOfNames
         cn: ${testGroup}
         member: uid=${testUser},cn=${testGroup},${ldapBaseDn}
@@ -60,25 +63,28 @@ suite("ldap_special_password_char", "external_docker") {
         uid: ${testUser}
         userPassword: ${testUserPassword}"""
 
-    sql """drop role if exists ${testGroup}"""
-    addLdapEntry("""ldap://${ldapHost}:${ldapPort}""", ldapAdminUser, ldapAdminPassword, ldifContent)
-    sql """REFRESH LDAP FOR ${testUser};"""
+        sql """drop role if exists ${testGroup}"""
+        addLdapEntry("""ldap://${ldapHost}:${ldapPort}""", ldapAdminUser, ldapAdminPassword, ldifContent)
+        sql """REFRESH LDAP FOR ${testUser};"""
 
-    def tokens = context.config.jdbcUrl.split('/')
-    def url = tokens[0] + "//" + tokens[2] + "/" + "information_schema?authenticationPlugins=org.apache.doris.regression.util.MysqlClearPasswordPluginWithoutSSL&defaultAuthenticationPlugin=org.apache.doris.regression.util.MysqlClearPasswordPluginWithoutSSL&disabledAuthenticationPlugins=org.apache.doris.regression.util.MysqlClearPasswordPlugin"
-    log.info("url: " + url)
-    connect(testUser, testUserPlaintextPassword, url) {
-        def grants = sql """show grants;"""
-        logger.info("grants:" + grants)
-        logger.info("SUCCESS: LDAP user '${testUser}' successfully logged in to Doris.")
+        def tokens = context.config.jdbcUrl.split('/')
+        def url = tokens[0] + "//" + tokens[2] + "/" + "information_schema?authenticationPlugins=org.apache.doris.regression.util.MysqlClearPasswordPluginWithoutSSL&defaultAuthenticationPlugin=org.apache.doris.regression.util.MysqlClearPasswordPluginWithoutSSL&disabledAuthenticationPlugins=org.apache.doris.regression.util.MysqlClearPasswordPlugin"
+        log.info("url: " + url)
+        connect(testUser, testUserPlaintextPassword, url) {
+            def grants = sql """show grants;"""
+            logger.info("grants:" + grants)
+            logger.info("SUCCESS: LDAP user '${testUser}' successfully logged in to Doris.")
+        }
+
+        // Clean up: always try to remove all created entities
+        logger.info("Starting cleanup process...")
+
+
+        for (String dn in [testUserDn, testGroupDn]) {
+            deleteLdapEntry("""ldap://${ldapHost}:${ldapPort}""", ldapAdminUser, ldapAdminPassword, dn)
+        }
     }
-    
-    // Clean up: always try to remove all created entities
-    logger.info("Starting cleanup process...")
 
 
-    for (String dn in [testUserDn, testGroupDn]) {
-        deleteLdapEntry("""ldap://${ldapHost}:${ldapPort}""", ldapAdminUser, ldapAdminPassword, dn)
-    }
 
 }
