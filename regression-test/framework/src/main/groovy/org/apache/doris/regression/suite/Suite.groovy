@@ -1991,6 +1991,7 @@ class Suite implements GroovyInterceptable {
         def cmdList = [
                 "ldapdelete",
                 "-x",
+                "-r",
                 "-H", sLdapUrl,
                 "-D", sBindDn,
                 "-w", sPassword,
