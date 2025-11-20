@@ -97,12 +97,12 @@ suite("ldap_and_doris_auth_same_user_test") {
     }
 
     try {
-        connect(noTestUser, testUserPlaintextPassword, url) {
+        connect(testUser, testUserPlaintextPassword, url) {
             assert false
         }
     } catch (Exception e) {
         log.info("e.getMessage(): " + e.getMessage())
-//        assertTrue(e.getMessage().contains(''))
+        assertTrue(e.getMessage().contains('Access denied'))
     }
 
 
