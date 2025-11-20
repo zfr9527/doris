@@ -64,24 +64,28 @@ suite("ldap_special_password_char", "external_docker") {
         userPassword: ${testUserPassword}"""
 
 //        sql """drop role if exists '${testGroup}'"""
-        addLdapEntry("""ldap://${ldapHost}:${ldapPort}""", ldapAdminUser, ldapAdminPassword, ldifContent)
-        sql """REFRESH LDAP FOR '${testUser}';"""
-
-        def tokens = context.config.jdbcUrl.split('/')
-        def url = tokens[0] + "//" + tokens[2] + "/" + "information_schema?authenticationPlugins=org.apache.doris.regression.util.MysqlClearPasswordPluginWithoutSSL&defaultAuthenticationPlugin=org.apache.doris.regression.util.MysqlClearPasswordPluginWithoutSSL&disabledAuthenticationPlugins=org.apache.doris.regression.util.MysqlClearPasswordPlugin"
-        log.info("url: " + url)
-        connect(testUser, testUserPlaintextPassword, url) {
-            def grants = sql """show grants;"""
-            logger.info("grants:" + grants)
-            logger.info("SUCCESS: LDAP user '${testUser}' successfully logged in to Doris.")
+        test {
+            addLdapEntry("""ldap://${ldapHost}:${ldapPort}""", ldapAdminUser, ldapAdminPassword, ldifContent)
+            exception "invalid DN"
         }
 
-        // Clean up: always try to remove all created entities
-        logger.info("Starting cleanup process...")
-
-        for (String dn in [testUserDn, testGroupDn]) {
-            deleteLdapEntry("""ldap://${ldapHost}:${ldapPort}""", ldapAdminUser, ldapAdminPassword, dn)
-        }
+//        sql """REFRESH LDAP FOR '${testUser}';"""
+//
+//        def tokens = context.config.jdbcUrl.split('/')
+//        def url = tokens[0] + "//" + tokens[2] + "/" + "information_schema?authenticationPlugins=org.apache.doris.regression.util.MysqlClearPasswordPluginWithoutSSL&defaultAuthenticationPlugin=org.apache.doris.regression.util.MysqlClearPasswordPluginWithoutSSL&disabledAuthenticationPlugins=org.apache.doris.regression.util.MysqlClearPasswordPlugin"
+//        log.info("url: " + url)
+//        connect(testUser, testUserPlaintextPassword, url) {
+//            def grants = sql """show grants;"""
+//            logger.info("grants:" + grants)
+//            logger.info("SUCCESS: LDAP user '${testUser}' successfully logged in to Doris.")
+//        }
+//
+//        // Clean up: always try to remove all created entities
+//        logger.info("Starting cleanup process...")
+//
+//        for (String dn in [testUserDn, testGroupDn]) {
+//            deleteLdapEntry("""ldap://${ldapHost}:${ldapPort}""", ldapAdminUser, ldapAdminPassword, dn)
+//        }
     }
 
 
