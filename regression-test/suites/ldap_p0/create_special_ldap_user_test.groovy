@@ -23,7 +23,7 @@ suite("create_special_ldap_user_test") {
         return
     }
 
-    String prefix_str = "z10089_"
+    String prefix_str = "z10090_"
     String dbName = prefix_str + "db"
     String tbName = prefix_str + "tb"
     sql """create database if not exists ${dbName}"""
