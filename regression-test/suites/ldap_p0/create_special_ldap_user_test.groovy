@@ -60,6 +60,7 @@ suite("create_special_ldap_user_test") {
     String testUserDn = "uid=${testUser},cn=${testGroup},${ldapBaseDn}"
     String testGroupDn = "cn=${testGroup},${ldapBaseDn}"
 
+    sql """REFRESH LDAP FOR ${testUser};"""
     for (String dn in [testUserDn, testGroupDn]) {
         def isExist = checkLdapEntryExist("""ldap://${ldapHost}:${ldapPort}""", ldapAdminUser, ldapAdminPassword, dn)
         if (isExist) {
