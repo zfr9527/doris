@@ -23,7 +23,7 @@ suite("create_admin_special_ldap_user_test") {
         return
     }
 
-    String prefix_str = "z10093_"
+    String prefix_str = "z10094_"
     String dbName = prefix_str + "db"
     String tbName = prefix_str + "tb"
     sql """create database if not exists ${dbName}"""
@@ -95,7 +95,7 @@ suite("create_admin_special_ldap_user_test") {
     connect(testUser, testUserPlaintextPassword, url) {
         def grants = sql """show grants"""
         logger.info("grants:" + grants)
-        assertTrue(grants.toString().contains("Node_priv"))
+        assertTrue(grants.toString().contains("Admin_priv"))
         assertFalse(grants.toString().contains("internal.${dbName}.${tbName}"))
         def res = sql """select * from ${dbName}.${tbName}"""
         assertTrue(res.size() == 3)
