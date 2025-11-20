@@ -15,6 +15,7 @@
 // specific language governing permissions and limitations
 // under the License.
 
+// 特殊字符搞不定，再说吧
 suite("ldap_special_password_char", "external_docker") {
     String enabled = context.config.otherConfigs.get("enableLdapTest")
     if (enabled == null || !enabled.equalsIgnoreCase("true")) {
