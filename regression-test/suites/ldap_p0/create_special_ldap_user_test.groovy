@@ -53,7 +53,7 @@ suite("create_special_ldap_user_test") {
     sql """set ldap_admin_password = password('${ldapAdminPassword}');"""
 
     String testGroup = prefix_str + "group"
-    String testUser = "root1"
+    String testUser = "root"
     String testUserPassword = "{SSHA}4fqyv30HZK25GEzQ8J7R+3Wa7gvnfzSu"
     String testUserPlaintextPassword = "654321"
 
