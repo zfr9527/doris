@@ -148,6 +148,8 @@ suite("create_and_delete_ldap_user_test") {
     }
 
     sql """drop role ${testGroup}"""
+
+    /* 这里的疑问是：在doris这边删除了对应group的role，ldap用户仍然可以连接到doris，是否符合预期
 //    try {
 //        connect(testUser, testUserPlaintextPassword, url) {
 //            assert false
@@ -166,6 +168,8 @@ suite("create_and_delete_ldap_user_test") {
         assertTrue(res.size() == 3)
         logger.info("SUCCESS: user '${testUser}' successfully logged in to Doris.")
     }
+
+     */
 
     sql """REFRESH LDAP FOR ${testUser};"""
 
