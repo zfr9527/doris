@@ -101,7 +101,7 @@ suite("ldap_and_doris_auth_same_user_test") {
             assert false
         }
     } catch (Exception e) {
-        log.info(e.getMessage())
+        log.info("e.getMessage(): " + e.getMessage())
 //        assertTrue(e.getMessage().contains(''))
     }
 
