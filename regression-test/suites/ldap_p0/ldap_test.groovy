@@ -107,8 +107,7 @@ suite("ldap_test", "external_docker") {
     }
 
     // uid from group1 to group2
-    String moveLdifContent = """
-        dn: uid=${testUser},cn=${testGroup},${ldapBaseDn}
+    String moveLdifContent = """dn: uid=${testUser},cn=${testGroup},${ldapBaseDn}
         changetype: modrdn
         newrdn: uid=${testUser}
         deleteoldrdn: 1
