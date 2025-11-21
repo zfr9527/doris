@@ -53,6 +53,12 @@ suite("ldap_and_doris_auth_same_user_test") {
             PROPERTIES (
                 "replication_num" = "1"
             );"""
+    sql """
+        insert into ${dbName}.`${tbName2}` values 
+        (1, "111"),
+        (2, "222"),
+        (3, "333");
+        """
 
     // Get LDAP connection details from config
     String ldapHost = context.config.otherConfigs.get("ldapHost")
@@ -144,6 +150,31 @@ suite("ldap_and_doris_auth_same_user_test") {
         log.info("e.getMessage(): " + e.getMessage())
         assertTrue(e.getMessage().contains('Access denied'))
     }
+
+    sql """REVOKE SELECT_PRIV ON ${dbName}.${tbName} FROM '${testUser}';"""
+    connect(testUser, testUserPlaintextPassword, url) {
+        def grants = sql """show grants;"""
+        logger.info("grants:" + grants)
+        assertFalse(grants.toString().contains("internal.${dbName}.${tbName}"))
+        assertTrue(grants.toString().contains("internal.${dbName}.${tbName2}"))
+        def res = sql """select * from ${dbName}.${tbName}"""
+        assertTrue(res.size() == 3)
+        logger.info("SUCCESS: doris user '${testUser}' successfully logged in to Doris.")
+    }
+    sql """GRANT SELECT_PRIV ON ${dbName}.${tbName} TO '${testUser}';"""
+
+    sql "REVOKE SELECT_PRIV ON ${dbName}.${tbName2} FROM ROLE '${testGroup}';"
+    connect(testUser, testUserPlaintextPassword, url) {
+        def grants = sql """show grants"""
+        logger.info("grants:" + grants)
+        assertTrue(grants.toString().contains("internal.${dbName}.${tbName}"))
+        assertFalse(grants.toString().contains("internal.${dbName}.${tbName2}"))
+        def res = sql """select * from ${dbName}.${tbName}"""
+        assertTrue(res.size() == 3)
+        logger.info("SUCCESS: user '${testUser}' successfully logged in to Doris.")
+    }
+    sql "GRANT SELECT_PRIV ON ${dbName}.${tbName2} TO ROLE '${testGroup}';"
+
 
     logger.info("Starting cleanup process...")
 //    sql "DROP USER '${testUser}';"
