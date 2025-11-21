@@ -25,6 +25,7 @@ suite("ldap_test", "external_docker") {
     String prefix_str = "ldap_test"
     String dbName = prefix_str + "_db"
     String tbName = prefix_str + "_tb"
+    String tbName2 = prefix_str + "_tb2"
     sql """create database if not exists ${dbName}"""
     sql """drop table if exists ${dbName}.${tbName}"""
     sql """create table ${dbName}.${tbName} (
@@ -37,6 +38,22 @@ suite("ldap_test", "external_docker") {
             );"""
     sql """
         insert into ${dbName}.`${tbName}` values 
+        (1, "111"),
+        (2, "222"),
+        (3, "333");
+        """
+
+    sql """drop table if exists ${dbName}.${tbName2}"""
+    sql """create table ${dbName}.${tbName2} (
+                id BIGINT,
+                username VARCHAR(20)
+            )
+            DISTRIBUTED BY HASH(id) BUCKETS 2
+            PROPERTIES (
+                "replication_num" = "1"
+            );"""
+    sql """
+        insert into ${dbName}.`${tbName2}` values 
         (1, "111"),
         (2, "222"),
         (3, "333");
@@ -94,7 +111,12 @@ suite("ldap_test", "external_docker") {
     sql """drop role if exists ${testGroup}"""
     sql "CREATE ROLE '${testGroup}';"
     sql "GRANT SELECT_PRIV ON ${dbName}.${tbName} TO ROLE '${testGroup}';" // Grant some privilege to the role
-    logger.info("Successfully created role '${testGroup}' in Doris.")
+
+    sql """drop role if exists ${testGroup2}"""
+    sql "CREATE ROLE '${testGroup2}';"
+    sql "GRANT SELECT_PRIV ON ${dbName}.${tbName2} TO ROLE '${testGroup2}';" // Grant some privilege to the role
+
+    logger.info("Successfully created role '${testGroup}', '${testGroup2}' in Doris.")
 
     // Step 3: Verify that the new user can log in and has the correct role's permissions
     def tokens = context.config.jdbcUrl.split('/')
@@ -118,11 +140,11 @@ suite("ldap_test", "external_docker") {
     assertTrue(checkLdapEntryExist("""ldap://${ldapHost}:${ldapPort}""", ldapAdminUser, ldapAdminPassword, testUserDn2))
     
     // Clean up: always try to remove all created entities
-    logger.info("Starting cleanup process...")
-    sql "DROP ROLE '${testGroup}';"
-
-    for (String dn in [testUserDn, testUserDn2, testGroupDn, testGroupDn2]) {
-        deleteLdapEntry("""ldap://${ldapHost}:${ldapPort}""", ldapAdminUser, ldapAdminPassword, dn)
-    }
+//    logger.info("Starting cleanup process...")
+//    sql "DROP ROLE '${testGroup}';"
+//
+//    for (String dn in [testUserDn, testUserDn2, testGroupDn, testGroupDn2]) {
+//        deleteLdapEntry("""ldap://${ldapHost}:${ldapPort}""", ldapAdminUser, ldapAdminPassword, dn)
+//    }
 
 }
