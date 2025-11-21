@@ -1922,14 +1922,12 @@ class Suite implements GroovyInterceptable {
         def sPassword = password.toString()
         def sDn = dn.toString()
 
-        def sDnEscapedForShell = sDn.replaceAll("'", "\\\\'").replaceAll('"', '\\\\"')
-
         def cmdList = [
                 "ldapsearch",
                 "-H", sLdapUrl,
                 "-D", sBindDn,
                 "-w", sPassword,
-                "-b", sDnEscapedForShell,
+                "-b", sDn,
                 "-s", "base",
                 "-LLL",
                 "objectClass=*"
@@ -1946,6 +1944,45 @@ class Suite implements GroovyInterceptable {
 
         logger.info("can't find dn: '$dn'。")
         return false
+    }
+
+    def moveLdapEntry = { def ldapUrl, def bindDn, def password, def srcLdifContent, def dstLdifContent ->
+        // 检查原始的条目是否存在
+        if (!checkLdapEntryExist(ldapUrl, bindDn, password, srcLdifContent)) {
+            logger.info("The srcLdifContent: ${srcLdifContent} not exist, please check it")
+            assert false
+        }
+        // 检查目的group是否存在
+        if (!checkLdapEntryExist(ldapUrl, bindDn, password, dstLdifContent)) {
+            logger.info("The dstLdifContent: ${dstLdifContent} not exist, please check it")
+            assert false
+        }
+
+        def sLdapUrl = ldapUrl.toString()
+        def sBindDn = bindDn.toString()
+        def sPassword = password.toString()
+        def sModrdnLdif = modrdnLdif.toString()
+
+        def cleanModrdnLdif = sModrdnLdif.readLines().collect { it.trim() }.join('\n')
+        def ldapModrdnCommandBase = "ldapmodrdn -x -H ${sLdapUrl} -D \"${sBindDn}\" -w \"${sPassword}\""
+        def fullBashCommand = """
+        |cat <<EOF | ${ldapModrdnCommandBase}
+        |${cleanModrdnLdif}
+        |EOF""".stripMargin()
+        def cmdList = [
+                "bash",
+                "-c",
+                fullBashCommand
+        ]
+
+        def (output, errorOutput, exitCode) = runLdapProcessBuilder(cmdList)
+
+        if (exitCode == 0) {
+            logger.info("success ldap move/rename operation.")
+            return true
+        }
+        logger.warning("Ldap move/rename failed. Exit Code: ${exitCode}. Stderr: ${errorOutput}")
+        assert false
     }
 
     def addLdapEntry = { def ldapUrl, def bindDn, def password, def ldifContent ->
