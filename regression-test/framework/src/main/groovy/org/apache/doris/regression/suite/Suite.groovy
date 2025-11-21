@@ -1946,7 +1946,7 @@ class Suite implements GroovyInterceptable {
         return false
     }
 
-    def moveLdapEntry = { def ldapUrl, def bindDn, def password, def srcLdifContent, def dstLdifContent ->
+    def moveLdapEntry = { def ldapUrl, def bindDn, def password, def ldifContent ->
         // 检查原始的条目是否存在
         if (!checkLdapEntryExist(ldapUrl, bindDn, password, srcLdifContent)) {
             logger.info("The srcLdifContent: ${srcLdifContent} not exist, please check it")
