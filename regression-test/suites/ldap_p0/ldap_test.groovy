@@ -113,7 +113,7 @@ suite("ldap_test", "external_docker") {
         newrdn: uid=${testUser}
         deleteoldrdn: 1
         newsuperior: cn=${testGroup2},${ldapBaseDn}"""
-    moveLdapEntry("""ldap://${ldapHost}:${ldapPort}""", ldapAdminUser, ldapAdminPassword, moveLdifContent)
+    moveLdapEntry("""ldap://${ldapHost}:${ldapPort}""", ldapAdminUser, ldapAdminPassword, testUserDn, testUserDn2, moveLdifContent)
 
     assertFalse(checkLdapEntryExist("""ldap://${ldapHost}:${ldapPort}""", ldapAdminUser, ldapAdminPassword, testUserDn))
     assertTrue(checkLdapEntryExist("""ldap://${ldapHost}:${ldapPort}""", ldapAdminUser, ldapAdminPassword, testUserDn2))
