@@ -1964,7 +1964,7 @@ class Suite implements GroovyInterceptable {
         def sModrdnLdif = ldifContent.toString()
 
         def cleanModrdnLdif = sModrdnLdif.readLines().collect { it.trim() }.join('\n')
-        def ldapModrdnCommandBase = "ldapmodrdn -x -H ${sLdapUrl} -D \"${sBindDn}\" -w \"${sPassword}\""
+        def ldapModrdnCommandBase = "ldapmodify -x -H ${sLdapUrl} -D \"${sBindDn}\" -w \"${sPassword}\""
 //        def fullBashCommand = "echo \$'${cleanModrdnLdif}' | ${ldapModrdnCommandBase}"
         def fullBashCommand = """
                 |cat <<EOF | ${ldapModrdnCommandBase}
