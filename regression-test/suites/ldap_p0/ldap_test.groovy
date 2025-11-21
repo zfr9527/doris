@@ -53,14 +53,17 @@ suite("ldap_test", "external_docker") {
 
     // Define the new test entities
     String testGroup = "doris_test_group"
+    String testGroup2 = "doris_test_group2"
     String testUser = "testuser"
     String testUserPassword = "{SSHA}4fqyv30HZK25GEzQ8J7R+3Wa7gvnfzSu"
     String testUserPlaintextPassword = "654321"
     
     String testUserDn = "uid=${testUser},cn=${testGroup},${ldapBaseDn}"
+    String testUserDn2 = "uid=${testUser},cn=${testGroup2},${ldapBaseDn}"
     String testGroupDn = "cn=${testGroup},${ldapBaseDn}"
+    String testGroupDn2 = "cn=${testGroup2},${ldapBaseDn}"
 
-    for (String dn in [testUserDn, testGroupDn]) {
+    for (String dn in [testUserDn, testUserDn2, testGroupDn, testGroupDn2]) {
         deleteLdapEntry("""ldap://${ldapHost}:${ldapPort}""", ldapAdminUser, ldapAdminPassword, dn)
     }
     
@@ -69,6 +72,11 @@ suite("ldap_test", "external_docker") {
         objectClass: groupOfNames
         cn: ${testGroup}
         member: uid=${testUser},cn=${testGroup},${ldapBaseDn}
+
+        dn: cn=${testGroup2},${ldapBaseDn}
+        objectClass: groupOfNames
+        cn: ${testGroup2}
+        member: cn=${testGroup2},${ldapBaseDn}
         
         dn: uid=${testUser},cn=${testGroup},${ldapBaseDn}
         objectClass: person
@@ -97,12 +105,24 @@ suite("ldap_test", "external_docker") {
         assertTrue(res.size() == 3)
         logger.info("SUCCESS: LDAP user '${testUser}' successfully logged in to Doris.")
     }
+
+    // uid from group1 to group2
+    String moveLdifContent = """
+        dn: uid=${testUser},cn=${testGroup},${ldapBaseDn}
+        changetype: modrdn
+        newrdn: uid=${testUser}
+        deleteoldrdn: 1
+        newsuperior: cn=${testGroup2},${ldapBaseDn}"""
+    moveLdapEntry("""ldap://${ldapHost}:${ldapPort}""", ldapAdminUser, ldapAdminPassword, moveLdifContent)
+
+    assertFalse(checkLdapEntryExist("""ldap://${ldapHost}:${ldapPort}""", ldapAdminUser, ldapAdminPassword, testUserDn))
+    assertTrue(checkLdapEntryExist("""ldap://${ldapHost}:${ldapPort}""", ldapAdminUser, ldapAdminPassword, testUserDn2))
     
     // Clean up: always try to remove all created entities
     logger.info("Starting cleanup process...")
     sql "DROP ROLE '${testGroup}';"
 
-    for (String dn in [testUserDn, testGroupDn]) {
+    for (String dn in [testUserDn, testUserDn2, testGroupDn, testGroupDn2]) {
         deleteLdapEntry("""ldap://${ldapHost}:${ldapPort}""", ldapAdminUser, ldapAdminPassword, dn)
     }
 
