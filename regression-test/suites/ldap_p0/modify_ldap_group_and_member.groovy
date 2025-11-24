@@ -119,7 +119,7 @@ suite("modify_ldap_group_and_member", "external_docker") {
     def url = tokens[0] + "//" + tokens[2] + "/information_schema?authenticationPlugins=org.apache.doris.regression.util.MysqlClearPasswordPluginWithoutSSL&defaultAuthenticationPlugin=org.apache.doris.regression.util.MysqlClearPasswordPluginWithoutSSL&disabledAuthenticationPlugins=org.apache.doris.regression.util.MysqlClearPasswordPlugin"
     log.info("url: " + url)
     connect(testUser, testUserPlaintextPassword, url) {
-        ef grants = sql """show grants;"""
+        def grants = sql """show grants;"""
         logger.info("grants: " + grants)
         assertTrue(grants.toString().contains("${testGroup}"))
         def res = sql """select * from ${dbName}.${tbName}"""
@@ -129,7 +129,7 @@ suite("modify_ldap_group_and_member", "external_docker") {
 
     modifyEntryName("""ldap://${ldapHost}:${ldapPort}""", ldapAdminUser, ldapAdminPassword, testGroupDn, testGroup2)
     connect(testUser, testUserPlaintextPassword, url) {
-        ef grants = sql """show grants;"""
+        def grants = sql """show grants;"""
         logger.info("grants: " + grants)
         assertTrue(grants.toString().contains("${testGroup}"))
         def res = sql """select * from ${dbName}.${tbName}"""
