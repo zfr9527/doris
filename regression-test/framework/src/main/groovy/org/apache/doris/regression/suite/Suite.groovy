@@ -1940,7 +1940,7 @@ class Suite implements GroovyInterceptable {
         }
 
         def targetLine = "member: ${memberDn}"
-        if (output.contains(targetLine)) {
+        if (output.toString().contains(targetLine)) {
             logger.info("Success: Group '$groupDn' contains member '$memberDn'.")
             return true
         } else {
