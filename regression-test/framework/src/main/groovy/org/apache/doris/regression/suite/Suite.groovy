@@ -1944,7 +1944,7 @@ class Suite implements GroovyInterceptable {
             logger.info("Success: Group '$groupDn' contains member '$memberDn'.")
             return true
         } else {
-            logger.warning("Failure: Member '$memberDn' not found in Group '$groupDn'. Output: $output")
+            logger.info("Failure: Member '$memberDn' not found in Group '$groupDn'. Output: $output")
             return false
         }
     }
@@ -2020,10 +2020,12 @@ class Suite implements GroovyInterceptable {
     }
 
     def addMemberToEntry = { def ldapUrl, def bindDn, def password, def groupDn, def memberDn ->
+        // 检查group是否存在，存在就继续，不存在就返回不存在的error
         if (!checkLdapEntryExist(ldapUrl, bindDn, password, groupDn)) {
             logger.info("add member, check group but the group:${groupDn} not exists")
             return false
         }
+        // 检查member是否存在，存在就返回error，不存在就继续执行
         if (checkMemberExistFromEntry(ldapUrl, bindDn, password, groupDn, memberDn)) {
             logger.info("add member, check member: ${memberDn} but the member already exists in group: ${groupDn}")
             return false
