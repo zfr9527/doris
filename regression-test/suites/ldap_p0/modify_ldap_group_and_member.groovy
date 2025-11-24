@@ -153,20 +153,15 @@ suite("modify_ldap_group_and_member", "external_docker") {
 
     deleteLdapEntry("""ldap://${ldapHost}:${ldapPort}""", ldapAdminUser, ldapAdminPassword, testGroupDn2)
     sql """REFRESH LDAP FOR ${testUser};"""
-    connect(testUser, testUserPlaintextPassword, url) {
-        logger.info("SUCCESS: LDAP user '${testUser}' successfully logged in to Doris.")
-        def grants = sql """show grants;"""
-        logger.info("grants: " + grants)
-        assertFalse(grants.toString().contains("${testGroup}"))
-        assertFalse(grants.toString().contains("${testGroup2}"))
-        test {
-            sql """select * from ${dbName}.${tbName}"""
-            exception "Permission denied"
+
+    try {
+        connect(testUser, testUserPlaintextPassword, url) {
+            logger.info("SUCCESS: LDAP user '${testUser}' successfully logged in to Doris.")
         }
-        test {
-            sql """select * from ${dbName}.${tbName2}"""
-            exception "Permission denied"
-        }
+        assert false
+    } catch (Exception e) {
+        log.info("e.getMessage(): " + e.getMessage())
+        assertTrue(e.getMessage().contains('Access denied'))
     }
 
     // Clean up: always try to remove all created entities
