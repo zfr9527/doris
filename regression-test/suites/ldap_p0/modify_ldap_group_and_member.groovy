@@ -25,7 +25,7 @@ suite("modify_ldap_group_and_member", "external_docker") {
     String prefix_str = "z10100_"
     String dbName = prefix_str + "db"
     String tbName = prefix_str + "tb"
-    String tbName2 = prefix_str + "_tb2"
+    String tbName2 = prefix_str + "tb2"
     sql """create database if not exists ${dbName}"""
     sql """drop table if exists ${dbName}.${tbName}"""
     sql """create table ${dbName}.${tbName} (
@@ -142,7 +142,7 @@ suite("modify_ldap_group_and_member", "external_docker") {
         logger.info("SUCCESS: LDAP user '${testUser}' successfully logged in to Doris.")
         def grants = sql """show grants;"""
         logger.info("grants: " + grants)
-        assertFalse(grants.toString().contains("${testGroup}"))
+        assertTrue(grants.toString().contains("${testGroup2}"))
         test {
             sql """select * from ${dbName}.${tbName}"""
             exception "Permission denied"
@@ -151,7 +151,6 @@ suite("modify_ldap_group_and_member", "external_docker") {
         assertTrue(res.size() == 3)
     }
 
-
     deleteLdapEntry("""ldap://${ldapHost}:${ldapPort}""", ldapAdminUser, ldapAdminPassword, testGroupDn2)
     sql """REFRESH LDAP FOR ${testUser};"""
     connect(testUser, testUserPlaintextPassword, url) {
@@ -159,6 +158,7 @@ suite("modify_ldap_group_and_member", "external_docker") {
         def grants = sql """show grants;"""
         logger.info("grants: " + grants)
         assertFalse(grants.toString().contains("${testGroup}"))
+        assertFalse(grants.toString().contains("${testGroup2}"))
         test {
             sql """select * from ${dbName}.${tbName}"""
             exception "Permission denied"
