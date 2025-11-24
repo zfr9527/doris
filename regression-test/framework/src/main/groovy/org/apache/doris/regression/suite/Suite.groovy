@@ -1988,11 +1988,11 @@ class Suite implements GroovyInterceptable {
 
     def addMemberToEntry = { def ldapUrl, def bindDn, def password, def groupDn, def memberDn ->
         if (!checkLdapEntryExist(ldapUrl, bindDn, password, groupDn)) {
-            logger.info("add member but the group not exists")
+            logger.info("add member, check group but the group:${groupDn} not exists")
             return false
         }
         if (checkLdapEntryExist(ldapUrl, bindDn, password, memberDn)) {
-            logger.info("add member but the member already exists")
+            logger.info("add member, check member: ${memberDn} but the member already exists in group: ${groupDn}")
             return false
         }
 
@@ -2030,11 +2030,11 @@ class Suite implements GroovyInterceptable {
 
     def deleteMemberToEntry = { def ldapUrl, def bindDn, def password, def groupDn, def memberDn ->
         if (!checkLdapEntryExist(ldapUrl, bindDn, password, groupDn)) {
-            logger.info("delete member but the group not exists")
+            logger.info("delete member, check group: ${groupDn} but the group not exists")
             return false
         }
         if (!checkLdapEntryExist(ldapUrl, bindDn, password, memberDn)) {
-            logger.info("delete member but the member not exists")
+            logger.info("delete member, check member: ${memberDn} but the member not exists")
             return false
         }
 
