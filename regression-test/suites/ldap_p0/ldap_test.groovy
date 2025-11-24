@@ -136,8 +136,33 @@ suite("ldap_test", "external_docker") {
         deleteoldrdn: 1
         newsuperior: cn=${testGroup2},${ldapBaseDn}"""
     moveLdapEntry("""ldap://${ldapHost}:${ldapPort}""", ldapAdminUser, ldapAdminPassword, testUserDn, testGroupDn2, moveLdifContent)
+    sql """REFRESH LDAP FOR ${testUser};"""
+    connect(testUser, testUserPlaintextPassword, url) {
+        def grants = sql """show grants;"""
+        logger.info("grants: " + grants)
+        def res = sql """select * from ${dbName}.${tbName}"""
+        assertTrue(res.size() == 3)
+        logger.info("SUCCESS: LDAP user '${testUser}' successfully logged in to Doris.")
+    }
+
+
     assertTrue(deleteMemberToEntry("""ldap://${ldapHost}:${ldapPort}""", ldapAdminUser, ldapAdminPassword, testGroupDn, testUserDn2))
+    sql """REFRESH LDAP FOR ${testUser};"""
+    connect(testUser, testUserPlaintextPassword, url) {
+        def grants = sql """show grants;"""
+        logger.info("grants: " + grants)
+        logger.info("SUCCESS: LDAP user '${testUser}' successfully logged in to Doris.")
+    }
+
+
     assertTrue(addMemberToEntry("""ldap://${ldapHost}:${ldapPort}""", ldapAdminUser, ldapAdminPassword, testGroupDn2, testUserDn2))
+    connect(testUser, testUserPlaintextPassword, url) {
+        def grants = sql """show grants;"""
+        logger.info("grants: " + grants)
+        def res = sql """select * from ${dbName}.${tbName2}"""
+        assertTrue(res.size() == 3)
+        logger.info("SUCCESS: LDAP user '${testUser}' successfully logged in to Doris.")
+    }
 
     assertFalse(checkLdapEntryExist("""ldap://${ldapHost}:${ldapPort}""", ldapAdminUser, ldapAdminPassword, testUserDn))
     assertTrue(checkLdapEntryExist("""ldap://${ldapHost}:${ldapPort}""", ldapAdminUser, ldapAdminPassword, testUserDn2))
