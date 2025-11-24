@@ -1976,8 +1976,6 @@ class Suite implements GroovyInterceptable {
                 fullBashCommand
         ]
 
-
-
         def (output, errorOutput, exitCode) = runLdapProcessBuilder(cmdList)
 
         if (exitCode == 0) {
@@ -1985,6 +1983,90 @@ class Suite implements GroovyInterceptable {
             return true
         }
         logger.warning("Ldap move/rename failed. Exit Code: ${exitCode}. Stderr: ${errorOutput}")
+        assert false
+    }
+
+    def addMemberToEntry = { def ldapUrl, def bindDn, def password, def groupDn, def memberDn ->
+        if (checkLdapEntryExist(ldapUrl, bindDn, password, groupDn)) {
+            logger.info("add member but the group not exists")
+            return false
+        }
+        if (checkLdapEntryExist(ldapUrl, bindDn, password, memberDn)) {
+            logger.info("add member but the member already exists")
+            return false
+        }
+
+        def sLdapUrl = ldapUrl.toString()
+        def sBindDn = bindDn.toString()
+        def sPassword = password.toString()
+        def sLdifContent = """
+            dn: ${groupDn}
+            changetype: modify
+            add: member
+            member: ${memberDn}"""
+
+        def cleanLdifContent = sLdifContent.readLines().collect { it.trim() }.join('\n')
+        def ldapAddCommandBase = "ldapadd -x -H ${sLdapUrl} -D \"${sBindDn}\" -w \"${sPassword}\""
+        def fullBashCommand = """
+                |cat <<EOF | ${ldapAddCommandBase}
+                |${cleanLdifContent}
+                |EOF""".stripMargin()
+
+        def cmdList = [
+                "bash",
+                "-c",
+                fullBashCommand
+        ]
+
+        def (output, errorOutput, exitCode) = runLdapProcessBuilder(cmdList)
+
+        if (exitCode == 0) {
+            logger.info("success ldap dn")
+            return true
+        }
+        logger.warning("Addldap for DN failed. Exit Code: ${exitCode}. Stderr: ${errorOutput}")
+        assert false
+    }
+
+    def deleteMemberToEntry = { def ldapUrl, def bindDn, def password, def groupDn, def memberDn ->
+        if (checkLdapEntryExist(ldapUrl, bindDn, password, groupDn)) {
+            logger.info("dalete member but the group not exists")
+            return false
+        }
+        if (checkLdapEntryExist(ldapUrl, bindDn, password, memberDn)) {
+            logger.info("dalete member but the member not exists")
+            return false
+        }
+
+        def sLdapUrl = ldapUrl.toString()
+        def sBindDn = bindDn.toString()
+        def sPassword = password.toString()
+        def sLdifContent = """
+            dn: ${groupDn}
+            changetype: modify
+            delete: member
+            member: ${memberDn}"""
+
+        def cleanLdifContent = sLdifContent.readLines().collect { it.trim() }.join('\n')
+        def ldapAddCommandBase = "ldapadd -x -H ${sLdapUrl} -D \"${sBindDn}\" -w \"${sPassword}\""
+        def fullBashCommand = """
+                |cat <<EOF | ${ldapAddCommandBase}
+                |${cleanLdifContent}
+                |EOF""".stripMargin()
+
+        def cmdList = [
+                "bash",
+                "-c",
+                fullBashCommand
+        ]
+
+        def (output, errorOutput, exitCode) = runLdapProcessBuilder(cmdList)
+
+        if (exitCode == 0) {
+            logger.info("success ldap dn")
+            return true
+        }
+        logger.warning("Addldap for DN failed. Exit Code: ${exitCode}. Stderr: ${errorOutput}")
         assert false
     }
 
