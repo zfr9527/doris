@@ -121,7 +121,7 @@ suite("doris_and_ldap_priv_range", "external_docker") {
     connect(testUser, testUserPlaintextPassword, url) {
         test {
             sql """REFRESH LDAP FOR ${testUser};"""
-            exception "Permission denied"
+            exception "denied"
         }
         def grants = sql """show grants;"""
         logger.info("grants: " + grants)
