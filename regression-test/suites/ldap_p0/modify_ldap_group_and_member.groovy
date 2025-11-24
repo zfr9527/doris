@@ -23,8 +23,8 @@ suite("modify_ldap_group_and_member", "external_docker") {
     }
 
     String prefix_str = "z10100_"
-    String dbName = prefix_str + "_db"
-    String tbName = prefix_str + "_tb"
+    String dbName = prefix_str + "db"
+    String tbName = prefix_str + "tb"
 //    String tbName2 = prefix_str + "_tb2"
     sql """create database if not exists ${dbName}"""
     sql """drop table if exists ${dbName}.${tbName}"""
@@ -71,7 +71,7 @@ suite("modify_ldap_group_and_member", "external_docker") {
     // Define the new test entities
     String testGroup = prefix_str + "group"
     String testGroup2 = prefix_str + "group2"
-    String testUser = "testuser"
+    String testUser = prefix_str + "user"
     String testUserPassword = "{SSHA}4fqyv30HZK25GEzQ8J7R+3Wa7gvnfzSu"
     String testUserPlaintextPassword = "654321"
     
@@ -124,12 +124,35 @@ suite("modify_ldap_group_and_member", "external_docker") {
     def url = tokens[0] + "//" + tokens[2] + "/information_schema?authenticationPlugins=org.apache.doris.regression.util.MysqlClearPasswordPluginWithoutSSL&defaultAuthenticationPlugin=org.apache.doris.regression.util.MysqlClearPasswordPluginWithoutSSL&disabledAuthenticationPlugins=org.apache.doris.regression.util.MysqlClearPasswordPlugin"
     log.info("url: " + url)
     connect(testUser, testUserPlaintextPassword, url) {
+        ef grants = sql """show grants;"""
+        logger.info("grants: " + grants)
+        assertTrue(grants.toString().contains("${testGroup}"))
         def res = sql """select * from ${dbName}.${tbName}"""
         assertTrue(res.size() == 3)
         logger.info("SUCCESS: LDAP user '${testUser}' successfully logged in to Doris.")
     }
 
     modifyEntryName("""ldap://${ldapHost}:${ldapPort}""", ldapAdminUser, ldapAdminPassword, testGroupDn, testGroup2)
+    connect(testUser, testUserPlaintextPassword, url) {
+        ef grants = sql """show grants;"""
+        logger.info("grants: " + grants)
+        assertTrue(grants.toString().contains("${testGroup}"))
+        def res = sql """select * from ${dbName}.${tbName}"""
+        assertTrue(res.size() == 3)
+        logger.info("SUCCESS: LDAP user '${testUser}' successfully logged in to Doris.")
+    }
+
+    sql """REFRESH LDAP FOR ${testUser};"""
+    connect(testUser, testUserPlaintextPassword, url) {
+        logger.info("SUCCESS: LDAP user '${testUser}' successfully logged in to Doris.")
+        def grants = sql """show grants;"""
+        logger.info("grants: " + grants)
+        assertFalse(grants.toString().contains("${testGroup}"))
+        test {
+            sql """select * from ${dbName}.${tbName}"""
+            exception "Permission denied"
+        }
+    }
 
 
 
@@ -178,12 +201,11 @@ suite("modify_ldap_group_and_member", "external_docker") {
 //    assertTrue(checkLdapEntryExist("""ldap://${ldapHost}:${ldapPort}""", ldapAdminUser, ldapAdminPassword, testUserDn2))
     
     // Clean up: always try to remove all created entities
-//    logger.info("Starting cleanup process...")
-//    sql "DROP ROLE '${testGroup}';"
-//    sql "DROP ROLE '${testGroup2}';"
-//
-//    for (String dn in [testUserDn, testUserDn2, testGroupDn, testGroupDn2]) {
-//        deleteLdapEntry("""ldap://${ldapHost}:${ldapPort}""", ldapAdminUser, ldapAdminPassword, dn)
-//    }
+    logger.info("Starting cleanup process...")
+    sql "DROP ROLE '${testGroup}';"
+
+    for (String dn in [testUserDn, testGroupDn]) {
+        deleteLdapEntry("""ldap://${ldapHost}:${ldapPort}""", ldapAdminUser, ldapAdminPassword, dn)
+    }
 
 }
