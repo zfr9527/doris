@@ -1916,6 +1916,39 @@ class Suite implements GroovyInterceptable {
         return [output, errorOutput, exitCode]
     }
 
+    def checkMemberExistFromEntry = { def ldapUrl, def bindDn, def password, def groupDn, def memberDn ->
+        def sLdapUrl = ldapUrl.toString()
+        def sBindDn = bindDn.toString()
+        def sPassword = password.toString()
+        def sGroupDn = groupDn.toString()
+
+        def cmdList = [
+                "ldapsearch",
+                "-H", sLdapUrl,
+                "-D", sBindDn,
+                "-w", sPassword,
+                "-b", sGroupDn,
+                "-s", "base",
+                "member"
+        ]
+
+        def (output, errorOutput, exitCode) = runLdapProcessBuilder(cmdList)
+
+        if (exitCode != 0) {
+            logger.error("LDAP search failed. Exit Code: $exitCode. Error: $errorOutput")
+            return false
+        }
+
+        def targetLine = "member: ${memberDn}"
+        if (output.contains(targetLine)) {
+            logger.info("Success: Group '$groupDn' contains member '$memberDn'.")
+            return true
+        } else {
+            logger.warning("Failure: Member '$memberDn' not found in Group '$groupDn'. Output: $output")
+            return false
+        }
+    }
+
     def checkLdapEntryExist = { def ldapUrl, def bindDn, def password, def dn ->
         def sLdapUrl = ldapUrl.toString()
         def sBindDn = bindDn.toString()
@@ -1991,7 +2024,7 @@ class Suite implements GroovyInterceptable {
             logger.info("add member, check group but the group:${groupDn} not exists")
             return false
         }
-        if (checkLdapEntryExist(ldapUrl, bindDn, password, memberDn)) {
+        if (checkMemberExistFromEntry(ldapUrl, bindDn, password, groupDn, groupDn)) {
             logger.info("add member, check member: ${memberDn} but the member already exists in group: ${groupDn}")
             return false
         }
@@ -2033,7 +2066,7 @@ class Suite implements GroovyInterceptable {
             logger.info("delete member, check group: ${groupDn} but the group not exists")
             return false
         }
-        if (!checkLdapEntryExist(ldapUrl, bindDn, password, memberDn)) {
+        if (!checkMemberExistFromEntry(ldapUrl, bindDn, password, groupDn, memberDn)) {
             logger.info("delete member, check member: ${memberDn} but the member not exists")
             return false
         }
