@@ -139,11 +139,23 @@ suite("doris_and_ldap_priv_range", "external_docker") {
         def res = sql """select * from ${dbName}.${tbName}"""
         assertTrue(res.size() == 3)
         logger.info("SUCCESS: LDAP user '${testUser}' successfully logged in to Doris.")
+    }
+
+    sql """REFRESH LDAP FOR ${testUser};"""
+    connect(testUser, testUserPlaintextPassword, url) {
+        def grants = sql """show grants;"""
+        logger.info("grants: " + grants)
+        assertTrue(grants.toString().contains("${testGroup}"))
+        assertTrue(grants.toString().contains("${testGroup2}"))
+        def res = sql """select * from ${dbName}.${tbName}"""
+        assertTrue(res.size() == 3)
+        logger.info("SUCCESS: LDAP user '${testUser}' successfully logged in to Doris.")
 
         sql """REFRESH LDAP FOR ${testUser};"""
 
         grants = sql """show grants;"""
         logger.info("grants: " + grants)
+        assertTrue(grants.toString().contains("${testGroup}"))
         assertTrue(grants.toString().contains("${testGroup2}"))
         res = sql """select * from ${dbName}.${tbName}"""
         assertTrue(res.size() == 3)
