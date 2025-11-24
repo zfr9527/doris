@@ -2024,7 +2024,7 @@ class Suite implements GroovyInterceptable {
             logger.info("add member, check group but the group:${groupDn} not exists")
             return false
         }
-        if (checkMemberExistFromEntry(ldapUrl, bindDn, password, groupDn, groupDn)) {
+        if (checkMemberExistFromEntry(ldapUrl, bindDn, password, groupDn, memberDn)) {
             logger.info("add member, check member: ${memberDn} but the member already exists in group: ${groupDn}")
             return false
         }
