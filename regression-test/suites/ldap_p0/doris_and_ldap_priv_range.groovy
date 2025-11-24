@@ -145,6 +145,7 @@ suite("doris_and_ldap_priv_range", "external_docker") {
     connect(testUser, testUserPlaintextPassword, url) {
         def grants = sql """show grants;"""
         logger.info("grants: " + grants)
+        assertTrue(grants.toString().contains("Admin_priv"))
         assertTrue(grants.toString().contains("${testGroup}"))
         assertTrue(grants.toString().contains("${testGroup2}"))
         def res = sql """select * from ${dbName}.${tbName}"""
@@ -155,6 +156,7 @@ suite("doris_and_ldap_priv_range", "external_docker") {
 
         grants = sql """show grants;"""
         logger.info("grants: " + grants)
+        assertTrue(grants.toString().contains("Admin_priv"))
         assertTrue(grants.toString().contains("${testGroup}"))
         assertTrue(grants.toString().contains("${testGroup2}"))
         res = sql """select * from ${dbName}.${tbName}"""
