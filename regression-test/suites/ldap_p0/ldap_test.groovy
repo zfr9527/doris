@@ -156,6 +156,7 @@ suite("ldap_test", "external_docker") {
 
 
     assertTrue(addMemberToEntry("""ldap://${ldapHost}:${ldapPort}""", ldapAdminUser, ldapAdminPassword, testGroupDn2, testUserDn2))
+    sql """REFRESH LDAP FOR ${testUser};"""
     connect(testUser, testUserPlaintextPassword, url) {
         def grants = sql """show grants;"""
         logger.info("grants: " + grants)
