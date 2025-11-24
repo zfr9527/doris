@@ -140,26 +140,30 @@ suite("ldap_test", "external_docker") {
     connect(testUser, testUserPlaintextPassword, url) {
         def grants = sql """show grants;"""
         logger.info("grants: " + grants)
+        assertTrue(grants.toString().contains("${testGroup}"))
+        assertFalse(grants.toString().contains("${testGroup2}"))
         def res = sql """select * from ${dbName}.${tbName}"""
         assertTrue(res.size() == 3)
         logger.info("SUCCESS: LDAP user '${testUser}' successfully logged in to Doris.")
     }
-
 
     assertTrue(deleteMemberToEntry("""ldap://${ldapHost}:${ldapPort}""", ldapAdminUser, ldapAdminPassword, testGroupDn, testUserDn2))
     sql """REFRESH LDAP FOR ${testUser};"""
     connect(testUser, testUserPlaintextPassword, url) {
         def grants = sql """show grants;"""
         logger.info("grants: " + grants)
+        assertFalse(grants.toString().contains("${testGroup}"))
+        assertFalse(grants.toString().contains("${testGroup2}"))
         logger.info("SUCCESS: LDAP user '${testUser}' successfully logged in to Doris.")
     }
-
 
     assertTrue(addMemberToEntry("""ldap://${ldapHost}:${ldapPort}""", ldapAdminUser, ldapAdminPassword, testGroupDn2, testUserDn2))
     sql """REFRESH LDAP FOR ${testUser};"""
     connect(testUser, testUserPlaintextPassword, url) {
         def grants = sql """show grants;"""
         logger.info("grants: " + grants)
+        assertFalse(grants.toString().contains("${testGroup}"))
+        assertTrue(grants.toString().contains("${testGroup2}"))
         def res = sql """select * from ${dbName}.${tbName2}"""
         assertTrue(res.size() == 3)
         logger.info("SUCCESS: LDAP user '${testUser}' successfully logged in to Doris.")
@@ -169,11 +173,12 @@ suite("ldap_test", "external_docker") {
     assertTrue(checkLdapEntryExist("""ldap://${ldapHost}:${ldapPort}""", ldapAdminUser, ldapAdminPassword, testUserDn2))
     
     // Clean up: always try to remove all created entities
-//    logger.info("Starting cleanup process...")
-//    sql "DROP ROLE '${testGroup}';"
-//
-//    for (String dn in [testUserDn, testUserDn2, testGroupDn, testGroupDn2]) {
-//        deleteLdapEntry("""ldap://${ldapHost}:${ldapPort}""", ldapAdminUser, ldapAdminPassword, dn)
-//    }
+    logger.info("Starting cleanup process...")
+    sql "DROP ROLE '${testGroup}';"
+    sql "DROP ROLE '${testGroup2}';"
+
+    for (String dn in [testUserDn, testUserDn2, testGroupDn, testGroupDn2]) {
+        deleteLdapEntry("""ldap://${ldapHost}:${ldapPort}""", ldapAdminUser, ldapAdminPassword, dn)
+    }
 
 }
