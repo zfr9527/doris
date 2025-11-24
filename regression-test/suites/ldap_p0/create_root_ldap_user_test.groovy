@@ -16,7 +16,7 @@
 // under the License.
 
 
-suite("create_special_ldap_user_test") {
+suite("create_root_ldap_user_test") {
     String enabled = context.config.otherConfigs.get("enableLdapTest")
     if (enabled == null || !enabled.equalsIgnoreCase("true")) {
         logger.info("LDAP test is disabled in regression-conf.groovy, skipping.")

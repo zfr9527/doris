@@ -1998,7 +1998,6 @@ class Suite implements GroovyInterceptable {
 
         def cleanModrdnLdif = sModrdnLdif.readLines().collect { it.trim() }.join('\n')
         def ldapModrdnCommandBase = "ldapmodify -x -H ${sLdapUrl} -D \"${sBindDn}\" -w \"${sPassword}\""
-//        def fullBashCommand = "echo \$'${cleanModrdnLdif}' | ${ldapModrdnCommandBase}"
         def fullBashCommand = """
                 |cat <<EOF | ${ldapModrdnCommandBase}
                 |${cleanModrdnLdif}
@@ -2163,6 +2162,49 @@ class Suite implements GroovyInterceptable {
             return true
         }
         logger.warning("ldapdelete for DN '$dnToDelete' failed. Exit Code: ${exitCode}. Stderr: ${errorOutput}")
+        assert false
+    }
+
+    def modifyEntryName = { def ldapUrl, def bindDn, def password, def dn, def newName ->
+        if (!checkLdapEntryExist(ldapUrl, bindDn, password, dn)) {
+            logger.info("modify name: check dn: ${dn} not exists")
+            return false
+        }
+        def sLdapUrl = ldapUrl.toString()
+        def sBindDn = bindDn.toString()
+        def sPassword = password.toString()
+        /*
+        dn: cn=old_group_name,dc=example,dc=com
+changetype: modrdn
+newrdn: cn=new_group_name
+deleteoldrdn: 1
+         */
+        def sLdifContent = """
+            dn: ${dn}
+            changetype: modrdn
+            newrdn: cn=${newName}
+            deleteoldrdn: 1"""
+
+        def cleanLdifContent = sLdifContent.readLines().collect { it.trim() }.join('\n')
+        def ldapAddCommandBase = "ldapmodify -x -H ${sLdapUrl} -D \"${sBindDn}\" -w \"${sPassword}\""
+        def fullBashCommand = """
+                |cat <<EOF | ${ldapAddCommandBase}
+                |${cleanLdifContent}
+                |EOF""".stripMargin()
+
+        def cmdList = [
+                "bash",
+                "-c",
+                fullBashCommand
+        ]
+
+        def (output, errorOutput, exitCode) = runLdapProcessBuilder(cmdList)
+
+        if (exitCode == 0) {
+            logger.info("success ldap dn")
+            return true
+        }
+        logger.warning("modifyEntryName for DN failed. Exit Code: ${exitCode}. Stderr: ${errorOutput}")
         assert false
     }
 
