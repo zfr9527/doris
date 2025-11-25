@@ -67,7 +67,7 @@ suite("ldap_and_doris_auth_same_user_and_role_with_ip") {
     String ldapAdminPassword = context.config.otherConfigs.get("ldapPassword")
     String ldapBaseDn = context.config.otherConfigs.get("ldapBaseDn")
     def tokens = context.config.jdbcUrl.split('/')
-    def tokens_ip = context.config.jdbcUrl.split(':')
+    def tokens_ip = tokens[2].split(':')
     logger.info("tokens_ip: " + tokens_ip)
 
     sql """set ldap_admin_password = password('${ldapAdminPassword}');"""
