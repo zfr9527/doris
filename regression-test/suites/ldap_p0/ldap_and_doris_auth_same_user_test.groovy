@@ -152,13 +152,12 @@ suite("ldap_and_doris_auth_same_user_test") {
         assertTrue(e.getMessage().contains('Access denied'))
     }
 
-
     sql """REVOKE SELECT_PRIV ON ${dbName}.${tbName} FROM '${testUser}';"""
     connect(testUser, testUserPlaintextPassword, url) {
         def grants = sql """show grants;"""
         logger.info("grants:" + grants)
         assertTrue(grants.toString().contains("internal.${dbName}.${tbName2}"))
-        def res = sql """select * from ${dbName}.${tbName}"""
+        def res = sql """select * from ${dbName}.${tbName2}"""
         assertTrue(res.size() == 3)
         logger.info("SUCCESS: doris user '${testUser}' successfully logged in to Doris.")
     }
