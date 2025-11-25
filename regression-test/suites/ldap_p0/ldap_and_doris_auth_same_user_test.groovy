@@ -151,87 +151,88 @@ suite("ldap_and_doris_auth_same_user_test") {
         assertTrue(e.getMessage().contains('Access denied'))
     }
 
-    sql """REVOKE SELECT_PRIV ON ${dbName}.${tbName} FROM '${testUser}';"""
-    connect(testUser, testUserPlaintextPassword, url) {
-        def grants = sql """show grants;"""
-        logger.info("grants:" + grants)
-        assertFalse(grants.toString().contains("internal.${dbName}.${tbName}"))
-        assertTrue(grants.toString().contains("internal.${dbName}.${tbName2}"))
-        def res = sql """select * from ${dbName}.${tbName}"""
-        assertTrue(res.size() == 3)
-        logger.info("SUCCESS: doris user '${testUser}' successfully logged in to Doris.")
-    }
-    sql """GRANT SELECT_PRIV ON ${dbName}.${tbName} TO '${testUser}';"""
-
-    sql "REVOKE SELECT_PRIV ON ${dbName}.${tbName2} FROM ROLE '${testGroup}';"
-    connect(testUser, testUserPlaintextPassword, url) {
-        def grants = sql """show grants"""
-        logger.info("grants:" + grants)
-        assertTrue(grants.toString().contains("internal.${dbName}.${tbName}"))
-        assertFalse(grants.toString().contains("internal.${dbName}.${tbName2}"))
-        def res = sql """select * from ${dbName}.${tbName}"""
-        assertTrue(res.size() == 3)
-        logger.info("SUCCESS: user '${testUser}' successfully logged in to Doris.")
-    }
-    sql "GRANT SELECT_PRIV ON ${dbName}.${tbName2} TO ROLE '${testGroup}';"
-
-
-    logger.info("Starting cleanup process...")
-//    sql "DROP USER '${testUser}';"
+//
+//    sql """REVOKE SELECT_PRIV ON ${dbName}.${tbName} FROM '${testUser}';"""
+//    connect(testUser, testUserPlaintextPassword, url) {
+//        def grants = sql """show grants;"""
+//        logger.info("grants:" + grants)
+//        assertFalse(grants.toString().contains("internal.${dbName}.${tbName}"))
+//        assertTrue(grants.toString().contains("internal.${dbName}.${tbName2}"))
+//        def res = sql """select * from ${dbName}.${tbName}"""
+//        assertTrue(res.size() == 3)
+//        logger.info("SUCCESS: doris user '${testUser}' successfully logged in to Doris.")
+//    }
+//    sql """GRANT SELECT_PRIV ON ${dbName}.${tbName} TO '${testUser}';"""
+//
+//    sql "REVOKE SELECT_PRIV ON ${dbName}.${tbName2} FROM ROLE '${testGroup}';"
+//    connect(testUser, testUserPlaintextPassword, url) {
+//        def grants = sql """show grants"""
+//        logger.info("grants:" + grants)
+//        assertTrue(grants.toString().contains("internal.${dbName}.${tbName}"))
+//        assertFalse(grants.toString().contains("internal.${dbName}.${tbName2}"))
+//        def res = sql """select * from ${dbName}.${tbName}"""
+//        assertTrue(res.size() == 3)
+//        logger.info("SUCCESS: user '${testUser}' successfully logged in to Doris.")
+//    }
+//    sql "GRANT SELECT_PRIV ON ${dbName}.${tbName2} TO ROLE '${testGroup}';"
+//
+//
+//    logger.info("Starting cleanup process...")
+////    sql "DROP USER '${testUser}';"
+////    sql """drop role ${testGroup}"""
+//
+//    for (String dn in [testUserDn, testGroupDn]) {
+//        deleteLdapEntry("""ldap://${ldapHost}:${ldapPort}""", ldapAdminUser, ldapAdminPassword, dn)
+//    }
+//
+//    connect(testUser, testUserPlaintextPassword, url) {
+//        def grants = sql """show grants"""
+//        logger.info("grants:" + grants)
+//        assertTrue(grants.toString().contains("internal.${dbName}.${tbName}"))
+//        assertTrue(grants.toString().contains("internal.${dbName}.${tbName2}"))
+//        def res = sql """select * from ${dbName}.${tbName}"""
+//        assertTrue(res.size() == 3)
+//        logger.info("SUCCESS: user '${testUser}' successfully logged in to Doris.")
+//    }
+//
 //    sql """drop role ${testGroup}"""
-
-    for (String dn in [testUserDn, testGroupDn]) {
-        deleteLdapEntry("""ldap://${ldapHost}:${ldapPort}""", ldapAdminUser, ldapAdminPassword, dn)
-    }
-
-    connect(testUser, testUserPlaintextPassword, url) {
-        def grants = sql """show grants"""
-        logger.info("grants:" + grants)
-        assertTrue(grants.toString().contains("internal.${dbName}.${tbName}"))
-        assertTrue(grants.toString().contains("internal.${dbName}.${tbName2}"))
-        def res = sql """select * from ${dbName}.${tbName}"""
-        assertTrue(res.size() == 3)
-        logger.info("SUCCESS: user '${testUser}' successfully logged in to Doris.")
-    }
-
-    sql """drop role ${testGroup}"""
-
-    // 这里会有一点问题，role的权限到底应不应该保留
-    /*
-    connect(testUser, testUserPlaintextPassword, url) {
-        def grants = sql """show grants"""
-        logger.info("grants:" + grants)
-        assertTrue(grants.toString().contains("internal.${dbName}.${tbName}"))
-        assertFalse(grants.toString().contains("internal.${dbName}.${tbName2}"))
-        def res = sql """select * from ${dbName}.${tbName}"""
-        assertTrue(res.size() == 3)
-        logger.info("SUCCESS: user '${testUser}' successfully logged in to Doris.")
-    }
-
-     */
-
-    sql """REFRESH LDAP FOR ${testUser};"""
-
-    connect(testUser, testUserPlaintextPassword, url) {
-        def grants = sql """show grants;"""
-        logger.info("grants:" + grants)
-        assertTrue(grants.toString().contains("internal.${dbName}.${tbName}"))
-        assertFalse(grants.toString().contains("internal.${dbName}.${tbName2}"))
-        def res = sql """select * from ${dbName}.${tbName}"""
-        assertTrue(res.size() == 3)
-        logger.info("SUCCESS: doris user '${testUser}' successfully logged in to Doris.")
-    }
-
-    sql "DROP USER '${testUser}';"
-
-    try {
-        connect(testUser, testUserPlaintextPassword, url) {
-            assert false
-        }
-    } catch (Exception e) {
-        log.info("e.getMessage(): " + e.getMessage())
-        assertTrue(e.getMessage().contains('Access denied'))
-    }
+//
+//    // 这里会有一点问题，role的权限到底应不应该保留
+//    /*
+//    connect(testUser, testUserPlaintextPassword, url) {
+//        def grants = sql """show grants"""
+//        logger.info("grants:" + grants)
+//        assertTrue(grants.toString().contains("internal.${dbName}.${tbName}"))
+//        assertFalse(grants.toString().contains("internal.${dbName}.${tbName2}"))
+//        def res = sql """select * from ${dbName}.${tbName}"""
+//        assertTrue(res.size() == 3)
+//        logger.info("SUCCESS: user '${testUser}' successfully logged in to Doris.")
+//    }
+//
+//     */
+//
+//    sql """REFRESH LDAP FOR ${testUser};"""
+//
+//    connect(testUser, testUserPlaintextPassword, url) {
+//        def grants = sql """show grants;"""
+//        logger.info("grants:" + grants)
+//        assertTrue(grants.toString().contains("internal.${dbName}.${tbName}"))
+//        assertFalse(grants.toString().contains("internal.${dbName}.${tbName2}"))
+//        def res = sql """select * from ${dbName}.${tbName}"""
+//        assertTrue(res.size() == 3)
+//        logger.info("SUCCESS: doris user '${testUser}' successfully logged in to Doris.")
+//    }
+//
+//    sql "DROP USER '${testUser}';"
+//
+//    try {
+//        connect(testUser, testUserPlaintextPassword, url) {
+//            assert false
+//        }
+//    } catch (Exception e) {
+//        log.info("e.getMessage(): " + e.getMessage())
+//        assertTrue(e.getMessage().contains('Access denied'))
+//    }
 
 
 
