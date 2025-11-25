@@ -23,7 +23,7 @@ suite("ldap_and_doris_auth_same_user_and_role_with_ip") {
         return
     }
 
-    String prefix_str = "z10087_"
+    String prefix_str = "z101001_"
     String dbName = prefix_str + "db"
     String tbName = prefix_str + "tb"
     String tbName2 = prefix_str + "tb2"
@@ -73,6 +73,7 @@ suite("ldap_and_doris_auth_same_user_and_role_with_ip") {
     sql """set ldap_admin_password = password('${ldapAdminPassword}');"""
 
     String testGroup = prefix_str + "group"
+    String dorisGroupRole = prefix_str + "dorisGroup"
     String testUser = prefix_str + "user"
     String testUserPassword = "{SSHA}4fqyv30HZK25GEzQ8J7R+3Wa7gvnfzSu"
     String testUserPlaintextPassword = "654321"
@@ -87,7 +88,8 @@ suite("ldap_and_doris_auth_same_user_and_role_with_ip") {
 
     sql """drop user if exists '${testUser}'@'${tokens_ip[0]}'"""
     sql """CREATE USER '${testUser}'@'${tokens_ip[0]}' IDENTIFIED BY '${testUserPlaintextPassword}';"""
-    sql """GRANT SELECT_PRIV ON ${dbName}.${tbName} TO '${testUser}'@'${tokens_ip[0]}';"""
+    sql "GRANT SELECT_PRIV ON ${dbName}.${tbName} TO ROLE '${dorisGroupRole}';"
+    sql """grant '${dorisGroupRole}' to '${testUser}'@'${tokens_ip[0]}'"""
 
     def url = tokens[0] + "//" + tokens[2] + "/" + "${dbName}?authenticationPlugins=org.apache.doris.regression.util.MysqlClearPasswordPluginWithoutSSL&defaultAuthenticationPlugin=org.apache.doris.regression.util.MysqlClearPasswordPluginWithoutSSL&disabledAuthenticationPlugins=org.apache.doris.regression.util.MysqlClearPasswordPlugin"
     connect(testUser, testUserPlaintextPassword, url) {
