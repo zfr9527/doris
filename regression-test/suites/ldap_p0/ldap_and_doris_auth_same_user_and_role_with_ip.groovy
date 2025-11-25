@@ -66,6 +66,7 @@ suite("ldap_and_doris_auth_same_user_and_role_with_ip") {
     String ldapAdminUser = context.config.otherConfigs.get("ldapUser")
     String ldapAdminPassword = context.config.otherConfigs.get("ldapPassword")
     String ldapBaseDn = context.config.otherConfigs.get("ldapBaseDn")
+    def tokens = context.config.jdbcUrl.split('/')
 
     sql """set ldap_admin_password = password('${ldapAdminPassword}');"""
 
@@ -82,11 +83,10 @@ suite("ldap_and_doris_auth_same_user_and_role_with_ip") {
     }
     sql """REFRESH LDAP FOR ${testUser};"""
 
-    sql """drop user if exists '${testUser}'@'127.0.0.2'"""
-    sql """CREATE USER '${testUser}'@'127.0.0.2' IDENTIFIED BY '${testUserPlaintextPassword}';"""
-    sql """GRANT SELECT_PRIV ON ${dbName}.${tbName} TO '${testUser}'@'127.0.0.2';"""
+    sql """drop user if exists '${testUser}'@'${tokens[2]}'"""
+    sql """CREATE USER '${testUser}'@'${tokens[2]}' IDENTIFIED BY '${testUserPlaintextPassword}';"""
+    sql """GRANT SELECT_PRIV ON ${dbName}.${tbName} TO '${testUser}'@'${tokens[2]}';"""
 
-    def tokens = context.config.jdbcUrl.split('/')
     def url = tokens[0] + "//" + tokens[2] + "/" + "${dbName}?authenticationPlugins=org.apache.doris.regression.util.MysqlClearPasswordPluginWithoutSSL&defaultAuthenticationPlugin=org.apache.doris.regression.util.MysqlClearPasswordPluginWithoutSSL&disabledAuthenticationPlugins=org.apache.doris.regression.util.MysqlClearPasswordPlugin"
     connect(testUser, testUserPlaintextPassword, url) {
         def grants = sql """show grants;"""
@@ -97,7 +97,6 @@ suite("ldap_and_doris_auth_same_user_and_role_with_ip") {
         assertTrue(res.size() == 3)
         logger.info("SUCCESS: doris user '${testUser}' successfully logged in to Doris.")
     }
-
 
     // Prepare the multi-entry LDIF file content
     String ldifContent = """dn: cn=${testGroup},${ldapBaseDn}
@@ -133,7 +132,7 @@ suite("ldap_and_doris_auth_same_user_and_role_with_ip") {
     }
 
     logger.info("Starting cleanup process...")
-    sql "DROP USER '${testUser}'@'127.0.0.2';"
+    sql "DROP USER '${testUser}'@'${tokens[2]}';"
     sql """drop role ${testGroup}"""
 
     for (String dn in [testUserDn, testGroupDn]) {
