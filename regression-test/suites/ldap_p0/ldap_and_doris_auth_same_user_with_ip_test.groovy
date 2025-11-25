@@ -53,6 +53,12 @@ suite("ldap_and_doris_auth_same_user_test_with_ip") {
             PROPERTIES (
                 "replication_num" = "1"
             );"""
+    sql """
+        insert into ${dbName}.`${tbName2}` values 
+        (1, "111"),
+        (2, "222"),
+        (3, "333");
+        """
 
     // Get LDAP connection details from config
     String ldapHost = context.config.otherConfigs.get("ldapHost")
