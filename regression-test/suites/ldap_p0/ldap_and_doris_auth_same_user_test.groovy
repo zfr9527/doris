@@ -134,7 +134,7 @@ suite("ldap_and_doris_auth_same_user_test") {
 
     connect(testUser, testUserPlaintextPassword, url) {
         def grants = sql """show grants"""
-        logger.info("grants:" + grants)
+        logger.info("grantshhhhhh:" + grants)
         assertTrue(grants.toString().contains("internal.${dbName}.${tbName}"))
         assertTrue(grants.toString().contains("internal.${dbName}.${tbName2}"))
         def res = sql """select * from ${dbName}.${tbName}"""

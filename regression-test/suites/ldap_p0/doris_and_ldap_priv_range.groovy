@@ -119,6 +119,9 @@ suite("doris_and_ldap_priv_range", "external_docker") {
     def url = tokens[0] + "//" + tokens[2] + "/information_schema?authenticationPlugins=org.apache.doris.regression.util.MysqlClearPasswordPluginWithoutSSL&defaultAuthenticationPlugin=org.apache.doris.regression.util.MysqlClearPasswordPluginWithoutSSL&disabledAuthenticationPlugins=org.apache.doris.regression.util.MysqlClearPasswordPlugin"
     log.info("url: " + url)
     connect(testUser, testUserPlaintextPassword, url) {
+        // 支持这个刷新语句
+        sql """REFRESH LDAP;"""
+        // 这里应该要成功的，需要优化
         test {
             sql """REFRESH LDAP FOR ${testUser};"""
             exception "denied"
@@ -152,7 +155,7 @@ suite("doris_and_ldap_priv_range", "external_docker") {
         assertTrue(res.size() == 3)
         logger.info("SUCCESS: LDAP user '${testUser}' successfully logged in to Doris.")
 
-        sql """REFRESH LDAP FOR ${testUser};"""
+        sql """REFRESH LDAP all;"""
 
         grants = sql """show grants;"""
         logger.info("grants: " + grants)
