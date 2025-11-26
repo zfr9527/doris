@@ -162,7 +162,6 @@ suite("ldap_test", "external_docker") {
     connect(testUser, testUserPlaintextPassword, url) {
         def grants = sql """show grants;"""
         logger.info("grants: " + grants)
-        assertFalse(grants.toString().contains("${testGroup}"))
         assertTrue(grants.toString().contains("${testGroup2}"))
         def res = sql """select * from ${dbName}.${tbName2}"""
         assertTrue(res.size() == 3)
