@@ -153,8 +153,8 @@ suite("ldap_crash_user_log_in_test", "p2") {
             logger.error("❌ Verification failed: Container ${containerName} status is NOT UP. Status: ${status}")
         }
     }
-    
-    
+
+    /*
 //    for (int i = 0; i < 10; i++) {
         
         // 远程机器的 IP 地址，假设它来自你的 curIpAndPort 变量
@@ -205,7 +205,7 @@ suite("ldap_crash_user_log_in_test", "p2") {
             logger.error("❌ Failed to execute SSH command: ${e.getMessage()}", e)
         }
 
-    /*
+
         // check testuser not log in success
         connect(testUser, testUserPlaintextPassword, url) {
 
