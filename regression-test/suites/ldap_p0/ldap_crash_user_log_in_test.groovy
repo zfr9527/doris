@@ -1,4 +1,4 @@
-// 这个case是模拟ldap restart的case，
+// 这个case是模拟ldap restart的case，不要在流水线上跑
 suite("ldap_crash_user_log_in_test", "p2") {
 
     String enabled = context.config.otherConfigs.get("enableLdapTest")

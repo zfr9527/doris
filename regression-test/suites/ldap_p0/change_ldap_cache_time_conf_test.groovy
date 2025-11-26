@@ -15,7 +15,7 @@
 // specific language governing permissions and limitations
 // under the License.
 
-suite("change_ldap_conf_test", "external_docker, nonConcurrent") {
+suite("change_ldap_cache_time_conf_test", "external_docker, nonConcurrent") {
     String enabled = context.config.otherConfigs.get("enableLdapTest")
     if (enabled == null || !enabled.equalsIgnoreCase("true")) {
         logger.info("LDAP test is disabled in regression-conf.groovy, skipping.")
