@@ -237,7 +237,7 @@ suite("ldap_crash_user_log_in_test", "p2") {
         }
     } catch (Exception e) {
         log.info("e.getMessage(): " + e.getMessage())
-        assertTrue(e.getMessage().contains('reading authorization packet'))
+        assertTrue(e.getMessage().contains('Communications link failure'))
     }
 
     try {
@@ -246,7 +246,7 @@ suite("ldap_crash_user_log_in_test", "p2") {
         }
     } catch (Exception e) {
         log.info("e.getMessage(): " + e.getMessage())
-        assertTrue(e.getMessage().contains('reading authorization packet'))
+        assertTrue(e.getMessage().contains('Communications link failure'))
     }
 
         sshCommand = "ssh -o StrictHostKeyChecking=no ${remoteUser}@${remoteIP} '${startCmd}'"
