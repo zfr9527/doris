@@ -155,7 +155,7 @@ suite("ldap_crash_user_log_in_test", "p2") {
     }
 
 
-//    for (int i = 0; i < 10; i++) {
+    for (int i = 0; i < 100; i++) {
         
         // 远程机器的 IP 地址，假设它来自你的 curIpAndPort 变量
         def remoteIP = ldapHost
@@ -306,7 +306,7 @@ suite("ldap_crash_user_log_in_test", "p2") {
             logger.info("SUCCESS: LDAP user '${testUser}' successfully logged in to Doris.")
         }
         
-//    }
+    }
 
 
     // Clean up: always try to remove all created entities
