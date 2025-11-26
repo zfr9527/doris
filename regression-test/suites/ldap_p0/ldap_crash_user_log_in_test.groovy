@@ -1,28 +1,12 @@
-// Licensed to the Apache Software Foundation (ASF) under one
-// or more contributor license agreements.  See the NOTICE file
-// distributed with this work for additional information
-// regarding copyright ownership.  The ASF licenses this file
-// to you under the Apache License, Version 2.0 (the
-// "License"); you may not use this file except in compliance
-// with the License.  You may obtain a copy of the License at
-//
-//   http://www.apache.org/licenses/LICENSE-2.0
-//
-// Unless required by applicable law or agreed to in writing,
-// software distributed under the License is distributed on an
-// "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY
-// KIND, either express or implied.  See the License for the
-// specific language governing permissions and limitations
-// under the License.
+suite("ldap_crash_user_log_in_test") {
 
-suite("change_ldap_conf_test", "external_docker, nonConcurrent") {
     String enabled = context.config.otherConfigs.get("enableLdapTest")
     if (enabled == null || !enabled.equalsIgnoreCase("true")) {
         logger.info("LDAP test is disabled in regression-conf.groovy, skipping.")
         return
     }
 
-    String prefix_str = "z10102_"
+    String prefix_str = "z10103_"
     String dbName = prefix_str + "db"
     String tbName = prefix_str + "tb"
     sql """create database if not exists ${dbName}"""
@@ -56,14 +40,14 @@ suite("change_ldap_conf_test", "external_docker, nonConcurrent") {
     String testUser = prefix_str + "user"
     String testUserPassword = "{SSHA}4fqyv30HZK25GEzQ8J7R+3Wa7gvnfzSu"
     String testUserPlaintextPassword = "654321"
-    
+
     String testUserDn = "uid=${testUser},cn=${testGroup},${ldapBaseDn}"
     String testGroupDn = "cn=${testGroup},${ldapBaseDn}"
 
     for (String dn in [testUserDn, testGroupDn]) {
         deleteLdapEntry("""ldap://${ldapHost}:${ldapPort}""", ldapAdminUser, ldapAdminPassword, dn)
     }
-    
+
     // Prepare the multi-entry LDIF file content
     String ldifContent = """dn: cn=${testGroup},${ldapBaseDn}
         objectClass: groupOfNames
@@ -92,10 +76,10 @@ suite("change_ldap_conf_test", "external_docker, nonConcurrent") {
 
     sql """ADMIN SET FRONTEND CONFIG ('ldap_user_cache_timeout_s' = '10')"""
 
-    // Step 3: Verify that the new user can log in and has the correct role's permissions
+    // Step 3: Verify that the new user can logger in and has the correct role's permissions
     def tokens = context.config.jdbcUrl.split('/')
     def url = tokens[0] + "//" + tokens[2] + "/information_schema?authenticationPlugins=org.apache.doris.regression.util.MysqlClearPasswordPluginWithoutSSL&defaultAuthenticationPlugin=org.apache.doris.regression.util.MysqlClearPasswordPluginWithoutSSL&disabledAuthenticationPlugins=org.apache.doris.regression.util.MysqlClearPasswordPlugin"
-    log.info("url: " + url)
+    logger.info("url: " + url)
     connect(testUser, testUserPlaintextPassword, url) {
         def grants = sql """show grants;"""
         logger.info("grants: " + grants)
@@ -105,27 +89,88 @@ suite("change_ldap_conf_test", "external_docker, nonConcurrent") {
         logger.info("SUCCESS: LDAP user '${testUser}' successfully logged in to Doris.")
     }
 
-    deleteLdapEntry("""ldap://${ldapHost}:${ldapPort}""", ldapAdminUser, ldapAdminPassword, testUserDn)
+    def verifyLdapRestart = { def remoteIP, def remoteUser, def containerName -> 
+        // 检查容器状态是否是 'Up'
+        def verifyCmd = "docker ps --filter name=${containerName} --format '{{.Status}}'"
+        def sshVerifyCommand = "ssh -o StrictHostKeyChecking=no ${remoteUser}@${remoteIP} '${verifyCmd}'"
 
-    connect(testUser, testUserPlaintextPassword, url) {
-        def grants = sql """show grants;"""
-        logger.info("grants: " + grants)
-        assertTrue(grants.toString().contains("${testGroup}"))
-        def res = sql """select * from ${dbName}.${tbName}"""
-        assertTrue(res.size() == 3)
-        logger.info("SUCCESS: LDAP user '${testUser}' successfully logged in to Doris.")
-    }
+        logger.info("Verifying LDAP status on ${remoteIP}: ${sshVerifyCommand}")
 
-    sleep(10 * 1000)
+        def verifyProc = new ProcessBuilder("/bin/bash", "-c", sshVerifyCommand)
+                .redirectErrorStream(true)
+                .start()
 
-    try {
-        connect(testUser, testUserPlaintextPassword, url) {
-            assert  false
+        verifyProc.waitFor()
+
+        def status = verifyProc.getInputStream().getText().trim()
+
+        if (status.startsWith("Up")) {
+            logger.info("✅ Verification success: Container ${containerName} status is ${status}")
+        } else {
+            logger.error("❌ Verification failed: Container ${containerName} status is NOT UP. Status: ${status}")
         }
-    } catch (Exception e) {
-        log.info("e.getMessage(): " + e.getMessage())
-        assertTrue(e.getMessage().contains('Access denied'))
     }
+    
+    
+    for (int i = 0; i < 10; i++) {
+        
+        // 远程机器的 IP 地址，假设它来自你的 curIpAndPort 变量
+        def remoteIP = ldapHost
+        def remoteUser = "root" // 或其他有权限执行 docker 命令的用户
+        def ldapContainerName = "doris--zfr-openldap" // 你的 LDAP 容器名称
+
+        // 1. 构造 Docker 重启命令
+        // 注意：这是直接重启整个容器，这是Docker管理服务的最佳实践。
+        def restartCmd = "docker restart ${ldapContainerName}"
+
+        // 2. 构造完整的 SSH 命令
+        // 确保使用无密码 SSH，因此不需要 -p 参数
+        def sshCommand = "ssh -o StrictHostKeyChecking=no ${remoteUser}@${remoteIP} '${restartCmd}'"
+
+        logger.info("Executing remote command to restart LDAP on ${remoteIP}: ${sshCommand}")
+
+        try {
+            // 3. 使用 ProcessBuilder 执行命令
+            def proc = new ProcessBuilder("/bin/bash", "-c", sshCommand)
+                    .redirectErrorStream(true) // 重定向错误流到标准输出
+                    .start()
+
+            StringBuilder output = new StringBuilder()
+            proc.getInputStream().eachLine { line ->
+                output.append(line).append("\n")
+                logger.info("Remote output: ${line}") // 实时输出日志
+            }
+
+            proc.waitFor() // 等待命令执行完成
+
+            if (proc.exitValue() == 0) {
+                logger.info("✅ LDAP container ${ldapContainerName} restarted successfully on ${remoteIP}.")
+                logger.info("Restart command output:\n${output.toString()}")
+
+                // 4. 【可选但推荐】执行验证命令
+                verifyLdapRestart(remoteIP, remoteUser, ldapContainerName)
+            } else {
+                logger.error("❌ Failed to restart LDAP container ${ldapContainerName}. Exit Code: ${proc.exitValue()}")
+                logger.error("Error output:\n${output.toString()}")
+                // 可以抛出异常中断执行
+                throw new RuntimeException("LDAP restart failed.")
+            }
+        } catch (IOException e) {
+            logger.error("❌ Failed to execute SSH command: ${e.getMessage()}", e)
+        }
+
+
+        connect(testUser, testUserPlaintextPassword, url) {
+            def grants = sql """show grants;"""
+            logger.info("grants: " + grants)
+            assertTrue(grants.toString().contains("${testGroup}"))
+            def res = sql """select * from ${dbName}.${tbName}"""
+            assertTrue(res.size() == 3)
+            logger.info("SUCCESS: LDAP user '${testUser}' successfully logged in to Doris.")
+        }
+        
+    }
+    
 
     // Clean up: always try to remove all created entities
     logger.info("Starting cleanup process...")
@@ -134,7 +179,4 @@ suite("change_ldap_conf_test", "external_docker, nonConcurrent") {
     for (String dn in [testUserDn, testGroupDn]) {
         deleteLdapEntry("""ldap://${ldapHost}:${ldapPort}""", ldapAdminUser, ldapAdminPassword, dn)
     }
-
-    sql """ADMIN SET FRONTEND CONFIG ('ldap_user_cache_timeout_s' = '300')"""
-
 }
