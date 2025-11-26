@@ -154,7 +154,7 @@ suite("ldap_crash_user_log_in_test", "p2") {
         }
     }
 
-    /*
+
 //    for (int i = 0; i < 10; i++) {
         
         // 远程机器的 IP 地址，假设它来自你的 curIpAndPort 变量
@@ -206,12 +206,17 @@ suite("ldap_crash_user_log_in_test", "p2") {
         }
 
 
-        // check testuser not log in success
-        connect(testUser, testUserPlaintextPassword, url) {
+        // check testuser in cache time
+    connect(testUser, testUserPlaintextPassword, url) {
+        def grants = sql """show grants;"""
+        logger.info("grants: " + grants)
+        assertTrue(grants.toString().contains("${testGroup}"))
+        def res = sql """select * from ${dbName}.${tbName}"""
+        assertTrue(res.size() == 3)
+        logger.info("SUCCESS: LDAP user '${testUser}' successfully logged in to Doris.")
+    }
 
-        }
-
-        // check testuser2 log in success
+    // check testuser2 in cache time
         connect(testUser2, testUserPlaintextPassword, url) {
             def grants = sql """show grants;"""
             logger.info("grants: " + grants)
@@ -223,11 +228,32 @@ suite("ldap_crash_user_log_in_test", "p2") {
             logger.info("SUCCESS: LDAP user '${testUser}' successfully logged in to Doris.")
         }
 
+        sql """REFRESH LDAP FOR ${testUser};"""
+        sql """REFRESH LDAP FOR ${testUser2};"""
+
+    try {
+        connect(testUser, testUserPlaintextPassword, url) {
+            assert false
+        }
+    } catch (Exception e) {
+        log.info("e.getMessage(): " + e.getMessage())
+        assertTrue(e.getMessage().contains('reading authorization packet'))
+    }
+
+    try {
+        connect(testUser2, testUserPlaintextPassword, url) {
+            assert false
+        }
+    } catch (Exception e) {
+        log.info("e.getMessage(): " + e.getMessage())
+        assertTrue(e.getMessage().contains('reading authorization packet'))
+    }
 
         sshCommand = "ssh -o StrictHostKeyChecking=no ${remoteUser}@${remoteIP} '${startCmd}'"
 
-        logger.info("Executing remote command to restart LDAP on ${remoteIP}: ${sshCommand}")
+        logger.info("Executing remote command to start LDAP on ${remoteIP}: ${sshCommand}")
 
+    // start ldap
         try {
             // 3. 使用 ProcessBuilder 执行命令
             def proc = new ProcessBuilder("/bin/bash", "-c", sshCommand)
@@ -248,7 +274,7 @@ suite("ldap_crash_user_log_in_test", "p2") {
                 logger.info("Restart command output:\n${output.toString()}")
 
                 // 4. 【可选但推荐】执行验证命令
-//                verifyLdapRestart(remoteIP, remoteUser, ldapContainerName)
+                verifyLdapRestart(remoteIP, remoteUser, ldapContainerName)
             } else {
                 logger.error("❌ Failed to restart LDAP container ${ldapContainerName}. Exit Code: ${proc.exitValue()}")
                 logger.error("Error output:\n${output.toString()}")
@@ -282,14 +308,12 @@ suite("ldap_crash_user_log_in_test", "p2") {
         
 //    }
 
-     */
-    
 
     // Clean up: always try to remove all created entities
-//    logger.info("Starting cleanup process...")
-//    sql "DROP ROLE '${testGroup}';"
-//
-//    for (String dn in [testUserDn, testGroupDn]) {
-//        deleteLdapEntry("""ldap://${ldapHost}:${ldapPort}""", ldapAdminUser, ldapAdminPassword, dn)
-//    }
+    logger.info("Starting cleanup process...")
+    sql "DROP ROLE '${testGroup}';"
+
+    for (String dn in [testUserDn, testGroupDn]) {
+        deleteLdapEntry("""ldap://${ldapHost}:${ldapPort}""", ldapAdminUser, ldapAdminPassword, dn)
+    }
 }
