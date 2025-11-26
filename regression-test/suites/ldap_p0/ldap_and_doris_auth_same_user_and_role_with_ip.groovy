@@ -136,11 +136,11 @@ suite("ldap_and_doris_auth_same_user_and_role_with_ip") {
     }
 
     logger.info("Starting cleanup process...")
-//    sql "DROP USER '${testUser}'@'${tokens_ip[0]}';"
-//    sql """drop role ${testGroup}"""
-//
-//    for (String dn in [testUserDn, testGroupDn]) {
-//        deleteLdapEntry("""ldap://${ldapHost}:${ldapPort}""", ldapAdminUser, ldapAdminPassword, dn)
-//    }
+    sql "DROP USER '${testUser}'@'${tokens_ip[0]}';"
+    sql """drop role ${testGroup}"""
+
+    for (String dn in [testUserDn, testGroupDn]) {
+        deleteLdapEntry("""ldap://${ldapHost}:${ldapPort}""", ldapAdminUser, ldapAdminPassword, dn)
+    }
 
 }
