@@ -309,4 +309,4 @@ ldapPort = 3892
 ldapUser = "cn=admin,dc=example,dc=com"
 ldapPassword = "123456"
 ldapBaseDn = "dc=example,dc=com"
-ldapFilter = "(&(objectClass=person)(uid=test))"
+//ldapFilter = "(&(objectClass=person)(uid=test))"
