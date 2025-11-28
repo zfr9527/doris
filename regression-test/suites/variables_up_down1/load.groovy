@@ -35,7 +35,6 @@ suite("variables_up_down_load1") {
     // 预期为256精度计算的结果：999999999999998246906000000001.76833464320
     // 打开/关闭256结果应该一样才对,下同
     qt_multiply_add "select multiply_plus_1(f1,f2) from test_decimal_mul_overflow1;"
-    exception "Can not found function"
     sql "set enable_decimal256=true;"
     qt_multiply_add "select multiply_plus_1(f1,f2) from test_decimal_mul_overflow1;"
 
