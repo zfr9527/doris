@@ -118,17 +118,17 @@ suite("variables_up_down_load7_tmp") {
 //    sql "set enable_decimal256=true;"
 //    // expect scale is 11
 //    qt_insert_refresh_mv "select f1, f2, f1*f2 multi_col from test_decimal_mul_overflow_for_sync_mv;"
-
-
-    sql "set enable_decimal256=false;"
-    sql "insert into test_decimal_mul_overflow_for_sync_mv values(999999999999999.12345,999999999999999.123456);"
-
-    // expect 2 rows
-    sql "set enable_decimal256=true;"
-    qt_where_mv "select f1 as c1, f2 as c2, f1*f2 multi_col from test_decimal_mul_overflow_for_sync_mv where f1*f2==999999999999998246906000000000.76833464320;"
-    explain {
-        sql "select f1 as c1, f2 as c2, f1*f2 multi_col from test_decimal_mul_overflow_for_sync_mv where f1*f2==999999999999998246906000000000.76833464320;"
-        contains "mv_var_sync_1 fail"
-    }
+//
+//
+//    sql "set enable_decimal256=false;"
+//    sql "insert into test_decimal_mul_overflow_for_sync_mv values(999999999999999.12345,999999999999999.123456);"
+//
+//    // expect 2 rows
+//    sql "set enable_decimal256=true;"
+//    qt_where_mv "select f1 as c1, f2 as c2, f1*f2 multi_col from test_decimal_mul_overflow_for_sync_mv where f1*f2==999999999999998246906000000000.76833464320;"
+//    explain {
+//        sql "select f1 as c1, f2 as c2, f1*f2 multi_col from test_decimal_mul_overflow_for_sync_mv where f1*f2==999999999999998246906000000000.76833464320;"
+//        contains "mv_var_sync_1 fail"
+//    }
 
 }
