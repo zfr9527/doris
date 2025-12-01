@@ -65,7 +65,7 @@ suite("variables_up_down_test7") {
     // expect 2 rows
     sql "set enable_decimal256=true;"
     test {
-        qt_where_mv "select f1 as c1, f2 as c2, f1*f2 multi_col from test_decimal_mul_overflow_for_sync_mv where f1*f2==999999999999998246906000000000.76833464320;"
+        sql "select f1 as c1, f2 as c2, f1*f2 multi_col from test_decimal_mul_overflow_for_sync_mv where f1*f2==999999999999998246906000000000.76833464320;"
         exception "PrimitiveType"
     }
 
