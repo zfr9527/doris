@@ -69,6 +69,21 @@ suite("variables_up_down_test7") {
         exception "PrimitiveType"
     }
 
+    sql "set enable_decimal256=true;"
+    sql "insert into test_decimal_mul_overflow_for_sync_mv values(999999999999999.12345,999999999999999.123456);"
+    sql "set enable_decimal256=false;"
+    qt_expect_8_scale "select f1, f2, f1*f2 multi_col from test_decimal_mul_overflow_for_sync_mv;"
+    explain {
+        sql "select f1, f2, f1*f2 multi_col from test_decimal_mul_overflow_for_sync_mv;"
+        contains "mv_var_sync_1 chose"
+    }
+    sql "set enable_decimal256=true;"
+    explain {
+        sql "select f1, f2, f1*f2 multi_col from test_decimal_mul_overflow_for_sync_mv;"
+        contains "mv_var_sync_1 chose"
+    }
+
+
 //    explain {
 //        sql "select f1 as c1, f2 as c2, f1*f2 multi_col from test_decimal_mul_overflow_for_sync_mv where f1*f2==999999999999998246906000000000.76833464320;"
 //        contains "mv_var_sync_1 fail"
