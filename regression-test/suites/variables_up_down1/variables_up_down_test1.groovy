@@ -11,9 +11,9 @@ suite("variables_up_down_test1") {
     // 预期为256精度计算的结果：999999999999998246906000000001.76833464320
     // 打开/关闭256结果应该一样才对,下同
     sql "set enable_decimal256=false;"
-    qt_multiply_add "select multiply_plus_1(f1,f2) from test_decimal_mul_overflow1;"
+    qt_multiply_add_master_sql "select multiply_plus_1(f1,f2) from test_decimal_mul_overflow1;"
     sql "set enable_decimal256=true;"
-    qt_multiply_add "select multiply_plus_1(f1,f2) from test_decimal_mul_overflow1;"
+    qt_multiply_add_master_sql "select multiply_plus_1(f1,f2) from test_decimal_mul_overflow1;"
 
 //    multi_sql """
 //        set enable_decimal256=true;
@@ -22,9 +22,9 @@ suite("variables_up_down_test1") {
 //        set enable_decimal256=false;
 //    """
     sql "set enable_decimal256=false;"
-    qt_add "select func_add(a,b) from t_decimalv3;"
+    qt_add_master_sql "select func_add(a,b) from t_decimalv3;"
     sql "set enable_decimal256=true;"
-    qt_add "select func_add(a,b) from t_decimalv3;"
+    qt_add_master_sql "select func_add(a,b) from t_decimalv3;"
 
 //    multi_sql """
 //        set enable_decimal256=true;
@@ -33,9 +33,9 @@ suite("variables_up_down_test1") {
 //        set enable_decimal256=false;
 //    """
     sql "set enable_decimal256=false;"
-    qt_subtract "select func_subtract(a,b) from t_decimalv3;"
+    qt_subtract_master_sql "select func_subtract(a,b) from t_decimalv3;"
     sql "set enable_decimal256=true;"
-    qt_subtract "select func_subtract(a,b) from t_decimalv3;"
+    qt_subtract_master_sql "select func_subtract(a,b) from t_decimalv3;"
 
 //    multi_sql """
 //        set enable_decimal256=true;
@@ -44,9 +44,9 @@ suite("variables_up_down_test1") {
 //        set enable_decimal256=false;
 //    """
     sql "set enable_decimal256=false;"
-    qt_divide "select func_divide(a,b) from t_decimalv3;"
+    qt_divide_master_sql "select func_divide(a,b) from t_decimalv3;"
     sql "set enable_decimal256=true;"
-    qt_divide "select func_divide(a,b) from t_decimalv3;"
+    qt_divide_master_sql "select func_divide(a,b) from t_decimalv3;"
 
 //    multi_sql """
 //        set enable_decimal256=true;
@@ -55,9 +55,9 @@ suite("variables_up_down_test1") {
 //        set enable_decimal256=false;
 //    """
     sql "set enable_decimal256=false;"
-    qt_mod "select func_mod(a,b) from t_decimalv3;"
+    qt_mod_master_sql "select func_mod(a,b) from t_decimalv3;"
     sql "set enable_decimal256=true;"
-    qt_mod "select func_mod(a,b) from t_decimalv3;"
+    qt_mod_master_sql "select func_mod(a,b) from t_decimalv3;"
 
 //    multi_sql """
 //        set enable_decimal256=true;
@@ -66,8 +66,8 @@ suite("variables_up_down_test1") {
 //        set enable_decimal256=false;
 //    """
     sql "set enable_decimal256=false;"
-    qt_nested "select func_nested(f1,f2) from test_decimal_mul_overflow1;"
+    qt_nested_master_sql "select func_nested(f1,f2) from test_decimal_mul_overflow1;"
     sql "set enable_decimal256=true;"
-    qt_nested "select func_nested(f1,f2) from test_decimal_mul_overflow1;"
+    qt_nested_master_sql "select func_nested(f1,f2) from test_decimal_mul_overflow1;"
 
 }
