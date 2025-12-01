@@ -96,6 +96,6 @@ suite("variables_up_down_load7") {
     sql "set enable_decimal256=true;"
     explain {
         sql "select f1, f2, f1*f2 multi_col from test_decimal_mul_overflow_for_sync_mv;"
-        contains "mv_var_sync_1 not chose"
+        contains "mv_var_sync_1 chose"
     }
 }
