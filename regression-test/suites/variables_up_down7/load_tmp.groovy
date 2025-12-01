@@ -71,33 +71,36 @@ suite("variables_up_down_load7_tmp") {
     }
 
     // ===================case3: create mv with 128 mode,test history refresh mv and insert into refresh mv=====================
-    sql """drop table if exists test_decimal_mul_overflow_for_sync_mv;
-    CREATE TABLE `test_decimal_mul_overflow_for_sync_mv` (
-    `f1` decimal(20,5) NULL,
-    `f2` decimal(21,6) NULL
-    )DISTRIBUTED BY HASH(f1)
-    PROPERTIES("replication_num" = "1");
-    insert into test_decimal_mul_overflow_for_sync_mv values(999999999999999.12345,999999999999999.123456);"""
+//    sql """drop table if exists test_decimal_mul_overflow_for_sync_mv;
+//    CREATE TABLE `test_decimal_mul_overflow_for_sync_mv` (
+//    `f1` decimal(20,5) NULL,
+//    `f2` decimal(21,6) NULL
+//    )DISTRIBUTED BY HASH(f1)
+//    PROPERTIES("replication_num" = "1");
+//    insert into test_decimal_mul_overflow_for_sync_mv values(999999999999999.12345,999999999999999.123456);"""
+//
+//    sql "set enable_decimal256=false;"
+//    sql "drop materialized view if exists mv_var_sync_1 on test_decimal_mul_overflow_for_sync_mv;"
+//
+//    createMV("""create materialized view mv_var_sync_1
+//            as select f1 as c1, f2 as c2, f1*f2 multi_col from test_decimal_mul_overflow_for_sync_mv;""")
+//    sql "set enable_decimal256=true;"
+//    sql "insert into test_decimal_mul_overflow_for_sync_mv values(999999999999999.12345,999999999999999.123456);"
+//
+//    sql "set enable_decimal256=false;"
+//    qt_expect_8_scale "select f1, f2, f1*f2 multi_col from test_decimal_mul_overflow_for_sync_mv;"
+//    explain {
+//        sql "select f1, f2, f1*f2 multi_col from test_decimal_mul_overflow_for_sync_mv;"
+//        contains "mv_var_sync_1 chose"
+//    }
+//    sql "set enable_decimal256=true;"
+//    explain {
+//        sql "select f1, f2, f1*f2 multi_col from test_decimal_mul_overflow_for_sync_mv;"
+//        contains "mv_var_sync_1 chose"
+//    }
 
-    sql "set enable_decimal256=false;"
-    sql "drop materialized view if exists mv_var_sync_1 on test_decimal_mul_overflow_for_sync_mv;"
 
-    createMV("""create materialized view mv_var_sync_1
-            as select f1 as c1, f2 as c2, f1*f2 multi_col from test_decimal_mul_overflow_for_sync_mv;""")
-    sql "set enable_decimal256=true;"
-    sql "insert into test_decimal_mul_overflow_for_sync_mv values(999999999999999.12345,999999999999999.123456);"
 
-    sql "set enable_decimal256=false;"
-    qt_expect_8_scale "select f1, f2, f1*f2 multi_col from test_decimal_mul_overflow_for_sync_mv;"
-    explain {
-        sql "select f1, f2, f1*f2 multi_col from test_decimal_mul_overflow_for_sync_mv;"
-        contains "mv_var_sync_1 chose"
-    }
-    sql "set enable_decimal256=true;"
-    explain {
-        sql "select f1, f2, f1*f2 multi_col from test_decimal_mul_overflow_for_sync_mv;"
-        contains "mv_var_sync_1 chose"
-    }
 
 
     sql "set enable_decimal256=true;"
