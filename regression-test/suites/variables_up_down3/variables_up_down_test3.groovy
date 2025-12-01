@@ -16,9 +16,9 @@ suite("variables_up_down_test3") {
 //    sql "insert into t_gen_col_multi_decimalv3 values(1.12343,1.123457,default);"
 
     // 查询数据,预期column c的scale为11
-    qt_c_scale_is_128 "select * from t_gen_col_multi_decimalv3;"
+    qt_c_scale_is_128_master_sql "select * from t_gen_col_multi_decimalv3;"
     sql "set enable_decimal256=true;"
-    qt_c_scale_is_256 "select * from t_gen_col_multi_decimalv3;"
+    qt_c_scale_is_256_master_sql "select * from t_gen_col_multi_decimalv3;"
 
     // ========== 测试4: 除法运算 ==========
 //    multi_sql """
@@ -31,9 +31,9 @@ suite("variables_up_down_test3") {
 //    sql "set enable_decimal256=false;"
 //    sql "insert into t_gen_col_divide_decimalv3 values(100.123456789012345678,2.123456789012345678,default);"
     sql "set enable_decimal256=false;"
-    qt_divide_scale "select * from t_gen_col_divide_decimalv3;"
+    qt_divide_scale_master_sql "select * from t_gen_col_divide_decimalv3;"
     sql "set enable_decimal256=true;"
-    qt_divide_scale_256 "select * from t_gen_col_divide_decimalv3;"
+    qt_divide_scale_256_master_sql "select * from t_gen_col_divide_decimalv3;"
 
     // ========== 测试2: 加法运算 ==========
 //    multi_sql """
@@ -47,9 +47,9 @@ suite("variables_up_down_test3") {
 //    sql "set enable_decimal256=false;"
 //    sql "insert into t_gen_col_add_sub_mod_decimalv3 values(1.012345678,1.0123456789,default,default,default);"
     sql "set enable_decimal256=false;"
-    qt_add_sub_mod1 "select * from t_gen_col_add_sub_mod_decimalv3;"
+    qt_add_sub_mod1_master_sql "select * from t_gen_col_add_sub_mod_decimalv3;"
     sql "set enable_decimal256=true;"
-    qt_add_sub_mod2 "select * from t_gen_col_add_sub_mod_decimalv3;"
+    qt_add_sub_mod2_master_sql "select * from t_gen_col_add_sub_mod_decimalv3;"
 
 
     // ========== 测试7: 嵌套生成列（生成列引用其他生成列） ==========
@@ -68,9 +68,9 @@ suite("variables_up_down_test3") {
 //    sql "set enable_decimal256=false;"
 //    sql "insert into t_gen_col_nested values(1.12343,1.123457,default,default);"
     sql "set enable_decimal256=false;"
-    qt_nested_cols1 "select * from t_gen_col_nested;"
+    qt_nested_cols1_master_sql "select * from t_gen_col_nested;"
     sql "set enable_decimal256=true;"
-    qt_nested_cols2 "select * from t_gen_col_nested;"
+    qt_nested_cols2_master_sql "select * from t_gen_col_nested;"
 
     // ========== 测试8: 复杂表达式组合 ==========
 //    multi_sql """
@@ -89,9 +89,9 @@ suite("variables_up_down_test3") {
 //    sql "set enable_decimal256=false;"
 //    sql "insert into t_gen_col_complex values(1.12343,1.123457,default,default,default);"
     sql "set enable_decimal256=false;"
-    qt_complex_expr1 "select * from t_gen_col_complex;"
+    qt_complex_expr1_master_sql "select * from t_gen_col_complex;"
     sql "set enable_decimal256=true;"
-    qt_complex_expr2 "select * from t_gen_col_complex;"
+    qt_complex_expr2_master_sql "select * from t_gen_col_complex;"
 
     // ========== 测试18: 生成列在CASE WHEN中使用 ==========
 //    multi_sql """
@@ -109,9 +109,9 @@ suite("variables_up_down_test3") {
 //    sql "set enable_decimal256=false;"
 //    sql "insert into t_gen_col_case values(1.12343,1.123457,default,default);"
     sql "set enable_decimal256=false;"
-    qt_gen_col_case1 "select * from t_gen_col_case;"
+    qt_gen_col_case1_master_sql "select * from t_gen_col_case;"
     sql "set enable_decimal256=true;"
-    qt_gen_col_case2 "select * from t_gen_col_case;"
+    qt_gen_col_case2_master_sql "select * from t_gen_col_case;"
 
     // ========== 测试19: 生成列在IF函数中使用 ==========
 //    multi_sql """
@@ -128,9 +128,9 @@ suite("variables_up_down_test3") {
 //    sql "set enable_decimal256=false;"
 //    sql "insert into t_gen_col_if values(1.12343,1.123457,default);"
     sql "set enable_decimal256=false;"
-    qt_gen_col_if1 "select * from t_gen_col_if;"
+    qt_gen_col_if1_master_sql "select * from t_gen_col_if;"
     sql "set enable_decimal256=true;"
-    qt_gen_col_if2 "select * from t_gen_col_if;"
+    qt_gen_col_if2_master_sql "select * from t_gen_col_if;"
 
     // ========== 测试20: 生成列在COALESCE/GREATEST/LEAST等函数中使用 ==========
 //    multi_sql """
@@ -149,8 +149,8 @@ suite("variables_up_down_test3") {
 //    sql "set enable_decimal256=false;"
 //    sql "insert into t_gen_col_funcs values(1.12343,1.123457,default,default,default);"
     sql "set enable_decimal256=false;"
-    qt_gen_col_funcs1 "select * from t_gen_col_funcs;"
+    qt_gen_col_funcs1_master_sql "select * from t_gen_col_funcs;"
     sql "set enable_decimal256=true;"
-    qt_gen_col_funcs2 "select * from t_gen_col_funcs;"
+    qt_gen_col_funcs2_master_sql "select * from t_gen_col_funcs;"
 
 }

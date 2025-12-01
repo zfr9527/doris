@@ -29,37 +29,37 @@ suite("variables_up_down_test2") {
 //    drop view if EXISTS v_test_array_sum;
 //    create view v_test_array_sum as select kint, array_sum(a_int), array_sum(a_float), array_sum(a_double), array_sum(a_dec_v3_64), array_sum(a_dec_v3_128), array_sum(a_dec_v3_256) from test_array_agg_view;"""
     sql "set enable_decimal256=true;"
-    qt_sum1 "select * from v_test_array_sum order by 1,2,3,4,5,6, 7;"
+    qt_sum1_master_sql "select * from v_test_array_sum order by 1,2,3,4,5,6, 7;"
     sql "set enable_decimal256=false;"
-    qt_sum2 "select * from v_test_array_sum order by 1,2,3,4,5,6, 7;"
+    qt_sum2_master_sql "select * from v_test_array_sum order by 1,2,3,4,5,6, 7;"
 
 //    multi_sql """set enable_decimal256=true;
 //    drop view if EXISTS v_test_array_avg;
 //    create view v_test_array_avg as select kint, array_avg(a_int), array_avg(a_float), array_avg(a_double), array_avg(a_dec_v3_64), array_avg(a_dec_v3_128), array_avg(a_dec_v3_256) from test_array_agg_view;"""
     sql "set enable_decimal256=true;"
-    qt_avg1 "select * from v_test_array_avg order by 1,2,3,4,5,6, 7;"
+    qt_avg1_master_sql "select * from v_test_array_avg order by 1,2,3,4,5,6, 7;"
     sql "set enable_decimal256=false;"
-    qt_avg2 "select * from v_test_array_avg order by 1,2,3,4,5,6, 7;"
+    qt_avg2_master_sql "select * from v_test_array_avg order by 1,2,3,4,5,6, 7;"
 
 //    multi_sql """set enable_decimal256=true;
 //    drop view if EXISTS v_test_array_product;
 //    create view v_test_array_product as select kint, array_product(a_int), array_product(a_float), array_product(a_double), array_product(a_dec_v3_64), array_product(a_dec_v3_128), array_product(a_dec_v3_256) from test_array_agg_view;"""
     sql "set enable_decimal256=true;"
-    qt_product1 "select * from v_test_array_product order by 1,2,3,4,5,6, 7;"
+    qt_product1_master_sql "select * from v_test_array_product order by 1,2,3,4,5,6, 7;"
     sql "set enable_decimal256=false;"
-    qt_product2 "select * from v_test_array_product order by 1,2,3,4,5,6, 7;"
+    qt_product2_master_sql "select * from v_test_array_product order by 1,2,3,4,5,6, 7;"
 
     sql """set enable_decimal256=true; """
-    qt_cum_sum1 "select *, array_cum_sum(a_int), array_cum_sum(a_float), array_cum_sum(a_double), array_cum_sum(a_dec_v3_64), array_cum_sum(a_dec_v3_128), array_cum_sum(a_dec_v3_256) from test_array_agg_view order by 1,2,3,4,5,6, 7;"
+    qt_cum_sum1_master_sql "select *, array_cum_sum(a_int), array_cum_sum(a_float), array_cum_sum(a_double), array_cum_sum(a_dec_v3_64), array_cum_sum(a_dec_v3_128), array_cum_sum(a_dec_v3_256) from test_array_agg_view order by 1,2,3,4,5,6, 7;"
     sql "set enable_decimal256=false;"
-    qt_cum_sum2 "select *, array_cum_sum(a_int), array_cum_sum(a_float), array_cum_sum(a_double), array_cum_sum(a_dec_v3_64), array_cum_sum(a_dec_v3_128), array_cum_sum(a_dec_v3_256) from test_array_agg_view order by 1,2,3,4,5,6, 7;"
+    qt_cum_sum2_master_sql "select *, array_cum_sum(a_int), array_cum_sum(a_float), array_cum_sum(a_double), array_cum_sum(a_dec_v3_64), array_cum_sum(a_dec_v3_128), array_cum_sum(a_dec_v3_256) from test_array_agg_view order by 1,2,3,4,5,6, 7;"
 
 //    multi_sql """set enable_decimal256=true;
 //    drop view if EXISTS v_test_array_cum_sum;
 //    create view v_test_array_cum_sum as select *, array_cum_sum(a_int), array_cum_sum(a_float), array_cum_sum(a_double), array_cum_sum(a_dec_v3_64), array_cum_sum(a_dec_v3_128), array_cum_sum(a_dec_v3_256) from test_array_agg_view order by 1,2,3,4,5,6,7;"""
     sql "set enable_decimal256=true;"
-    qt_cum_sum_view1 "select * from v_test_array_cum_sum order by 1,2,3,4,5,6, 7;"
+    qt_cum_sum_view1_master_sql "select * from v_test_array_cum_sum order by 1,2,3,4,5,6, 7;"
     sql "set enable_decimal256=false;"
-    qt_cum_sum_view2 "select * from v_test_array_cum_sum order by 1,2,3,4,5,6, 7;"
+    qt_cum_sum_view2_master_sql "select * from v_test_array_cum_sum order by 1,2,3,4,5,6, 7;"
 
 }

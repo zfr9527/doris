@@ -16,9 +16,9 @@ suite("variables_up_down_test5") {
     sql "set enable_decimal256=false;"
 
     // expect column multi scale is 11:999999999999998246906000000000.76833464320 instead of 8: 999999999999998246906000000000.76833464
-    qt_scale_is_11 "select multi from v_test_decimal_mul_overflow1;"
+    qt_scale_is_11_master_sql "select multi from v_test_decimal_mul_overflow1;"
     // expect column c1 scale is 8: 999999999999998246906000000000.76833464
-    qt_scale_is_8 "select multi+1 c1 from v_test_decimal_mul_overflow1;"
+    qt_scale_is_8_master_sql "select multi+1 c1 from v_test_decimal_mul_overflow1;"
 
 //    multi_sql """
 //        set enable_decimal256=true;
@@ -26,7 +26,7 @@ suite("variables_up_down_test5") {
 //        create view v_plus as select a+b from t_decimalv3;
 //        set enable_decimal256=false;
 //    """
-    qt_plus "select * from v_plus;"
+    qt_plus_master_sql "select * from v_plus;"
 
 //    multi_sql """
 //        set enable_decimal256=true;
@@ -34,7 +34,7 @@ suite("variables_up_down_test5") {
 //        create view v_subtract select a-b from t_decimalv3;
 //        set enable_decimal256=false;
 //    """
-    qt_subtract "select * from v_subtract;"
+    qt_subtract_master_sql "select * from v_subtract;"
 
 //    multi_sql """
 //        set enable_decimal256=true;
@@ -42,7 +42,7 @@ suite("variables_up_down_test5") {
 //        create view v_divide select a/b from t_decimalv3;
 //        set enable_decimal256=false;
 //    """
-    qt_divide "select * from v_divide;"
+    qt_divide_master_sql "select * from v_divide;"
 
 //    multi_sql """
 //        set enable_decimal256=true;
@@ -50,7 +50,7 @@ suite("variables_up_down_test5") {
 //        create view v_mod select mod(a,b) from t_decimalv3;
 //        set enable_decimal256=false;
 //    """
-    qt_mod "select * from v_mod;"
+    qt_mod_master_sql "select * from v_mod;"
 
     // view内部的表达式的测试
 //    multi_sql """drop view if exists test_lower_project;
@@ -59,7 +59,7 @@ suite("variables_up_down_test5") {
 //    (select f2*f1 as c1 from test_decimal_mul_overflow1) t1 inner join (select f1*f2 as c1 from test_decimal_mul_overflow1) t2
 //    where t1.c1=t2.c1;"""
 //    sql "set enable_decimal256=false;"
-    qt_view_inner_expression "select * from test_lower_project;"
+    qt_view_inner_expression_master_sql "select * from test_lower_project;"
 
     // 测试嵌套视图
     // case1
@@ -69,7 +69,7 @@ suite("variables_up_down_test5") {
 //    create view test_nested_view as select * from test_lower_project;"""
 //    sql "set enable_decimal256=true;"
     // 查询嵌套视图，预期是256精度的
-    qt_nest_view "select * from test_nested_view;"
+    qt_nest_view_master_sql "select * from test_nested_view;"
 
     // case2
     // 外层视图关闭256，select col1+1 有表达式
@@ -78,9 +78,9 @@ suite("variables_up_down_test5") {
 //    create view test_nested_view_expr as select col1+1 from test_lower_project;"""
     // 查询嵌套视图，预期是128精度的
     sql "set enable_decimal256=true;"
-    qt_nest_view_expr_256 "select * from test_nested_view_expr;"
+    qt_nest_view_expr_256_master_sql "select * from test_nested_view_expr;"
     sql "set enable_decimal256=false;"
-    qt_nest_view_expr_128 "select * from test_nested_view_expr;"
+    qt_nest_view_expr_128_master_sql "select * from test_nested_view_expr;"
 
     // agg
 //    multi_sql """set enable_decimal256=true;
@@ -89,11 +89,11 @@ suite("variables_up_down_test5") {
 //    drop view if EXISTS v_test_avg;
 //    create view v_test_avg as select f1, avg(f2) col_avg from test_decimal_mul_overflow1 group by f1;"""
     sql "set enable_decimal256=true;"
-    qt_sum1 "select col_sum from v_test_sum;"
-    qt_avg1 "select col_avg from v_test_avg;"
+    qt_sum1_master_sql "select col_sum from v_test_sum;"
+    qt_avg1_master_sql "select col_avg from v_test_avg;"
     sql "set enable_decimal256=false;"
-    qt_sum2 "select col_sum from v_test_sum;"
-    qt_avg2 "select col_avg from v_test_avg;"
+    qt_sum2_master_sql "select col_sum from v_test_sum;"
+    qt_avg2_master_sql "select col_avg from v_test_avg;"
 
 //    multi_sql """set enable_decimal256=true;
 //    drop view if EXISTS v_test_sum_expr;
@@ -101,11 +101,11 @@ suite("variables_up_down_test5") {
 //    drop view if EXISTS v_test_avg_expr;
 //    create view v_test_avg_expr as select f1, avg(f1*f2) col_avg from test_decimal_mul_overflow1 group by f1;"""
     sql "set enable_decimal256=true;"
-    qt_agg_expr_sum1 "select col_sum from v_test_sum_expr;"
-    qt_agg_expr_avg1 "select col_avg from v_test_avg_expr;"
+    qt_agg_expr_sum1_master_sql "select col_sum from v_test_sum_expr;"
+    qt_agg_expr_avg1_master_sql "select col_avg from v_test_avg_expr;"
     sql "set enable_decimal256=false;"
-    qt_agg_expr_sum2 "select col_sum from v_test_sum_expr;"
-    qt_agg_expr_avg2 "select col_avg from v_test_avg_expr;"
+    qt_agg_expr_sum2_master_sql "select col_sum from v_test_sum_expr;"
+    qt_agg_expr_avg2_master_sql "select col_avg from v_test_avg_expr;"
 
 //    multi_sql """
 //        set enable_decimal256=true;
@@ -113,7 +113,7 @@ suite("variables_up_down_test5") {
 //        create view v_test_agg_distinct as select f1, sum(distinct f1*f2) col_sum from test_decimal_mul_overflow1 group by f1;
 //        set enable_decimal256=false;
 //    """
-    qt_agg_distinct "select col_sum from v_test_agg_distinct;"
+    qt_agg_distinct_master_sql "select col_sum from v_test_agg_distinct;"
 
 //    multi_sql """
 //        set enable_decimal256=true;
@@ -121,7 +121,7 @@ suite("variables_up_down_test5") {
 //        create view v_test_agg_func as select f1, sum0(f1*f2) as col_sum0, avg(f1*f2) as col_avg,multi_distinct_sum(f1*f2) multi_sum, multi_distinct_sum0(f1*f2) multi_sum0 from test_decimal_mul_overflow1 group by f1;
 //        set enable_decimal256=false;
 //    """
-    qt_agg_funcs "select * from v_test_agg_func;"
+    qt_agg_funcs_master_sql "select * from v_test_agg_func;"
 
     // two phase agg
 //    multi_sql """
@@ -130,7 +130,7 @@ suite("variables_up_down_test5") {
 //        create view v_test_agg_two_phase as select f2, sum(f1*f2) col_sum from test_decimal_mul_overflow1 group by f2;
 //        set enable_decimal256=false;
 //    """
-    qt_two_phase_agg "select * from v_test_agg_two_phase;"
+    qt_two_phase_agg_master_sql "select * from v_test_agg_two_phase;"
 
 //    multi_sql """
 //        set enable_decimal256=true;
@@ -138,14 +138,14 @@ suite("variables_up_down_test5") {
 //        create view v_test_agg_without_gby as select sum(distinct f1*f2) col_sum from test_decimal_mul_overflow1;
 //        set enable_decimal256=false;
 //    """
-    qt_agg_without_gby "select * from v_test_agg_without_gby;"
+    qt_agg_without_gby_master_sql "select * from v_test_agg_without_gby;"
 
 //    multi_sql """set enable_decimal256=true;
 //    drop view if EXISTS v_distinct_agg_rewrite;
 //    create view v_distinct_agg_rewrite as
 //    SELECT sum(f1*f2), count(distinct f1,f2) FROM test_decimal_mul_overflow1 GROUP BY f2;
 //    set enable_decimal256=false;"""
-    qt_distinct_agg_rewrite "select * from v_distinct_agg_rewrite;"
+    qt_distinct_agg_rewrite_master_sql "select * from v_distinct_agg_rewrite;"
 
     // window
 //    multi_sql """
@@ -154,7 +154,7 @@ suite("variables_up_down_test5") {
 //        create view test_window_sum as select sum(f1) over() from test_decimal_mul_overflow1;
 //        set enable_decimal256=false;
 //    """
-    qt_window "select * from test_window_sum;"
+    qt_window_master_sql "select * from test_window_sum;"
 
 //    multi_sql """
 //        set enable_decimal256=true;
@@ -162,7 +162,7 @@ suite("variables_up_down_test5") {
 //        create view test_window_sum_expr as select sum(f1*f2) over() from test_decimal_mul_overflow1;
 //        set enable_decimal256=false;
 //    """
-    qt_window_expr "select * from test_window_sum_expr;"
+    qt_window_expr_master_sql "select * from test_window_sum_expr;"
 
     // test if
 //    multi_sql """
@@ -171,7 +171,7 @@ suite("variables_up_down_test5") {
 //        create view v_test_if as select a,b, if(b>1,b,a) col_if from t_decimalv3 ;
 //        set enable_decimal256=false;
 //    """
-    qt_if "select col_if from v_test_if;"
+    qt_if_master_sql "select col_if from v_test_if;"
 
     // test casewhen
 //    multi_sql """
@@ -180,7 +180,7 @@ suite("variables_up_down_test5") {
 //        create view v_test_casewhen as select a,b, case when b>1 then b when b<1 then b else a end col_cw from t_decimalv3 ;
 //        set enable_decimal256=false;
 //    """
-    qt_casewhen "select col_cw from v_test_casewhen;"
+    qt_casewhen_master_sql "select col_cw from v_test_casewhen;"
 
 //    multi_sql """
 //        set enable_decimal256=true;
@@ -188,7 +188,7 @@ suite("variables_up_down_test5") {
 //        create view v_test_if_condition as select a,b, coalesce(b, null, a) col_coa, greatest(a,b) col_gre, least(a,b-1) col_lea, nvl(b,a) col_nvl, nullif(b,a) col_nif from t_decimalv3 ;
 //        set enable_decimal256=false;
 //    """
-    qt_if_condition_func "select * from v_test_if_condition;"
+    qt_if_condition_func_master_sql "select * from v_test_if_condition;"
 
     // array func
 //    multi_sql """
@@ -197,14 +197,14 @@ suite("variables_up_down_test5") {
 //    create view v_test_array_func as
 //    select array_sum(array(a*b,a*b)), array_avg(array(a*b,a*b-1)),array_max(array(a*b,a*b+1)), array_min(array(a*b,a*b+1)),array_cum_sum(array(a*b,a*b)) from t_decimalv3;
 //    set enable_decimal256=false;"""
-    qt_array_funcs "select * from v_test_array_func;"
+    qt_array_funcs_master_sql "select * from v_test_array_func;"
 
 //    multi_sql """set enable_decimal256=true;
 //    drop view if EXISTS v_test_array_product;
 //    create view v_test_array_product as
 //    select  array_product(array(f1,f2)) from test_decimal_mul_overflow1;
 //    set enable_decimal256=false;"""
-    qt_array_product "select * from v_test_array_product;"
+    qt_array_product_master_sql "select * from v_test_array_product;"
 
     // compare expr
 //    multi_sql """
@@ -213,7 +213,7 @@ suite("variables_up_down_test5") {
 //        create view v_test_compare as select *,a=b equal, a <=> b nullsafe, a<b lessthan, b>a greaterthan from t_decimalv3_for_compare;
 //        set enable_decimal256=false;
 //    """
-    qt_compare_expr "select * from v_test_compare;"
+    qt_compare_expr_master_sql "select * from v_test_compare;"
 
 //    multi_sql """
 //        set enable_decimal256=true;
@@ -221,7 +221,7 @@ suite("variables_up_down_test5") {
 //        create view v_test_in as select a in (b,123) in_col from t_decimalv3_for_compare;
 //        set enable_decimal256=false;
 //    """
-    qt_int "select * from v_test_in;"
+    qt_int_master_sql "select * from v_test_in;"
 
 //    multi_sql """
 //        set enable_decimal256=true;
@@ -229,6 +229,6 @@ suite("variables_up_down_test5") {
 //        create view v_test_union as select a from t_decimalv3_for_compare union all select b from t_decimalv3_for_compare;
 //        set enable_decimal256=false;
 //    """
-    qt_union "select * from v_test_union;"
+    qt_union_master_sql "select * from v_test_union;"
 
 }
