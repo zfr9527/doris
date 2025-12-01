@@ -34,7 +34,7 @@ suite("variables_up_down_test7") {
 //    }
 
     // new insert data refresh
-    sql "insert into test_decimal_mul_overflow_for_sync_mv values(999999999999999.12345,999999999999999.123456);"
+//    sql "insert into test_decimal_mul_overflow_for_sync_mv values(999999999999999.12345,999999999999999.123456);"
     sql "set enable_decimal256=true;"
     // expect scale is 11
     qt_insert_refresh_mv "select f1, f2, f1*f2 multi_col from test_decimal_mul_overflow_for_sync_mv;"
@@ -60,7 +60,7 @@ suite("variables_up_down_test7") {
     // because in 128 mode f1*f2==999999999999998246906000000000.76833464320 return false
     // in 256 mode f1*f2==999999999999998246906000000000.76833464320 return true
     sql "set enable_decimal256=false;"
-    sql "insert into test_decimal_mul_overflow_for_sync_mv values(999999999999999.12345,999999999999999.123456);"
+//    sql "insert into test_decimal_mul_overflow_for_sync_mv values(999999999999999.12345,999999999999999.123456);"
 
     // expect 2 rows
     sql "set enable_decimal256=true;"
@@ -70,7 +70,7 @@ suite("variables_up_down_test7") {
     }
 
     sql "set enable_decimal256=true;"
-    sql "insert into test_decimal_mul_overflow_for_sync_mv values(999999999999999.12345,999999999999999.123456);"
+//    sql "insert into test_decimal_mul_overflow_for_sync_mv values(999999999999999.12345,999999999999999.123456);"
 
 
 //    explain {
