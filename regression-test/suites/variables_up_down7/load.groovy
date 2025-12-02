@@ -70,7 +70,7 @@ suite("variables_up_down_load7") {
 //        sql "select f1 as c1, f2 as c2, f1*f2 multi_col from test_decimal_mul_overflow_for_sync_mv where f1*f2==999999999999998246906000000000.76833464320;"
 //        contains "mv_var_sync_1 fail"
 //    }
-    mv_rewrite_success_without_check_chosen("select f1 as c1, f2 as c2, f1*f2 multi_col from test_decimal_mul_overflow_for_sync_mv where f1*f2==999999999999998246906000000000.76833464320;", "mv_var_sync_1")
+    mv_rewrite_fail("select f1 as c1, f2 as c2, f1*f2 multi_col from test_decimal_mul_overflow_for_sync_mv where f1*f2==999999999999998246906000000000.76833464320;", "mv_var_sync_1")
 
     // ===================case3: create mv with 128 mode,test history refresh mv and insert into refresh mv=====================
     sql """drop table if exists test_decimal_mul_overflow_for_sync_mv;
