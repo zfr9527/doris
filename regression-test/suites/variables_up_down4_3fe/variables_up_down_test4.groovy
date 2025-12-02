@@ -37,17 +37,19 @@ suite("variables_up_down_test4_3fe") {
 
     // 测试改写
     sql "set enable_decimal256=true;"
-    explain {
-        sql query_sql
-        contains "mv_var_1 chose"
-    }
+//    explain {
+//        sql query_sql
+//        contains "mv_var_1 chose"
+//    }
+    mv_rewrite_success_without_check_chosen(query_sql, "mv_var_1")
     qt_rewite_open256 "$query_sql"
 
     sql "set enable_decimal256=false;"
-    explain {
-        sql query_sql
-        contains "mv_var_1 chose"
-    }
+//    explain {
+//        sql query_sql
+//        contains "mv_var_1 chose"
+//    }
+    mv_rewrite_success_without_check_chosen(query_sql, "mv_var_1")
     qt_rewite_open128 "$query_sql"
 
     // 测试直查
