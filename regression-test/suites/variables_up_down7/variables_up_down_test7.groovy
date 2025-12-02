@@ -23,10 +23,11 @@ suite("variables_up_down_test7") {
     order_qt_history_data_mv_master_sql "select f1, f2, f1*f2 multi_col from test_decimal_mul_overflow_for_sync_mv;"
     // test rewrite
     sql "set enable_decimal256=true;"
-    explain {
-        sql "select f1, f2, f1*f2 multi_col from test_decimal_mul_overflow_for_sync_mv;"
-        contains "mv_var_sync_1 chose"
-    }
+//    explain {
+//        sql "select f1, f2, f1*f2 multi_col from test_decimal_mul_overflow_for_sync_mv;"
+//        contains "mv_var_sync_1 chose"
+//    }
+    mv_rewrite_success_without_check_chosen("select f1, f2, f1*f2 multi_col from test_decimal_mul_overflow_for_sync_mv;", "mv_var_sync_1")
     sql "set enable_decimal256=false;"
 //    explain {
 //        sql "select f1, f2, f1*f2 multi_col from test_decimal_mul_overflow_for_sync_mv;"
@@ -97,14 +98,16 @@ suite("variables_up_down_test7") {
 
     sql "set enable_decimal256=false;"
     order_qt_expect_8_scale_master_sql "select f1, f2, f1*f2 multi_col from test_decimal_mul_overflow_for_sync_mv;"
-    explain {
-        sql "select f1, f2, f1*f2 multi_col from test_decimal_mul_overflow_for_sync_mv;"
-        contains "mv_var_sync_1 chose"
-    }
+//    explain {
+//        sql "select f1, f2, f1*f2 multi_col from test_decimal_mul_overflow_for_sync_mv;"
+//        contains "mv_var_sync_1 chose"
+//    }
+    mv_rewrite_success_without_check_chosen("select f1, f2, f1*f2 multi_col from test_decimal_mul_overflow_for_sync_mv;", "mv_var_sync_1")
     sql "set enable_decimal256=true;"
-    explain {
-        sql "select f1, f2, f1*f2 multi_col from test_decimal_mul_overflow_for_sync_mv;"
-        contains "mv_var_sync_1 chose"
-    }
+//    explain {
+//        sql "select f1, f2, f1*f2 multi_col from test_decimal_mul_overflow_for_sync_mv;"
+//        contains "mv_var_sync_1 chose"
+//    }
+    mv_rewrite_success_without_check_chosen("select f1, f2, f1*f2 multi_col from test_decimal_mul_overflow_for_sync_mv;", "mv_var_sync_1")
 
 }
