@@ -32,7 +32,7 @@ suite("variables_up_down_load4_3fe") {
     sql """sync;"""
 
     // 预期multi_col的scale是11
-    qt_refresh "select f1,f2,multi_col from mv_var_1 order by 1,2,3;"
+    order_qt_refresh "select f1,f2,multi_col from mv_var_1 order by 1,2,3;"
 
     // 测试改写
     sql "set enable_decimal256=true;"
@@ -41,7 +41,7 @@ suite("variables_up_down_load4_3fe") {
 //        contains "mv_var_1 chose"
 //    }
     mv_rewrite_success_without_check_chosen(query_sql, "mv_var_1")
-    qt_rewite_open256 "$query_sql"
+    order_qt_rewite_open256 "$query_sql"
 
     sql "set enable_decimal256=false;"
 //    explain {
@@ -49,6 +49,6 @@ suite("variables_up_down_load4_3fe") {
 //        contains "mv_var_1 chose"
 //    }
     mv_rewrite_success_without_check_chosen(query_sql, "mv_var_1")
-    qt_rewite_open128 "$query_sql"
+    order_qt_rewite_open128 "$query_sql"
 
 }
