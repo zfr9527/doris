@@ -32,7 +32,7 @@ suite("variables_up_down_load4") {
     sql """sync;"""
 
     // 预期multi_col的scale是11
-    qt_refresh_master_sql "select f1,f2,multi_col from mv_var_1 order by 1,2,3;"
+    order_qt_refresh_master_sql "select f1,f2,multi_col from mv_var_1 order by 1,2,3;"
 
     // 测试改写
     sql "set enable_decimal256=true;"
@@ -40,13 +40,13 @@ suite("variables_up_down_load4") {
         sql query_sql
         contains "mv_var_1 chose"
     }
-    qt_rewite_open256_master_sql "$query_sql"
+    order_qt_rewite_open256_master_sql "$query_sql"
 
     sql "set enable_decimal256=false;"
     explain {
         sql query_sql
         contains "mv_var_1 chose"
     }
-    qt_rewite_open128_master_sql "$query_sql"
+    order_qt_rewite_open128_master_sql "$query_sql"
 
 }
