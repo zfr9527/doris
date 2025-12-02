@@ -1,4 +1,4 @@
-suite("variables_up_down_load7") {
+suite("variables_up_down_load7_3fe") {
 
     // =============case1: history data to mv===================
     multi_sql """

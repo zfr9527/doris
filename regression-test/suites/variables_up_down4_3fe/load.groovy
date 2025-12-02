@@ -1,4 +1,4 @@
-suite("variables_up_down_load4") {
+suite("variables_up_down_load4_3fe") {
 
     multi_sql """
     drop table if exists test_decimal_mul_overflow_for_mv;

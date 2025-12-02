@@ -1,4 +1,4 @@
-suite("variables_up_down_load5") {
+suite("variables_up_down_load5_3fe") {
 
     // 这个结果是完整的结果，超出了38个精度
     // 999999999999998246906000000000.76833464320
