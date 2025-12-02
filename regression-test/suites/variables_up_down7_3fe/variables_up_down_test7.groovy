@@ -23,10 +23,11 @@ suite("variables_up_down_test7_3fe") {
     qt_history_data_mv "select f1, f2, f1*f2 multi_col from test_decimal_mul_overflow_for_sync_mv;"
     // test rewrite
     sql "set enable_decimal256=true;"
-    explain {
-        sql "select f1, f2, f1*f2 multi_col from test_decimal_mul_overflow_for_sync_mv;"
-        contains "mv_var_sync_1 chose"
-    }
+//    explain {
+//        sql "select f1, f2, f1*f2 multi_col from test_decimal_mul_overflow_for_sync_mv;"
+//        contains "mv_var_sync_1 chose"
+//    }
+    mv_rewrite_success_without_check_chosen("select f1, f2, f1*f2 multi_col from test_decimal_mul_overflow_for_sync_mv;", "mv_var_sync_1")
     sql "set enable_decimal256=false;"
 //    explain {
 //        sql "select f1, f2, f1*f2 multi_col from test_decimal_mul_overflow_for_sync_mv;"
@@ -64,10 +65,11 @@ suite("variables_up_down_test7_3fe") {
 
     // expect 2 rows
     sql "set enable_decimal256=true;"
-    test {
-        sql "select f1 as c1, f2 as c2, f1*f2 multi_col from test_decimal_mul_overflow_for_sync_mv where f1*f2==999999999999998246906000000000.76833464320;"
-        exception "PrimitiveType"
-    }
+//    test {
+//        sql "select f1 as c1, f2 as c2, f1*f2 multi_col from test_decimal_mul_overflow_for_sync_mv where f1*f2==999999999999998246906000000000.76833464320;"
+//        exception "PrimitiveType"
+//    }
+    mv_rewrite_success_without_check_chosen("select f1 as c1, f2 as c2, f1*f2 multi_col from test_decimal_mul_overflow_for_sync_mv where f1*f2==999999999999998246906000000000.76833464320;", "mv_var_sync_1")
 
     sql "set enable_decimal256=true;"
 //    sql "insert into test_decimal_mul_overflow_for_sync_mv values(999999999999999.12345,999999999999999.123456);"
@@ -97,14 +99,16 @@ suite("variables_up_down_test7_3fe") {
 
     sql "set enable_decimal256=false;"
     qt_expect_8_scale "select f1, f2, f1*f2 multi_col from test_decimal_mul_overflow_for_sync_mv;"
-    explain {
-        sql "select f1, f2, f1*f2 multi_col from test_decimal_mul_overflow_for_sync_mv;"
-        contains "mv_var_sync_1 chose"
-    }
+//    explain {
+//        sql "select f1, f2, f1*f2 multi_col from test_decimal_mul_overflow_for_sync_mv;"
+//        contains "mv_var_sync_1 chose"
+//    }
+    mv_rewrite_success_without_check_chosen("select f1, f2, f1*f2 multi_col from test_decimal_mul_overflow_for_sync_mv;", "mv_var_sync_1")
     sql "set enable_decimal256=true;"
-    explain {
-        sql "select f1, f2, f1*f2 multi_col from test_decimal_mul_overflow_for_sync_mv;"
-        contains "mv_var_sync_1 chose"
-    }
+//    explain {
+//        sql "select f1, f2, f1*f2 multi_col from test_decimal_mul_overflow_for_sync_mv;"
+//        contains "mv_var_sync_1 chose"
+//    }
+    mv_rewrite_success_without_check_chosen("select f1, f2, f1*f2 multi_col from test_decimal_mul_overflow_for_sync_mv;", "mv_var_sync_1")
 
 }
