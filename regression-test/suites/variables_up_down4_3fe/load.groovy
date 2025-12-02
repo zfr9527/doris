@@ -40,7 +40,7 @@ suite("variables_up_down_load4_3fe") {
 //        sql query_sql
 //        contains "mv_var_1 chose"
 //    }
-    mv_rewrite_all_success_without_check_chosen(query_sql, "mv_var_1")
+    mv_rewrite_success_without_check_chosen(query_sql, "mv_var_1")
     qt_rewite_open256 "$query_sql"
 
     sql "set enable_decimal256=false;"
@@ -48,7 +48,7 @@ suite("variables_up_down_load4_3fe") {
 //        sql query_sql
 //        contains "mv_var_1 chose"
 //    }
-    mv_rewrite_all_success_without_check_chosen(query_sql, "mv_var_1")
+    mv_rewrite_success_without_check_chosen(query_sql, "mv_var_1")
     qt_rewite_open128 "$query_sql"
 
 }
