@@ -14,7 +14,7 @@ suite("variables_up_down_load3_3fe") {
     sql "insert into t_gen_col_multi_decimalv3 values(1.12343,1.123457,default);"
 
     // 查询数据,预期column c的scale为11
-    qt_c_scale_is_11 "select * from t_gen_col_multi_decimalv3;"
+    order_qt_c_scale_is_11 "select * from t_gen_col_multi_decimalv3;"
 
     // ========== 测试4: 除法运算 ==========
     multi_sql """
@@ -29,7 +29,7 @@ suite("variables_up_down_load3_3fe") {
     sql "set enable_decimal256=true;"
     sql "insert into t_gen_col_divide_decimalv3 values(100.123456789012345678,2.123456789012345678,default);"
 
-    qt_divide_scale "select * from t_gen_col_divide_decimalv3;"
+    order_qt_divide_scale "select * from t_gen_col_divide_decimalv3;"
 
     // ========== 测试2: 加法运算 ==========
     multi_sql """
@@ -44,7 +44,7 @@ suite("variables_up_down_load3_3fe") {
     sql "insert into t_gen_col_add_sub_mod_decimalv3 values(1.012345678,1.0123456789,default,default,default);"
     sql "set enable_decimal256=true;"
     sql "insert into t_gen_col_add_sub_mod_decimalv3 values(1.012345678,1.0123456789,default,default,default);"
-    qt_add_sub_mod "select * from t_gen_col_add_sub_mod_decimalv3;"
+    order_qt_add_sub_mod "select * from t_gen_col_add_sub_mod_decimalv3;"
 
 
     // ========== 测试7: 嵌套生成列（生成列引用其他生成列） ==========
@@ -65,7 +65,7 @@ suite("variables_up_down_load3_3fe") {
     sql "set enable_decimal256=true;"
     sql "insert into t_gen_col_nested values(1.12343,1.123457,default,default);"
 
-    qt_nested_cols "select * from t_gen_col_nested;"
+    order_qt_nested_cols "select * from t_gen_col_nested;"
 
     // ========== 测试8: 复杂表达式组合 ==========
     multi_sql """
@@ -85,7 +85,7 @@ suite("variables_up_down_load3_3fe") {
     sql "insert into t_gen_col_complex values(1.12343,1.123457,default,default,default);"
     sql "set enable_decimal256=true;"
     sql "insert into t_gen_col_complex values(1.12343,1.123457,default,default,default);"
-    qt_complex_expr "select * from t_gen_col_complex;"
+    order_qt_complex_expr "select * from t_gen_col_complex;"
 
     // ========== 测试18: 生成列在CASE WHEN中使用 ==========
     multi_sql """
@@ -104,7 +104,7 @@ suite("variables_up_down_load3_3fe") {
     sql "insert into t_gen_col_case values(1.12343,1.123457,default,default);"
     sql "set enable_decimal256=true;"
     sql "insert into t_gen_col_case values(1.12343,1.123457,default,default);"
-    qt_gen_col_case "select * from t_gen_col_case;"
+    order_qt_gen_col_case "select * from t_gen_col_case;"
 
     // ========== 测试19: 生成列在IF函数中使用 ==========
     multi_sql """
@@ -122,7 +122,7 @@ suite("variables_up_down_load3_3fe") {
     sql "insert into t_gen_col_if values(1.12343,1.123457,default);"
     sql "set enable_decimal256=true;"
     sql "insert into t_gen_col_if values(1.12343,1.123457,default);"
-    qt_gen_col_if "select * from t_gen_col_if;"
+    order_qt_gen_col_if "select * from t_gen_col_if;"
 
     // ========== 测试20: 生成列在COALESCE/GREATEST/LEAST等函数中使用 ==========
     multi_sql """
@@ -142,5 +142,5 @@ suite("variables_up_down_load3_3fe") {
     sql "insert into t_gen_col_funcs values(1.12343,1.123457,default,default,default);"
     sql "set enable_decimal256=true;"
     sql "insert into t_gen_col_funcs values(1.12343,1.123457,default,default,default);"
-    qt_gen_col_funcs "select * from t_gen_col_funcs;"
+    order_qt_gen_col_funcs "select * from t_gen_col_funcs;"
 }
