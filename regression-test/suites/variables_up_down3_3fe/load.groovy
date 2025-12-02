@@ -25,10 +25,7 @@ suite("variables_up_down_load3_3fe") {
         PROPERTIES("replication_num" = "1");
     """
     sql "set enable_decimal256=false;"
-    test {
-        sql "insert into t_gen_col_divide_decimalv3 values(100.123456789012345678,2.123456789012345678,default);"
-        exception "Not Supported"
-    }
+    sql "insert into t_gen_col_divide_decimalv3 values(100.123456789012345678,2.123456789012345678,default);"
     sql "set enable_decimal256=true;"
     sql "insert into t_gen_col_divide_decimalv3 values(100.123456789012345678,2.123456789012345678,default);"
 
@@ -44,10 +41,7 @@ suite("variables_up_down_load3_3fe") {
         PROPERTIES("replication_num" = "1");
     """
     sql "set enable_decimal256=false;"
-    test {
-        sql "insert into t_gen_col_add_sub_mod_decimalv3 values(1.012345678,1.0123456789,default,default,default);"
-        exception "Not Supported"
-    }
+    sql "insert into t_gen_col_add_sub_mod_decimalv3 values(1.012345678,1.0123456789,default,default,default);"
     sql "set enable_decimal256=true;"
     sql "insert into t_gen_col_add_sub_mod_decimalv3 values(1.012345678,1.0123456789,default,default,default);"
     qt_add_sub_mod "select * from t_gen_col_add_sub_mod_decimalv3;"
@@ -67,10 +61,7 @@ suite("variables_up_down_load3_3fe") {
         PROPERTIES("replication_num" = "1");
     """
     sql "set enable_decimal256=false;"
-    test {
-        sql "insert into t_gen_col_nested values(1.12343,1.123457,default,default);"
-        exception "Not Supported"
-    }
+    sql "insert into t_gen_col_nested values(1.12343,1.123457,default,default);"
     sql "set enable_decimal256=true;"
     sql "insert into t_gen_col_nested values(1.12343,1.123457,default,default);"
 
@@ -91,10 +82,7 @@ suite("variables_up_down_load3_3fe") {
         PROPERTIES("replication_num" = "1");
     """
     sql "set enable_decimal256=false;"
-    test {
-        sql "insert into t_gen_col_complex values(1.12343,1.123457,default,default,default);"
-        exception "Not Supported"
-    }
+    sql "insert into t_gen_col_complex values(1.12343,1.123457,default,default,default);"
     sql "set enable_decimal256=true;"
     sql "insert into t_gen_col_complex values(1.12343,1.123457,default,default,default);"
     qt_complex_expr "select * from t_gen_col_complex;"
@@ -113,10 +101,7 @@ suite("variables_up_down_load3_3fe") {
         PROPERTIES("replication_num" = "1");
     """
     sql "set enable_decimal256=false;"
-    test {
-        sql "insert into t_gen_col_case values(1.12343,1.123457,default,default);"
-        exception "Not Supported"
-    }
+    sql "insert into t_gen_col_case values(1.12343,1.123457,default,default);"
     sql "set enable_decimal256=true;"
     sql "insert into t_gen_col_case values(1.12343,1.123457,default,default);"
     qt_gen_col_case "select * from t_gen_col_case;"
@@ -134,10 +119,7 @@ suite("variables_up_down_load3_3fe") {
         PROPERTIES("replication_num" = "1");
     """
     sql "set enable_decimal256=false;"
-    test {
-        sql "insert into t_gen_col_if values(1.12343,1.123457,default);"
-        exception "Not Supported"
-    }
+    sql "insert into t_gen_col_if values(1.12343,1.123457,default);"
     sql "set enable_decimal256=true;"
     sql "insert into t_gen_col_if values(1.12343,1.123457,default);"
     qt_gen_col_if "select * from t_gen_col_if;"
@@ -157,10 +139,7 @@ suite("variables_up_down_load3_3fe") {
         PROPERTIES("replication_num" = "1");
     """
     sql "set enable_decimal256=false;"
-    test {
-        sql "insert into t_gen_col_funcs values(1.12343,1.123457,default,default,default);"
-        exception "Not Supported"
-    }
+    sql "insert into t_gen_col_funcs values(1.12343,1.123457,default,default,default);"
     sql "set enable_decimal256=true;"
     sql "insert into t_gen_col_funcs values(1.12343,1.123457,default,default,default);"
     qt_gen_col_funcs "select * from t_gen_col_funcs;"
