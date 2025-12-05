@@ -202,22 +202,7 @@ suite("ldap_and_doris_auth_same_user_test", "external_docker, ldap_p0") {
         logger.info("SUCCESS: user '${testUser}' successfully logged in to Doris.")
     }
 
-    // 这里会有一点问题，role的权限到底应不应该保留
-    /*
-    connect(testUser, testUserPlaintextPassword, url) {
-        def grants = sql """show grants"""
-        logger.info("grants:" + grants)
-        assertTrue(grants.toString().contains("internal.${dbName}.${tbName}"))
-        assertFalse(grants.toString().contains("internal.${dbName}.${tbName2}"))
-        def res = sql """select * from ${dbName}.${tbName}"""
-        assertTrue(res.size() == 3)
-        logger.info("SUCCESS: user '${testUser}' successfully logged in to Doris.")
-    }
-
-     */
-
     sql """REFRESH LDAP FOR ${testUser};"""
-
     connect(testUser, testUserPlaintextPassword, url) {
         def grants = sql """show grants;"""
         logger.info("grants:" + grants)
