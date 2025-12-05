@@ -113,13 +113,13 @@ suite("ldap_and_doris_auth_same_user_test_with_ip", "external_docker, ldap_p0") 
         uid: ${testUser}
         userPassword: ${testUserPassword}"""
 
-    // Step 1: Add OU, group, and user to LDAP server in one go
+    // Add OU, group, and user to LDAP server in one go
     addLdapEntry("""ldap://${ldapHost}:${ldapPort}""", ldapAdminUser, ldapAdminPassword, ldifContent)
     sql """REFRESH LDAP FOR ${testUser};"""
-    // Step 2: Create a role in Doris and a mapping for the LDAP group
+    // Create a role in Doris and a mapping for the LDAP group
     sql """drop role if exists ${testGroup}"""
     sql "CREATE ROLE '${testGroup}';"
-    sql "GRANT SELECT_PRIV ON ${dbName}.${tbName2} TO ROLE '${testGroup}';" // Grant some privilege to the role
+    sql "GRANT SELECT_PRIV ON ${dbName}.${tbName2} TO ROLE '${testGroup}';"
     logger.info("Successfully created role '${testGroup}' in Doris.")
 
     connect(testUser, testUserPlaintextPassword, url) {

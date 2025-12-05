@@ -123,10 +123,10 @@ suite("ldap_and_doris_auth_same_user_test", "external_docker, ldap_p0") {
         uid: ${testUser}
         userPassword: ${testUserPassword}"""
 
-    // Step 1: Add OU, group, and user to LDAP server in one go
+    // Add OU, group, and user to LDAP server in one go
     addLdapEntry("""ldap://${ldapHost}:${ldapPort}""", ldapAdminUser, ldapAdminPassword, ldifContent)
     sql """REFRESH LDAP FOR ${testUser};"""
-    // Step 2: Create a role in Doris and a mapping for the LDAP group
+    // Create a role in Doris and a mapping for the LDAP group
     sql """drop role if exists ${testGroup}"""
     sql "CREATE ROLE '${testGroup}';"
     sql "GRANT SELECT_PRIV ON ${dbName}.${tbName2} TO ROLE '${testGroup}';"
@@ -163,13 +163,10 @@ suite("ldap_and_doris_auth_same_user_test", "external_docker, ldap_p0") {
 
     sql "GRANT SELECT_PRIV ON ${dbName}.${tbName} TO ROLE '${dorisGroupRole}';"
     sql """grant '${dorisGroupRole}' to '${testUser}'"""
-//    sql """GRANT SELECT_PRIV ON ${dbName}.${tbName} TO '${testUser}';"""
     sql "REVOKE SELECT_PRIV ON ${dbName}.${tbName2} FROM ROLE '${testGroup}';"
     connect(testUser, testUserPlaintextPassword, url) {
         def grants = sql """show grants"""
         logger.info("grants:" + grants)
-        // 需要检查doris role是否存在
-        // assertTrue(grants.toString().contains("${dorisGroupRole}"))
         assertTrue(grants.toString().contains("internal.${dbName}.${tbName}"))
         assertFalse(grants.toString().contains("internal.${dbName}.${tbName2}"))
         def res = sql """select * from ${dbName}.${tbName}"""
@@ -186,8 +183,6 @@ suite("ldap_and_doris_auth_same_user_test", "external_docker, ldap_p0") {
     connect(testUser, testUserPlaintextPassword, url) {
         def grants = sql """show grants"""
         logger.info("grants:" + grants)
-        // 需要检查doris role是否存在
-//        assertTrue(grants.toString().contains("${dorisGroupRole}"))
         assertTrue(grants.toString().contains("internal.${dbName}.${tbName}"))
         assertTrue(grants.toString().contains("internal.${dbName}.${tbName2}"))
         def res = sql """select * from ${dbName}.${tbName}"""
@@ -196,6 +191,16 @@ suite("ldap_and_doris_auth_same_user_test", "external_docker, ldap_p0") {
     }
 
     sql """drop role ${testGroup}"""
+
+    connect(testUser, testUserPlaintextPassword, url) {
+        def grants = sql """show grants"""
+        logger.info("grants:" + grants)
+        assertTrue(grants.toString().contains("internal.${dbName}.${tbName}"))
+        assertTrue(grants.toString().contains("internal.${dbName}.${tbName2}"))
+        def res = sql """select * from ${dbName}.${tbName}"""
+        assertTrue(res.size() == 3)
+        logger.info("SUCCESS: user '${testUser}' successfully logged in to Doris.")
+    }
 
     // 这里会有一点问题，role的权限到底应不应该保留
     /*

@@ -99,22 +99,22 @@ suite("doris_and_ldap_priv_range", "external_docker, ldap_p0") {
         uid: ${testUser}
         userPassword: ${testUserPassword}"""
 
-    // Step 1: Add OU, group, and user to LDAP server in one go
+    // Add OU, group, and user to LDAP server in one go
     addLdapEntry("""ldap://${ldapHost}:${ldapPort}""", ldapAdminUser, ldapAdminPassword, ldifContent)
     sql """REFRESH LDAP FOR ${testUser};"""
 
-    // Step 2: Create a role in Doris and a mapping for the LDAP group
+    // Create a role in Doris and a mapping for the LDAP group
     sql """drop role if exists ${testGroup}"""
     sql "CREATE ROLE '${testGroup}';"
-    sql "GRANT SELECT_PRIV ON ${dbName}.${tbName} TO ROLE '${testGroup}';" // Grant some privilege to the role
+    sql "GRANT SELECT_PRIV ON ${dbName}.${tbName} TO ROLE '${testGroup}';"
 
     sql """drop role if exists ${testGroup2}"""
     sql "CREATE ROLE '${testGroup2}';"
-    sql "GRANT admin_priv ON *.*.* TO ROLE '${testGroup2}';" // Grant some privilege to the role
+    sql "GRANT admin_priv ON *.*.* TO ROLE '${testGroup2}';"
 
     logger.info("Successfully created role '${testGroup}', '${testGroup2}' in Doris.")
 
-    // Step 3: Verify that the new user can log in and has the correct role's permissions
+    // Verify that the new user can log in and has the correct role's permissions
     def tokens = context.config.jdbcUrl.split('/')
     def url = tokens[0] + "//" + tokens[2] + "/information_schema?authenticationPlugins=org.apache.doris.regression.util.MysqlClearPasswordPluginWithoutSSL&defaultAuthenticationPlugin=org.apache.doris.regression.util.MysqlClearPasswordPluginWithoutSSL&disabledAuthenticationPlugins=org.apache.doris.regression.util.MysqlClearPasswordPlugin"
     log.info("url: " + url)

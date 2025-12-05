@@ -2014,10 +2014,10 @@ class Suite implements GroovyInterceptable {
         def (output, errorOutput, exitCode) = runLdapProcessBuilder(cmdList)
 
         if (exitCode == 0) {
-            logger.info("success ldap move/rename operation.")
+            logger.info("success ldap move operation.")
             return true
         }
-        logger.warning("Ldap move/rename failed. Exit Code: ${exitCode}. Stderr: ${errorOutput}")
+        logger.warning("Ldap move failed. Exit Code: ${exitCode}. Stderr: ${errorOutput}")
         assert false
     }
 
@@ -2062,7 +2062,7 @@ class Suite implements GroovyInterceptable {
             logger.info("success ldap dn")
             return true
         }
-        logger.warning("Addldap for DN failed. Exit Code: ${exitCode}. Stderr: ${errorOutput}")
+        logger.warning("AddldapMember for DN failed. Exit Code: ${exitCode}. Stderr: ${errorOutput}")
         assert false
     }
 
@@ -2105,7 +2105,7 @@ class Suite implements GroovyInterceptable {
             logger.info("success ldap dn")
             return true
         }
-        logger.warning("Addldap for DN failed. Exit Code: ${exitCode}. Stderr: ${errorOutput}")
+        logger.warning("deleteldapMember for DN failed. Exit Code: ${exitCode}. Stderr: ${errorOutput}")
         assert false
     }
 
