@@ -200,7 +200,7 @@ class RegressionTest {
 
         loadPlugins(config)
         installDorisCompose(config)
-//        installLdapUtil(config)
+        installLdapUtil(config)
     }
 
     static List<ScriptSource> findScriptSources(String root, Predicate<String> directoryFilter,
