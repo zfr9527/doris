@@ -137,4 +137,49 @@ suite("create_and_insert_select_test", "rec_cte") {
     def tb_res2 = sql """select * from ${table_cte_name}"""
     assertTrue(tb_res1.size() * 2 == tb_res2.size())
 
+
+    sql """
+        insert overwrite ${table_cte_name}  
+        WITH recursive SubordinateHierarchy (
+            EmployeeID, 
+            EmployeeName, 
+            ManagerID, 
+            Level,
+            Comments
+        )
+        AS
+        (
+            SELECT 
+                EmployeeID, 
+                Name AS EmployeeName, 
+                ManagerID, 
+                cast(0 as bigint) AS Level,
+                CAST(NULL AS VARCHAR(100)) AS Comments 
+            FROM 
+                ${tb_name}
+            WHERE 
+                EmployeeID = 100
+                
+            UNION ALL
+            
+            SELECT 
+                E.EmployeeID, 
+                E.Name AS EmployeeName, 
+                E.ManagerID, 
+                cast(H.Level + 1 as bigint) AS Level,
+                cast(H.EmployeeName as VARCHAR(100))
+            FROM 
+                ${tb_name} AS E
+            INNER JOIN 
+                SubordinateHierarchy AS H
+                ON E.ManagerID = H.EmployeeID
+        )
+        SELECT 
+            *
+        FROM 
+            SubordinateHierarchy
+        ORDER BY 
+            Level, EmployeeID;
+    """
+
 }
