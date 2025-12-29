@@ -139,7 +139,7 @@ suite("create_and_insert_select_test", "rec_cte") {
 
 
     sql """
-        insert overwrite ${table_cte_name}  
+        insert overwrite table ${table_cte_name}  
         WITH recursive SubordinateHierarchy (
             EmployeeID, 
             EmployeeName, 
