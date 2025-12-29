@@ -237,6 +237,11 @@ public class DistributionSpecHash extends DistributionSpec {
                 equivalenceExprIds, exprIdToEquivalenceSet);
     }
 
+    public DistributionSpecHash withShuffleExprs(List<ExprId> exprIds) {
+        return new DistributionSpecHash(exprIds, shuffleType, tableId, selectedIndexId, partitionIds,
+                equivalenceExprIds, exprIdToEquivalenceSet);
+    }
+
     /**
      * generate a new DistributionSpec after projection.
      */
