@@ -25,18 +25,16 @@ suite("unnest_having_list_test", "unnest") {
         CREATE TABLE IF NOT EXISTS ${tb_name1} (
             user_id INT,
             dept_name VARCHAR(20),
-            skills ARRAY<STRING>
+            skills VARCHAR[]
         ) 
-        DUPLICATE KEY(user_id)
-        DISTRIBUTED BY HASH(user_id) BUCKETS 1
-        PROPERTIES ("replication_num" = "1");"""
+        ;"""
 
     sql """
         INSERT INTO ${tb_name1} VALUES
-        (1, 'R&D', ['Java', 'Go', 'SQL']),
-        (2, 'R&D', ['Java', 'SQL']),
-        (3, 'Sales', ['SQL', 'Marketing']),
-        (4, 'Sales', ['Marketing']);"""
+        (1, 'R&D', ARRAY['Java', 'Go', 'SQL']),
+        (2, 'R&D', ARRAY['Java', 'SQL']),
+        (3, 'Sales', ARRAY['SQL', 'Marketing']),
+        (4, 'Sales', ARRAY['Marketing']);"""
 
     test {
         // Test that using UNNEST directly in a HAVING clause without it being in an aggregate function or the GROUP BY clause is invalid.
@@ -59,7 +57,7 @@ suite("unnest_having_list_test", "unnest") {
         SELECT s.skill, COUNT(*) as first_skill_count
         FROM ${tb_name1}
         CROSS JOIN UNNEST(skills) WITH ORDINALITY AS s(pos, skill)
-        WHERE s.pos = 0
+        WHERE s.pos = 1
         GROUP BY s.skill
         HAVING first_skill_count > 1
         ORDER BY s.skill;"""

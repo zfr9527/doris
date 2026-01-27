@@ -27,9 +27,9 @@ suite("unnest_map_border_test", "unnest") {
         FROM (
             SELECT 
                 101 AS user_id,
-                MAP('category', 'electronics', 'rank', 'A', 'region', 'East') AS attr_map
+                '{"category": "electronics", "rank": "A", "region": "East"}'::jsonb AS attr_map
         ) t,
-        UNNEST(attr_map) AS v(k, v)
+        jsonb_each_text(attr_map) AS v(k, v)
         ORDER BY user_id, k, v;"""
 
     // map(null: null)
@@ -41,9 +41,9 @@ suite("unnest_map_border_test", "unnest") {
         FROM (
             SELECT 
                 501 AS item_id,
-                MAP('color', 'red', 'size', NULL, 'brand', 'Doris') AS item_map
+                '{"color": "red", "size": null, "brand": "Doris"}'::jsonb AS item_map
         ) t,
-        UNNEST(item_map) AS v(attr_name, attr_val)
+        jsonb_each_text(item_map) AS v(attr_name, attr_val)
         ORDER BY item_id, attr_name, attr_val NULLS LAST;"""
 
     // map(null)
@@ -55,9 +55,9 @@ suite("unnest_map_border_test", "unnest") {
         FROM (
             SELECT 
                 501 AS item_id,
-                MAP() AS item_map
+                '{}'::jsonb AS item_map
         ) t,
-        UNNEST(item_map) AS v(attr_name, attr_val)
+        jsonb_each_text(item_map) AS v(attr_name, attr_val)
         ORDER BY item_id, attr_name, attr_val;"""
 
     // map(array)
@@ -70,13 +70,13 @@ suite("unnest_map_border_test", "unnest") {
             SELECT 
                 1001 AS user_id,
                 -- 构造 Map，Key 是字符串，Value 是数组
-                MAP(
-                    'tags', ARRAY('gaming', 'coding', 'music'),
-                    'roles', ARRAY('admin', 'editor'),
-                    'empty_list', ARRAY()
+                jsonb_build_object(
+                    'tags', ARRAY['gaming', 'coding', 'music'],
+                    'roles', ARRAY['admin', 'editor'],
+                    'empty_list', ARRAY[]::text[]
                 ) AS complex_map
         ) t, 
-        UNNEST(complex_map) AS v(attr_key, attr_values)
+        jsonb_each(complex_map) AS v(attr_key, attr_values)
         ORDER BY user_id, attr_key;"""
 
     // Test a chained UNNEST, first on a map of arrays, and then on the resulting array values.
@@ -88,13 +88,13 @@ suite("unnest_map_border_test", "unnest") {
         FROM (
             SELECT 
                 1001 AS user_id,
-                MAP(
-                    'tags', ARRAY('gaming', 'coding'),
-                    'roles', ARRAY('admin')
+                jsonb_build_object(
+                    'tags', ARRAY['gaming', 'coding'],
+                    'roles', ARRAY['admin']
                 ) AS complex_map
         ) t, 
-        UNNEST(complex_map) AS v1(attr_key, attr_values),
-        UNNEST(attr_values) AS v2(tag_element)
+        jsonb_each(complex_map) AS v1(attr_key, attr_values),
+        jsonb_array_elements_text(attr_values) AS v2(tag_element)
         ORDER BY user_id, attr_key, tag_element;"""
 
 }

@@ -27,18 +27,16 @@ suite("unnest_where_list_test", "unnest") {
             user_id INT,
             user_name VARCHAR(50),
             user_type VARCHAR(20),
-            tags ARRAY<STRING>,
+            tags VARCHAR[],
             login_days BITMAP,
-            ext_props MAP<STRING, STRING>
+            ext_props JSONB
         ) 
-        DUPLICATE KEY(user_id)
-        DISTRIBUTED BY HASH(user_id) BUCKETS 1
-        PROPERTIES ("replication_num" = "1");"""
+        ;"""
 
     sql """INSERT INTO ${tb_name1} VALUES
-        (1, 'Alice', 'VIP', ['tech', 'music', 'sport'], bitmap_from_string("1, 2, 10"), {'level': 'gold'}),
-        (2, 'Bob', 'Normal', ['teach', 'math'], bitmap_from_string("15, 20"), {'level': 'silver'}),
-        (3, 'Charlie', 'Normal', [], bitmap_empty(), {}),
+        (1, 'Alice', 'VIP', ARRAY['tech', 'music', 'sport'], bitmap_from_string("1, 2, 10"), '{"level": "gold"}'::jsonb),
+        (2, 'Bob', 'Normal', ARRAY['teach', 'math'], bitmap_from_string("15, 20"), '{"level": "silver"}'::jsonb),
+        (3, 'Charlie', 'Normal', ARRAY[]::varchar[], bitmap_empty(), '{}'::jsonb),
         (4, 'David', 'VIP', NULL, bitmap_empty(), NULL);"""
 
     sql """drop table if exists ${tb_name2}"""
@@ -46,7 +44,7 @@ suite("unnest_where_list_test", "unnest") {
         CREATE TABLE IF NOT EXISTS ${tb_name2} (
             ref_id INT,
             ref_tag STRING
-        ) DISTRIBUTED BY HASH(ref_id) BUCKETS 1 PROPERTIES ("replication_num" = "1");"""
+        ) ;"""
 
     sql """INSERT INTO ${tb_name2} VALUES (1, 'tech'), (2, 'math');"""
 

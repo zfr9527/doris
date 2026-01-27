@@ -25,23 +25,21 @@ suite("unnest_select_list_test", "unnest") {
         CREATE TABLE IF NOT EXISTS ${tb_name1} (
             id INT,
             user_name VARCHAR(50),
-            scores ARRAY<INT>,
+            scores INT[],
             user_ids BITMAP,
-            properties MAP<STRING, STRING>
+            properties JSONB
         ) 
-        DUPLICATE KEY(id)
-        DISTRIBUTED BY HASH(id) BUCKETS 1
-        PROPERTIES ("replication_num" = "1");"""
+        ;"""
 
     sql """
         INSERT INTO ${tb_name1} VALUES
-        (1, 'Alice', [90, 85, 95], to_bitmap(101), {'age': '25', 'city': 'Beijing'}),
-        (2, 'Bob', [70, 80], bitmap_from_string('201,202'), {'level': 'VIP', 'rank': 'A'}),
-        (3, 'EmptyCase', [], bitmap_empty(), {}),
+        (1, 'Alice', ARRAY[90, 85, 95], to_bitmap(101), '{"age": "25", "city": "Beijing"}'::jsonb),
+        (2, 'Bob', ARRAY[70, 80], bitmap_from_string('201,202'), '{"level": "VIP", "rank": "A"}'::jsonb),
+        (3, 'EmptyCase', ARRAY[]::integer[], bitmap_empty(), '{}'::jsonb),
         (4, 'NullCase', NULL, bitmap_empty(), NULL);"""
 
     // Test using UNNEST on an array in the SELECT list.
-    qt_select_unnest_array """SELECT id, user_name, UNNEST(scores) as score FROM ${tb_name1} ORDER BY id, user_name, score;"""
+    qt_select_unnest_array """SELECT id, user_name, s.score FROM ${tb_name1}, UNNEST(scores) as s(score) ORDER BY id, user_name, score;"""
 
     // array
     test {
@@ -56,11 +54,11 @@ suite("unnest_select_list_test", "unnest") {
     }
 
     // Test UNNEST on a constant array in the SELECT list.
-    qt_select_unnest_constant_array """SELECT UNNEST(['a', 'b', 'c']) as col1 ORDER BY col1;"""
+    qt_select_unnest_constant_array """SELECT s.col1 FROM UNNEST(ARRAY['a', 'b', 'c']) as s(col1) ORDER BY col1;"""
 
     test {
         // Test that WITH ORDINALITY is not supported for UNNEST on a constant array in the SELECT list.
-        sql """SELECT UNNEST(['a', 'b', 'c']) WITH ORDINALITY AS (val, pos);"""
+        sql """SELECT UNNEST(ARRAY['a', 'b', 'c']) WITH ORDINALITY AS (val, pos);"""
         exception "mismatched input"
     }
 
@@ -68,13 +66,13 @@ suite("unnest_select_list_test", "unnest") {
     qt_select_unnest_on_modified_array """
         SELECT 
             id, 
-            UNNEST(ARRAY_SORT(scores)) AS sorted_score
-        FROM ${tb_name1} WHERE id = 1
+            s.sorted_score
+        FROM ${tb_name1}, UNNEST(ARRAY_SORT(scores)) AS s(sorted_score) WHERE id = 1
         ORDER BY id, sorted_score;"""
 
     test {
         // Test that nested UNNEST calls in the SELECT list are not supported.
-        sql """SELECT UNNEST(t.v) FROM (SELECT UNNEST(ARRAY(ARRAY(1,2))) AS v) t;"""
+        sql """SELECT UNNEST(t.v) FROM (SELECT UNNEST(ARRAY[ARRAY[1,2]]) AS v) t;"""
         exception "Could not find function unnest"
     }
 
@@ -85,47 +83,47 @@ suite("unnest_select_list_test", "unnest") {
         SELECT 
             id, 
             user_name, 
-            UNNEST(user_ids) AS exploded_id
-        FROM ${tb_name1}
+            s.exploded_id
+        FROM ${tb_name1}, UNNEST(user_ids) AS s(exploded_id)
         ORDER BY id, user_name, exploded_id;"""
 
     // Test UNNEST on a constant bitmap in the SELECT list.
-    qt_select_unnest_constant_bitmap """SELECT UNNEST(bitmap_from_string('10,20,30')) AS uid ORDER BY uid;"""
+    qt_select_unnest_constant_bitmap """SELECT s.uid FROM UNNEST(bitmap_from_string('10,20,30')) AS s(uid) ORDER BY uid;"""
 
     // Test aggregating the results of an UNNEST in a subquery's SELECT list.
     qt_aggregate_on_select_unnest_in_subquery """
         SELECT SUM(uid) FROM (
-            SELECT UNNEST(user_ids) AS uid FROM ${tb_name1}
+            SELECT s.uid FROM ${tb_name1}, UNNEST(user_ids) AS s(uid)
         ) t;"""
 
     // Test UNNEST on the result of a bitmap function in the SELECT list.
-    qt_select_unnest_on_bitmap_function_result """SELECT UNNEST(BITMAP_AND(user_ids, to_bitmap(201))) AS intersection FROM ${tb_name1} ORDER BY intersection;"""
+    qt_select_unnest_on_bitmap_function_result """SELECT s.intersection FROM ${tb_name1}, UNNEST(BITMAP_AND(user_ids, to_bitmap(201))) AS s(intersection) ORDER BY intersection;"""
     // Test using UNNEST directly inside a COUNT aggregate function.
-    qt_count_of_unnest """SELECT COUNT(UNNEST(scores)) FROM ${tb_name1};"""
+    qt_count_of_unnest """SELECT COUNT(s.score) FROM ${tb_name1}, UNNEST(scores) as s(score);"""
 
     // map
     // Test using UNNEST on a map in the SELECT list.
     qt_select_unnest_map """
         SELECT 
             id, 
-            UNNEST(properties) AS map_entry
-        FROM ${tb_name1}
+            s.key || ':' || s.value AS map_entry
+        FROM ${tb_name1}, jsonb_each_text(properties) as s(key, value)
         ORDER BY id, map_entry;"""
 
     // Test UNNEST on a constant map in the SELECT list.
-    qt_select_unnest_constant_map """SELECT UNNEST(MAP('k1', 'v1', 'k2', 'v2')) AS entry ORDER BY entry;"""
+    qt_select_unnest_constant_map """SELECT s.key || ':' || s.value AS entry FROM jsonb_each_text('{"k1": "v1", "k2": "v2"}') AS s(key, value) ORDER BY entry;"""
 
     // Test filtering the results of an UNNEST in a subquery's SELECT list.
     qt_filter_on_select_unnest_in_subquery """
         SELECT * FROM (
-            SELECT id, UNNEST(properties) AS entry FROM ${tb_name1}
+            SELECT id, s.key || ':' || s.value AS entry FROM ${tb_name1}, jsonb_each_text(properties) as s(key, value)
         ) t 
         WHERE entry LIKE '%VIP%'
         ORDER BY t.id, t.entry;"""
 
     // null
     // Test UNNEST on a NULL array column in the SELECT list.
-    qt_select_unnest_null_array """SELECT UNNEST(scores) as score FROM ${tb_name1} WHERE id = 4 ORDER BY score NULLS FIRST;"""
+    qt_select_unnest_null_array """SELECT s.score FROM ${tb_name1}, UNNEST(scores) as s(score) WHERE id = 4 ORDER BY score NULLS FIRST;"""
 
     // cross join
     test {
@@ -137,12 +135,12 @@ suite("unnest_select_list_test", "unnest") {
     // nested
     test {
         // Test that nested UNNEST on a constant array in the SELECT list is invalid.
-        sql """SELECT UNNEST(UNNEST(ARRAY(ARRAY(1,2), ARRAY(3,4))));"""
+        sql """SELECT UNNEST(UNNEST(ARRAY[ARRAY[1,2], ARRAY[3,4]]));"""
         exception "Could not find function unnest"
     }
 
     // agg
-    sql """SELECT COUNT(UNNEST(scores)) FROM ${tb_name1};"""
+    sql """SELECT COUNT(s.score) FROM ${tb_name1}, UNNEST(scores) as s(score);"""
 
     // cross
     test {
@@ -174,13 +172,13 @@ suite("unnest_select_list_test", "unnest") {
 
     // DISTINCT
     // Test DISTINCT on an unnested constant array.
-    qt_distinct_on_unnested_constant_array """SELECT DISTINCT UNNEST([1, 1, 2, 2]) AS v ORDER BY v;"""
+    qt_distinct_on_unnested_constant_array """SELECT DISTINCT s.v FROM UNNEST(ARRAY[1, 1, 2, 2]) AS s(v) ORDER BY v;"""
 
     // Test DISTINCT on a combination of a regular column and an unnested column.
-    qt_distinct_on_column_and_unnested_column """SELECT DISTINCT id, UNNEST(scores) as score FROM ${tb_name1} ORDER BY id, score;"""
+    qt_distinct_on_column_and_unnested_column """SELECT DISTINCT id, s.score FROM ${tb_name1}, UNNEST(scores) as s(score) ORDER BY id, score;"""
 
     // Test DISTINCT on an unnested bitmap.
-    qt_distinct_on_unnested_bitmap """SELECT DISTINCT UNNEST(bitmap_from_string('1,1,2')) AS v ORDER BY v;"""
+    qt_distinct_on_unnested_bitmap """SELECT DISTINCT s.v FROM UNNEST(bitmap_from_string('1,1,2')) AS s(v) ORDER BY v;"""
 
     // subquery
     // Test filtering and grouping on a table unnested in the FROM clause.
@@ -189,7 +187,7 @@ suite("unnest_select_list_test", "unnest") {
             view_table.score_val, 
             COUNT(*) 
         FROM ${tb_name1}
-        CROSS JOIN LATERAL UNNEST(scores) WITH ORDINALITY AS view_table(pos, score_val)
+        CROSS JOIN LATERAL UNNEST(scores) WITH ORDINALITY AS view_table(score_val, pos)
         WHERE view_table.pos > 1 
         GROUP BY view_table.score_val
         ORDER BY view_table.score_val;"""
@@ -198,7 +196,7 @@ suite("unnest_select_list_test", "unnest") {
     qt_scalar_subquery_with_unnest """
         SELECT 
             id, 
-            (SELECT SUM(v) FROM (SELECT UNNEST(scores) AS v from ${tb_name1}) t) as total_score
+            (SELECT SUM(v) FROM (SELECT s.v FROM ${tb_name1}, UNNEST(scores) AS s(v)) t) as total_score
         FROM ${tb_name1}
         ORDER BY id;"""
 

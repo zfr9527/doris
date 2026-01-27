@@ -26,20 +26,15 @@ suite("unnest_array_border_test", "unnest") {
     sql """CREATE TABLE ${tb_name1} (
             id INT,
             name VARCHAR(20),
-            scores ARRAY<INT>
-        ) 
-        DUPLICATE KEY(id)
-        DISTRIBUTED BY HASH(id) BUCKETS 1
-        PROPERTIES (
-            "replication_num" = "1"
-        );"""
+            scores INT[]
+                );"""
 
     sql """INSERT INTO ${tb_name1} VALUES 
-            (1, 'Alice', [90, 85, 88]),
-            (2, 'Bob', [70, 80]),
-            (3, 'Charlie', []),
+            (1, 'Alice', ARRAY[90, 85, 88]),
+            (2, 'Bob', ARRAY[70, 80]),
+            (3, 'Charlie', ARRAY[]::integer[]),
             (3, 'ddd', null),
-            (3, 'ddd', [null]);
+            (3, 'ddd', ARRAY[null]);
             -- (3, 'ddd', [[null], [1, 2, 3]]),
             -- (3, 'ddd', ["aa", 11]);"""
 
@@ -52,14 +47,13 @@ suite("unnest_array_border_test", "unnest") {
     sql """
         CREATE TABLE ${tb_name2} (
             id INT,
-            jsons_str ARRAY<STRING>
-        ) DUPLICATE KEY(id)
-        DISTRIBUTED BY HASH(id) BUCKETS 1
-        PROPERTIES("replication_num" = "1");"""
+            jsons_str VARCHAR[]
+        ) 
+        ;"""
 
     sql """
         INSERT INTO ${tb_name2} VALUES 
-        (1, ['{"name": "A", "val": 1}', '{"name": "B", "val": 2}']);"""
+        (1, ARRAY['{"name": "A", "val": 1}', '{"name": "B", "val": 2}']);"""
 
     // Test unnesting an array of JSON objects.
     qt_unnest_json_array """
@@ -68,7 +62,7 @@ suite("unnest_array_border_test", "unnest") {
             obj,
             idx
         FROM (
-            SELECT id, CAST(jsons_str AS ARRAY<JSONB>) as jsons_jsonb
+            SELECT id, CAST(jsons_str AS JSONB[]) as jsons_jsonb
             FROM ${tb_name2}
         ) t,
         UNNEST(jsons_jsonb) WITH ORDINALITY AS v(obj, idx)
@@ -103,15 +97,15 @@ suite("unnest_array_border_test", "unnest") {
             current_map['category'] AS category_val
         FROM (
             SELECT 101 AS user_id, 
-                   ARRAY(
-                        MAP('category', 'electronics', 'rank', 'A'),
-                       MAP('category', 'books', 'rank', 'B')
-                   ) AS map_arr
+                   ARRAY[
+                        '{"category": "electronics", "rank": "A"}'::jsonb,
+                       '{"category": "books", "rank": "B"}'::jsonb
+                   ] AS map_arr
             UNION ALL
             SELECT 102 AS user_id, 
-                   ARRAY(
-                       MAP('category', 'home', 'status', 'active')
-                   ) AS map_arr
+                   ARRAY[
+                       '{"category": "home", "status": "active"}'::jsonb
+                   ] AS map_arr
         ) t,
         UNNEST(map_arr) WITH ORDINALITY AS v(idx, current_map)
         ORDER BY user_id, idx, category_val;
@@ -186,7 +180,7 @@ suite("unnest_array_border_test", "unnest") {
                 1 AS id,
                 ARRAY(1, 2, 3) AS arr_int,
                 ARRAY(CAST(10.5 AS DECIMAL(10,2)), CAST(20.0 AS DECIMAL(10,2))) AS arr_decimal,
-                (select CAST(jsons_str AS ARRAY<JSONB>) as jsons_jsonb FROM ${tb_name2}) as arr_json
+                (select CAST(jsons_str AS JSONB[]) as jsons_jsonb FROM ${tb_name2}) as arr_json
         ) t,
         UNNEST(arr_int, arr_decimal, arr_json) WITH ORDINALITY AS v(val_int, val_decimal, val_json, idx)
         ORDER BY id, idx, val_int, val_decimal;"""

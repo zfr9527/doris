@@ -27,24 +27,22 @@ suite("unnest_from_list_test", "unnest") {
         CREATE TABLE IF NOT EXISTS ${tb_name1} (
             user_id INT,
             user_name VARCHAR(50),
-            tags ARRAY<STRING>,           
-            tags_2 ARRAY<array<STRING>>,  
+            tags VARCHAR[],           
+            tags_2 VARCHAR[][],  
             login_days BITMAP,           
-            ext_info MAP<STRING, STRING>,
+            ext_info JSONB,
             u_id INT,
             u_name VARCHAR(50),
-            user_tags ARRAY<STRING>,
-            user_tags_2 ARRAY<STRING>
+            user_tags VARCHAR[],
+            user_tags_2 VARCHAR[]
         ) 
-        DUPLICATE KEY(user_id)
-        DISTRIBUTED BY HASH(user_id) BUCKETS 1
-        PROPERTIES ("replication_num" = "1");"""
+        ;"""
 
     sql """
         INSERT INTO ${tb_name1} VALUES
-        (1, 'Alice', ['tech', 'music'], [['tech', 'music'], ['tech', 'music']], to_bitmap(1), {'source': 'web', 'level': 'gold'}, 1, 'Alice', ['Java', 'SQL', 'str3'], ['Java', 'SQL']),
-        (2, 'Bob', ['sport'], [['sport'], ['sport']], bitmap_from_string('1,2'), {'source': 'app'}, 1, 'Alice', ['Java', 'SQL', 'str3'], ['Java', 'SQL']),
-        (3, 'Charlie', [], [[]], bitmap_empty(), {}, 1, 'Alice', ['Java', 'SQL', 'str3'], ['Java', 'SQL']);"""
+        (1, 'Alice', ARRAY['tech', 'music'], ARRAY[ARRAY['tech', 'music'], ARRAY['tech', 'music']], to_bitmap(1), '{"source": "web", "level": "gold"}'::jsonb, 1, 'Alice', ARRAY['Java', 'SQL', 'str3'], ARRAY['Java', 'SQL']),
+        (2, 'Bob', ARRAY['sport'], ARRAY[ARRAY['sport'], ARRAY['sport']], bitmap_from_string('1,2'), '{"source": "app"}'::jsonb, 1, 'Alice', ARRAY['Java', 'SQL', 'str3'], ARRAY['Java', 'SQL']),
+        (3, 'Charlie', ARRAY[]::varchar[], ARRAY[ARRAY[]::varchar[]], bitmap_empty(), '{}'::jsonb, 1, 'Alice', ARRAY['Java', 'SQL', 'str3'], ARRAY['Java', 'SQL']);"""
 
     sql """drop table if exists ${tb_name2}"""
     sql """
@@ -53,16 +51,15 @@ suite("unnest_from_list_test", "unnest") {
             tag_group VARCHAR(50),
             d_id INT,
             dept_name VARCHAR(50),
-            dept_tags ARRAY<STRING>,
-            dept_tags_2 ARRAY<STRING>
+            dept_tags VARCHAR[],
+            dept_tags_2 VARCHAR[]
         ) 
-        DISTRIBUTED BY HASH(tag_name) BUCKETS 1
-        PROPERTIES ("replication_num" = "1");"""
+        ;"""
 
     sql """INSERT INTO ${tb_name2} VALUES 
-            ('tech', 'Work', 1, 'R&D', ['Microservice', 'Docker'], ['Microservice', 'Docker']), 
-            ('music', 'Life', 1, 'R&D', ['Microservice', 'Docker'], ['Microservice', 'Docker']), 
-            ('sport', 'Life', 1, 'R&D', ['Microservice', 'Docker'], ['Microservice', 'Docker']);"""
+            ('tech', 'Work', 1, 'R&D', ARRAY['Microservice', 'Docker'], ARRAY['Microservice', 'Docker']), 
+            ('music', 'Life', 1, 'R&D', ARRAY['Microservice', 'Docker'], ARRAY['Microservice', 'Docker']), 
+            ('sport', 'Life', 1, 'R&D', ARRAY['Microservice', 'Docker'], ARRAY['Microservice', 'Docker']);"""
 
     // Test an implicit CROSS JOIN with UNNEST on an array column.
     qt_implicit_cross_join_unnest_array """SELECT u.user_name, t.tag, t.pos FROM ${tb_name1} u, UNNEST(u.tags) WITH ORDINALITY AS t(tag, pos) ORDER BY u.user_name, t.pos;"""
@@ -92,11 +89,11 @@ suite("unnest_from_list_test", "unnest") {
         SELECT 
             u.user_name, 
             t.tag, 
-            m.info_item
+            m.value
         FROM ${tb_name1} u, 
              UNNEST(u.tags) AS t(tag), 
-             UNNEST(u.ext_info) AS m(info_item)
-        ORDER BY u.user_name, t.tag, m.info_item;"""
+             jsonb_each_text(u.ext_info) AS m(key, value)
+        ORDER BY u.user_name, t.tag, m.value;"""
 
     // subquery
     // Test using UNNEST within a subquery.
@@ -173,11 +170,9 @@ suite("unnest_from_list_test", "unnest") {
             case_id INT,
             case_desc VARCHAR(100),
             big_bitmap BITMAP,
-            long_array ARRAY<STRING>
+            long_array VARCHAR[]
         ) 
-        DUPLICATE KEY(case_id)
-        DISTRIBUTED BY HASH(case_id) BUCKETS 1
-        PROPERTIES ("replication_num" = "1");"""
+        ;"""
 
     sql """
         INSERT INTO ${tb_name3}
@@ -185,10 +180,10 @@ suite("unnest_from_list_test", "unnest") {
             1, 
             '1M_ID_Bitmap', 
             BITMAP_UNION(to_bitmap(number)),
-            []
-        FROM numbers("number" = "1000000");"""
+            ARRAY[]::varchar[]
+        FROM generate_series(1, 1000000) as s(number);"""
 
-    sql """INSERT INTO ${tb_name3} SELECT 2, 'Long_Array_Pushdown', to_bitmap(1), collect_list(CONCAT('tag_', number)) FROM numbers("number" = "1000");"""
+    sql """INSERT INTO ${tb_name3} SELECT 2, 'Long_Array_Pushdown', to_bitmap(1), array_agg(CONCAT('tag_', number)) FROM generate_series(1, 1000) as s(number);"""
 
     sql """
         INSERT INTO ${tb_name3}
@@ -196,8 +191,8 @@ suite("unnest_from_list_test", "unnest") {
             3, 
             'Search_Target', 
             to_bitmap(1), 
-            array_union(collect_list(CONCAT('val_', number)), ['tech'])
-        FROM numbers("number" = "500");"""
+            array_agg(CONCAT('val_', number)) || ARRAY['tech']
+        FROM generate_series(1, 500) as s(number);"""
 
     // Stress test UNNEST on a large bitmap and perform a COUNT aggregation.
     qt_stress_test_unnest_large_bitmap """

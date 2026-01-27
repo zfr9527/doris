@@ -26,20 +26,18 @@ suite("unnest_group_by_list_test", "unnest") {
         CREATE TABLE IF NOT EXISTS ${tb_name1} (
             user_id INT,
             dept_name VARCHAR(20),
-            tags ARRAY<STRING>,        
+            tags VARCHAR[],        
             scores BITMAP,             
-            kv_data MAP<STRING, STRING>
+            kv_data JSONB
         ) 
-        DUPLICATE KEY(user_id)
-        DISTRIBUTED BY HASH(user_id) BUCKETS 1
-        PROPERTIES ("replication_num" = "1");"""
+        ;"""
 
     sql """
         INSERT INTO ${tb_name1} VALUES
-        (1, 'Sales', ['high', 'potential'], bitmap_from_string("80, 90"), {'level': 'A'}),
-        (2, 'Sales', ['potential', 'new'], bitmap_from_string("70, 80"), {'level': 'B'}),
-        (3, 'Tech', ['high', 'expert'], bitmap_from_string("90, 95"), {'level': 'A'}),
-        (4, 'Tech', ['expert'], bitmap_from_string("95"), {'level': 'A'});"""
+        (1, 'Sales', ARRAY['high', 'potential'], bitmap_from_string("80, 90"), '{"level": "A"}'::jsonb),
+        (2, 'Sales', ARRAY['potential', 'new'], bitmap_from_string("70, 80"), '{"level": "B"}'::jsonb),
+        (3, 'Tech', ARRAY['high', 'expert'], bitmap_from_string("90, 95"), '{"level": "A"}'::jsonb),
+        (4, 'Tech', ARRAY['expert'], bitmap_from_string("95"), '{"level": "A"}'::jsonb);"""
 
     // array
     // Test grouping by an unnested array column and counting the occurrences of each element.
@@ -51,7 +49,7 @@ suite("unnest_group_by_list_test", "unnest") {
 
     // map
     // Test grouping by the values of an unnested map and counting their occurrences.
-    qt_group_by_unnested_map """SELECT m.item, COUNT(*) FROM ${tb_name1}, UNNEST(kv_data) AS m(item) GROUP BY m.item ORDER BY m.item;"""
+    qt_group_by_unnested_map """SELECT m.value, COUNT(*) FROM ${tb_name1}, jsonb_each_text(kv_data) AS m(key, value) GROUP BY m.value ORDER BY m.value;"""
 
     // Test grouping by both a regular column and an unnested column.
     qt_group_by_column_and_unnested_column """
@@ -85,7 +83,7 @@ suite("unnest_group_by_list_test", "unnest") {
         ORDER BY dept_name, t.tag;"""
 
     // Test grouping by a regular column and an UNNEST function call directly.
-    qt_group_by_unnest_function """SELECT dept_name FROM ${tb_name1} GROUP BY dept_name, UNNEST(tags) ORDER BY dept_name;"""
+    qt_group_by_unnest_function """SELECT dept_name FROM ${tb_name1}, UNNEST(tags) as t(tag) GROUP BY dept_name, t.tag ORDER BY dept_name;"""
 
     test {
         // Test that using an aggregate function on an UNNEST result in the SELECT list and grouping by it is invalid.
@@ -99,18 +97,16 @@ suite("unnest_group_by_list_test", "unnest") {
             user_id INT,
             dept_name VARCHAR(20),
             position VARCHAR(20),
-            skills ARRAY<STRING> 
+            skills VARCHAR[] 
         ) 
-        DUPLICATE KEY(user_id)
-        DISTRIBUTED BY HASH(user_id) BUCKETS 1
-        PROPERTIES ("replication_num" = "1");"""
+        ;"""
 
     sql """
         INSERT INTO ${tb_name2} VALUES
-        (1, 'R&D', 'Manager', ['Java', 'Go']),
-        (2, 'R&D', 'Dev', ['Java', 'SQL']),
-        (3, 'Sales', 'Manager', ['SQL']),
-        (4, 'Sales', 'Trainee', ['Excel', 'SQL']);"""
+        (1, 'R&D', 'Manager', ARRAY['Java', 'Go']),
+        (2, 'R&D', 'Dev', ARRAY['Java', 'SQL']),
+        (3, 'Sales', 'Manager', ARRAY['SQL']),
+        (4, 'Sales', 'Trainee', ARRAY['Excel', 'SQL']);"""
 
     // rollup
     // Test GROUP BY ROLLUP with a column and an unnested column from a CROSS JOIN.

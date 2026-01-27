@@ -30,22 +30,20 @@ suite("unnest_join_list_test", "unnest") {
         CREATE TABLE IF NOT EXISTS ${tb_name1} (
             u_id INT,
             u_name VARCHAR(50),
-            u_tags ARRAY<STRING>,        
+            u_tags VARCHAR[],        
             u_logins BITMAP,             
-            u_ext MAP<STRING, STRING>   
+            u_ext JSONB   
         ) 
-        DUPLICATE KEY(u_id)
-        DISTRIBUTED BY HASH(u_id) BUCKETS 1
-        PROPERTIES ("replication_num" = "1");"""
+        ;"""
 
     sql """
         INSERT INTO ${tb_name1} VALUES
-        (1, 'Alice', ['work', 'gym'], bitmap_from_string("101, 102"), {'city': 'shanghai'}),
-        (2, 'Bob', ['game'], bitmap_empty(), {'city': 'beijing'}),
-        (3, 'Charlie', [], to_bitmap(103), {}),
-        (101, 'Alice', ['work', 'gym'], bitmap_from_string("101, 102"), {'city': 'shanghai'}),
-        (102, 'Bob', ['game'], bitmap_empty(), {'city': 'beijing'}),
-        (103, 'Charlie', [], to_bitmap(103), {});"""
+        (1, 'Alice', ARRAY['work', 'gym'], bitmap_from_string("101, 102"), '{"city": "shanghai"}'::jsonb),
+        (2, 'Bob', ARRAY['game'], bitmap_empty(), '{"city": "beijing"}'::jsonb),
+        (3, 'Charlie', ARRAY[]::varchar[], to_bitmap(103), '{}'::jsonb),
+        (101, 'Alice', ARRAY['work', 'gym'], bitmap_from_string("101, 102"), '{"city": "shanghai"}'::jsonb),
+        (102, 'Bob', ARRAY['game'], bitmap_empty(), '{"city": "beijing"}'::jsonb),
+        (103, 'Charlie', ARRAY[]::varchar[], to_bitmap(103), '{}'::jsonb);"""
 
     sql """drop table if exists ${tb_name2}"""
     sql """
@@ -53,8 +51,7 @@ suite("unnest_join_list_test", "unnest") {
             tag_name VARCHAR(50),
             tag_group VARCHAR(20)
         ) 
-        DISTRIBUTED BY HASH(tag_name) BUCKETS 1
-        PROPERTIES ("replication_num" = "1");"""
+        ;"""
 
     sql """INSERT INTO ${tb_name2} VALUES ('work', 'Business'), ('gym', 'Health'), ('game', 'Entertain');"""
 
@@ -65,8 +62,7 @@ suite("unnest_join_list_test", "unnest") {
             manager_name VARCHAR(50),
             office_location VARCHAR(50)
         ) 
-        DISTRIBUTED BY HASH(category_name) BUCKETS 1
-        PROPERTIES ("replication_num" = "1");"""
+        ;"""
 
     sql """
         INSERT INTO ${tb_name3} VALUES 
@@ -76,15 +72,15 @@ suite("unnest_join_list_test", "unnest") {
 
     // lateral join
     // Test a lateral join using `JOIN UNNEST` with an ON true condition.
-    qt_lateral_join_unnest """SELECT u.u_name, t.tag, t.pos FROM ${tb_name1} u JOIN UNNEST(u.u_tags) WITH ORDINALITY AS t(pos, tag) ON true ORDER BY u.u_name, t.pos;"""
+    qt_lateral_join_unnest """SELECT u.u_name, t.tag, t.pos FROM ${tb_name1} u JOIN UNNEST(u.u_tags) WITH ORDINALITY AS t(tag, pos) ON true ORDER BY u.u_name, t.pos;"""
 
     // on filter
     // Test a lateral join with a filter on the unnested table in the ON clause.
-    qt_lateral_join_unnest_with_on_filter """SELECT u.u_name, t.tag FROM ${tb_name1} u JOIN UNNEST(u.u_tags) WITH ORDINALITY AS t(pos, tag) ON t.pos = 1 ORDER BY u.u_name, t.tag;"""
+    qt_lateral_join_unnest_with_on_filter """SELECT u.u_name, t.tag FROM ${tb_name1} u JOIN UNNEST(u.u_tags) WITH ORDINALITY AS t(tag, pos) ON t.pos = 1 ORDER BY u.u_name, t.tag;"""
 
     // more table join
     // Test a chain of joins following an UNNEST operation.
-    qt_chain_join_after_unnest """SELECT u.u_name, t.tag, d.tag_group FROM ${tb_name1} u JOIN UNNEST(u.u_tags) WITH ORDINALITY AS t(pos, tag) ON true JOIN ${tb_name2} d ON t.tag = d.tag_name ORDER BY u.u_name, t.tag, d.tag_group;"""
+    qt_chain_join_after_unnest """SELECT u.u_name, t.tag, d.tag_group FROM ${tb_name1} u JOIN UNNEST(u.u_tags) WITH ORDINALITY AS t(tag, pos) ON true JOIN ${tb_name2} d ON t.tag = d.tag_name ORDER BY u.u_name, t.tag, d.tag_group;"""
 
     // bitmap
     // Test unnesting a bitmap and then joining the results back to the same table.
@@ -108,16 +104,16 @@ suite("unnest_join_list_test", "unnest") {
     // map
     // Test joining with an unnested map and applying a filter in the ON clause.
     qt_join_unnest_map_with_filter """
-        SELECT u.u_name, m.entry
+        SELECT u.u_name, m.value
         FROM ${tb_name1} u 
-        JOIN UNNEST(u.u_ext) AS m(entry) ON m.entry LIKE '%city%'
-        ORDER BY u.u_name, m.entry;"""
+        JOIN jsonb_each_text(u.u_ext) AS m(key, value) ON m.value LIKE '%city%'
+        ORDER BY u.u_name, m.value;"""
 
     // left join
     // Test a LEFT JOIN with UNNEST, preserving left-side rows for empty arrays.
     qt_left_join_unnest_array """
         SELECT u.u_name, t.tag, t.pos
-        FROM ${tb_name1} u 
+        FROM ${tb_name1} u
         LEFT JOIN UNNEST(u.u_tags) WITH ORDINALITY AS t(tag, pos) ON true
         ORDER BY u.u_name, t.pos;"""
 
@@ -134,7 +130,7 @@ suite("unnest_join_list_test", "unnest") {
     qt_join_unnest_with_complex_on_condition """
         SELECT u.u_name, t.tag, t.pos
         FROM ${tb_name1} u 
-        JOIN UNNEST(u.u_tags) WITH ORDINALITY AS t(pos, tag) ON t.pos > 0
+        JOIN UNNEST(u.u_tags) WITH ORDINALITY AS t(tag, pos) ON t.pos > 0
         ORDER BY u.u_name, t.pos;"""
 
     // Standard chain type Join (Inner Join)
@@ -146,7 +142,7 @@ suite("unnest_join_list_test", "unnest") {
             d.tag_group, 
             m.manager_name
         FROM ${tb_name1} u
-        JOIN UNNEST(u.u_tags) WITH ORDINALITY AS t(pos, tag) ON t.pos <= 2
+        JOIN UNNEST(u.u_tags) WITH ORDINALITY AS t(tag, pos) ON t.pos <= 2
         JOIN ${tb_name2} d ON t.tag = d.tag_name
         JOIN ${tb_name3} m ON d.tag_group = m.category_name
         ORDER BY u.u_name, t.tag, d.tag_group, m.manager_name;"""
@@ -173,7 +169,7 @@ suite("unnest_join_list_test", "unnest") {
             t.tag, 
             m.manager_name
         FROM ${tb_name1} u
-        JOIN UNNEST(u.u_tags) WITH ORDINALITY AS t(pos, tag) ON true
+        JOIN UNNEST(u.u_tags) WITH ORDINALITY AS t(tag, pos) ON true
         JOIN ${tb_name2} d ON t.tag = d.tag_name
         JOIN ${tb_name3} m ON d.tag_group = m.category_name AND t.pos = 1
         ORDER BY u.u_name, t.tag, m.manager_name;"""
@@ -197,27 +193,27 @@ suite("unnest_join_list_test", "unnest") {
         CREATE TABLE IF NOT EXISTS ${tb_name4} (
             u_id INT,
             u_name VARCHAR(50),
-            base_tags ARRAY<STRING>,
-            ext_tags ARRAY<STRING>
-        ) DUPLICATE KEY(u_id) DISTRIBUTED BY HASH(u_id) BUCKETS 1 PROPERTIES("replication_num" = "1");"""
+            base_tags VARCHAR[],
+            ext_tags VARCHAR[]
+        ) ;"""
 
     sql """drop table if exists ${tb_name5}"""
     sql """
         CREATE TABLE IF NOT EXISTS ${tb_name5} (
             d_id INT,
             d_name VARCHAR(50),
-            dept_tags ARRAY<STRING>
-        ) DUPLICATE KEY(d_id) DISTRIBUTED BY HASH(d_id) BUCKETS 1 PROPERTIES("replication_num" = "1");"""
+            dept_tags VARCHAR[]
+        ) ;"""
 
     sql """drop table if exists ${tb_name6}"""
     sql """
         CREATE TABLE IF NOT EXISTS ${tb_name6} (
             t_name VARCHAR(50),
             t_level INT
-        ) DISTRIBUTED BY HASH(t_name) BUCKETS 1 PROPERTIES("replication_num" = "1");"""
+        ) ;"""
 
-    sql """INSERT INTO ${tb_name4} VALUES (1, 'Alice', ['tech', 'db'], ['p1', 'p2']);"""
-    sql """INSERT INTO ${tb_name5} VALUES (1, 'R&D', ['infra', 'cloud']);"""
+    sql """INSERT INTO ${tb_name4} VALUES (1, 'Alice', ARRAY['tech', 'db'], ARRAY['p1', 'p2']);"""
+    sql """INSERT INTO ${tb_name5} VALUES (1, 'R&D', ARRAY['infra', 'cloud']);"""
     sql """INSERT INTO ${tb_name6} VALUES ('tech', 1), ('db', 2), ('p1', 1);"""
 
     // Join type restrictions (lateral association dependency)
@@ -249,7 +245,7 @@ suite("unnest_join_list_test", "unnest") {
     qt_chain_join_after_filtered_unnest """
         SELECT u.u_name, t.tag, d.d_name, td.t_level
         FROM ${tb_name4} u
-        JOIN UNNEST(u.base_tags) WITH ORDINALITY AS t(pos, tag) ON t.pos = 1
+        JOIN UNNEST(u.base_tags) WITH ORDINALITY AS t(tag, pos) ON t.pos = 1
         JOIN ${tb_name5} d ON u.u_id = d.d_id
         JOIN ${tb_name6} td ON t.tag = td.t_name
         ORDER BY u.u_name, t.tag, d.d_name, td.t_level;"""

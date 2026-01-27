@@ -25,17 +25,15 @@ suite("unnest_limit_list_test", "unnest") {
         CREATE TABLE IF NOT EXISTS ${tb_name1} (
             u_id INT,
             u_name VARCHAR(20),
-            count_array ARRAY<INT> 
+            count_array INT[] 
         ) 
-        DUPLICATE KEY(u_id)
-        DISTRIBUTED BY HASH(u_id) BUCKETS 1
-        PROPERTIES ("replication_num" = "1");"""
+        ;"""
 
-    sql """INSERT INTO ${tb_name1} VALUES (1, 'Alice', [1, 5, 10]);"""
+    sql """INSERT INTO ${tb_name1} VALUES (1, 'Alice', ARRAY[1, 5, 10]);"""
 
     test {
         // Test that using UNNEST on a constant array directly in a LIMIT clause is invalid.
-        sql """SELECT * FROM ${tb_name1} LIMIT UNNEST([1, 2]);"""
+        sql """SELECT * FROM ${tb_name1} LIMIT UNNEST(ARRAY[1, 2]);"""
         exception "mismatched input"
     }
 
@@ -47,7 +45,7 @@ suite("unnest_limit_list_test", "unnest") {
 
     test {
         // Test that using a subquery containing UNNEST within the LIMIT clause is invalid.
-        sql """SELECT * FROM ${tb_name1} LIMIT (SELECT val FROM UNNEST([5]) AS t(val));"""
+        sql """SELECT * FROM ${tb_name1} LIMIT (SELECT val FROM UNNEST(ARRAY[5]) AS t(val));"""
         exception "mismatched input"
     }
 
