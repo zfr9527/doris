@@ -17,7 +17,7 @@
 
 import org.codehaus.groovy.runtime.IOGroovyMethods
 
-suite ("rec_cte") {
+suite ("rec_cte", "rec_cte") {
     qt_sql """
     WITH RECURSIVE test_table AS (
     SELECT

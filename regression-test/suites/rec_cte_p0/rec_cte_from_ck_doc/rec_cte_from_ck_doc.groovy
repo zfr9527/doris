@@ -18,7 +18,7 @@
 import org.codehaus.groovy.runtime.IOGroovyMethods
 
 // https://clickhouse.com/docs/sql-reference/statements/select/with
-suite ("rec_cte_from_ck_doc") {
+suite ("rec_cte_from_ck_doc", "rec_cte") {
     qt_q1 """
     WITH RECURSIVE test_table AS (
         SELECT cast(1 as int) AS number

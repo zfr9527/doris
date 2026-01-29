@@ -18,7 +18,7 @@
 import org.codehaus.groovy.runtime.IOGroovyMethods
 
 // https://duckdb.org/docs/stable/sql/query_syntax/with#recursive-ctes
-suite ("rec_cte_from_duckdb_doc") {
+suite ("rec_cte_from_duckdb_doc", "rec_cte") {
     qt_q1 """
     WITH RECURSIVE FibonacciNumbers (
         RecursionDepth,

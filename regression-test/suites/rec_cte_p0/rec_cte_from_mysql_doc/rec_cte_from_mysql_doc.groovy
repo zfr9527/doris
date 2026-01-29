@@ -18,7 +18,7 @@
 import org.codehaus.groovy.runtime.IOGroovyMethods
 
 // https://dev.mysql.com/doc/refman/8.4/en/with.html#common-table-expressions-recursive
-suite ("rec_cte_from_mysql_doc") {
+suite ("rec_cte_from_mysql_doc", "rec_cte") {
     qt_q1 """
     WITH RECURSIVE cte AS
     (
