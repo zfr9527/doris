@@ -28,9 +28,9 @@ suite("decompose_repeat_test") {
         sql "set disable_nereids_rules='';"
         def rewrite_explain_res = sql "explain shape plan" + stmt
         if (res) {
-            assertEquals(no_rewrite_explain_res.toString(), rewrite_explain_res.toString())
-        } else {
             assertNotEquals(no_rewrite_explain_res.toString(), rewrite_explain_res.toString())
+        } else {
+            assertEquals(no_rewrite_explain_res.toString(), rewrite_explain_res.toString())
         }
 
     }
