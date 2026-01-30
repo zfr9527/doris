@@ -11,14 +11,6 @@ suite("decompose_repeat_test") {
         def rewrite_res = sql stmt
         logger.info("rewrite_res: " + rewrite_res)
         assertEquals(no_rewrite_res.toString(), rewrite_res.toString())
-
-//        assertTrue((rewrite_res == [] && no_rewrite_res == []) || (rewrite_res.size() == no_rewrite_res.size()))
-//        for (int row = 0; row < rewrite_res.size(); row++) {
-//            assertTrue(rewrite_res[row].size() == no_rewrite_res[row].size())
-//            for (int col = 0; col < rewrite_res[row].size(); col++) {
-//                assertTrue(rewrite_res[row][col] == no_rewrite_res[row][col])
-//            }
-//        }
     }
 
     def judge_explain = { def stmt, def res ->
@@ -116,7 +108,7 @@ suite("decompose_repeat_test") {
                 GROUP BY ROLLUP(a, b, c, d, e)
             )
             SELECT * FROM cte1 JOIN ${tb_name} t2 ON cte1.a = t2.a WHERE cte1.sum_f > 0
-            ORDER BY cte1.a, cte1.b, cte1.c, cte1.d, cte1.e, cte1.sum_f, t2.b, t2.c, t2.d, t2.e, t2.f, t2.g;"""
+            ORDER BY 1,2,3,4,5,6,7,8,9,10,11,12,13;"""
     judge_explain(sql_str, true)
     compare_res(sql_str)
 
@@ -129,10 +121,10 @@ suite("decompose_repeat_test") {
                 JOIN ${tb_name} t2 ON t1.a = t2.b
                 WHERE t1.f > 0
             )
-            SELECT a, b, c, d, e, SUM(f)
+            SELECT a, b, c, d, e, SUM(f) as g1
             FROM complex_source
             GROUP BY ROLLUP(a, b, c, d, e)
-            ORDER BY a, b, c, d, e;"""
+            ORDER BY a, b, c, d, e, g1;"""
     judge_explain(sql_str, true)
     compare_res(sql_str)
 
@@ -234,21 +226,21 @@ suite("decompose_repeat_test") {
 
     sql_str =  """-- 场景：数据中本身有 NULL，且触发 CUBE 改写
             -- 验证：改写后的 Union All 逻辑是否会因为 Null 导致结果集膨胀或丢失
-            SELECT a, b, c, d, e, SUM(f)
+            SELECT a, b, c, d, e, SUM(f) as g1
             FROM ${tb_name} 
             WHERE a IS NULL 
             GROUP BY CUBE(a, b, c, d, e)
-            ORDER BY a, b, c, d, e;"""
+            ORDER BY a, b, c, d, e, g1;"""
     judge_explain(sql_str, true)
     compare_res(sql_str)
 
 
     sql_str =  """-- 场景：在一个 SQL 中同时写 SUM（支持）和 AVG（不支持）
             -- 预期：由于包含 AVG，整个 Repeat 算子不应触发改写
-            SELECT a, b, c, d, e, SUM(f), AVG(f)
+            SELECT a, b, c, d, e, SUM(f) as g1, AVG(f) as g2
             FROM ${tb_name}
             GROUP BY ROLLUP(a, b, c, d, e)
-            ORDER BY a, b, c, d, e;"""
+            ORDER BY a, b, c, d, e, g1, g2;"""
     judge_explain(sql_str, false)
     compare_res(sql_str)
 
@@ -281,14 +273,14 @@ suite("decompose_repeat_test") {
 
     sql_str =  """-- 场景：存在两个较大的分组组合，但它们互不包含，且没有全集
             -- 验证：优化器是否会尝试拆分（通常该规则要求必须有一个唯一的最高层级聚合作为入口）
-            SELECT a, b, c, d, e, SUM(f)
+            SELECT a, b, c, d, e, SUM(f) as g1
             FROM ${tb_name}
             GROUP BY GROUPING SETS (
                 (a, b, c, d),  -- 缺少 e
                 (b, c, d, e),  -- 缺少 a
                 (a, e)
             )
-            ORDER BY a, b, c, d, e;"""
+            ORDER BY a, b, c, d, e, g1;"""
     judge_explain(sql_str, false)
     compare_res(sql_str)
 
@@ -296,22 +288,22 @@ suite("decompose_repeat_test") {
             -- 预期：验证在规则未触发时，Doris 原生的聚合逻辑是否正确
             SELECT a, b, c, d, e, 
                    GROUPING_ID(a, b, c, d, e) as gid, 
-                   SUM(f)
+                   SUM(f) as g1
             FROM ${tb_name}
             GROUP BY GROUPING SETS (
                 (a, b, c, d),
                 (e)
             )
-            ORDER BY a, b, c, d, e, gid;"""
+            ORDER BY a, b, c, d, e, gid, g1;"""
     judge_explain(sql_str, false)
     compare_res(sql_str)
 
     sql_str =  """-- 场景：有最大组 (a,b,c,d,e)，但使用了 DISTINCT（脑图明确不支持 distinct）
             -- 预期：异常拦截，不触发改写
-            SELECT a, b, c, d, e, COUNT(DISTINCT f)
+            SELECT a, b, c, d, e, COUNT(DISTINCT f) as g1
             FROM ${tb_name}
             GROUP BY ROLLUP(a, b, c, d, e)
-            ORDER BY a, b, c, d, e;"""
+            ORDER BY a, b, c, d, e, g1;"""
     judge_explain(sql_str, false)
     compare_res(sql_str)
 
