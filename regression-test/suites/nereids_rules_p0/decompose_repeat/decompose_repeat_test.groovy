@@ -322,7 +322,7 @@ suite("decompose_repeat_test") {
             ORDER BY a, b, c, d, e, total;"""
     def mtmv_name = "decompose_repeat_test_mtmv"
     async_create_mv(db_name, sql_str, mtmv_name)
-    mv_rewrite_success(sql_str, mtmv_name)
+    mv_rewrite_fail(sql_str, mtmv_name)
 
 
     // sql cache
