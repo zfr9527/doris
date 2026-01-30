@@ -68,7 +68,7 @@ suite("decompose_repeat_test") {
                    SUM(f), COUNT(f), MIN(f), MAX(f), ANY_VALUE(g)
             FROM ${tb_name} 
             GROUP BY ROLLUP(a, b, c, d, e)
-            ORDER BY a, b, c, d, e;"""
+            ORDER BY 1,2,3,4,5,6,7,8,9,10;"""
     judge_explain(sql_str, true)
     compare_res(sql_str)
 
@@ -76,7 +76,7 @@ suite("decompose_repeat_test") {
             SELECT a, b, c, d, SUM(f)
             FROM ${tb_name} 
             GROUP BY CUBE(a, b, c, d)
-            ORDER BY a, b, c, d;"""
+            ORDER BY 1,2,3,4,5;"""
     judge_explain(sql_str, true)
     compare_res(sql_str)
 
@@ -89,7 +89,7 @@ suite("decompose_repeat_test") {
                 (a, b),
                 ()
             )
-            ORDER BY a, b, c, d, e;"""
+            ORDER BY 1,2,3,4,5,6;"""
     judge_explain(sql_str, true)
     compare_res(sql_str)
 
