@@ -250,7 +250,7 @@ suite("decompose_repeat_test") {
             FROM ${tb_name}
             GROUP BY ROLLUP(a, b, c, d, e)
             ORDER BY a, b, c, d, e;"""
-    judge_explain(sql_str, true)
+    judge_explain(sql_str, false)
     compare_res(sql_str)
 
 //    sql """-- 场景：有5个维度 a,b,c,d,e，但 GROUPING SETS 中不包含 (a,b,c,d,e)
@@ -290,7 +290,7 @@ suite("decompose_repeat_test") {
                 (a, e)
             )
             ORDER BY a, b, c, d, e;"""
-    judge_explain(sql_str, true)
+    judge_explain(sql_str, false)
     compare_res(sql_str)
 
     sql_str =  """-- 场景：高维度无全集 + GROUPING_ID
@@ -304,7 +304,7 @@ suite("decompose_repeat_test") {
                 (e)
             )
             ORDER BY a, b, c, d, e, gid;"""
-    judge_explain(sql_str, true)
+    judge_explain(sql_str, false)
     compare_res(sql_str)
 
     sql_str =  """-- 场景：有最大组 (a,b,c,d,e)，但使用了 DISTINCT（脑图明确不支持 distinct）
@@ -313,7 +313,7 @@ suite("decompose_repeat_test") {
             FROM ${tb_name}
             GROUP BY ROLLUP(a, b, c, d, e)
             ORDER BY a, b, c, d, e;"""
-    judge_explain(sql_str, true)
+    judge_explain(sql_str, false)
     compare_res(sql_str)
 
 
