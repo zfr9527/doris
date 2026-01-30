@@ -29,6 +29,7 @@ suite("decompose_repeat_query_cache_test") {
         profile(tag) {
             run {
                 sql "/* ${tag} */ ${sqlStr}"
+                sleep(10 * 1000)
             }
 
             check { profileString, exception ->
