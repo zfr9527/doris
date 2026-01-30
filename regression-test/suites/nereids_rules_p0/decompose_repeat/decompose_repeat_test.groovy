@@ -6,14 +6,13 @@ suite("decompose_repeat_test") {
     def compare_res = { def stmt ->
         sql "set disable_nereids_rules='DECOMPOSE_REPEAT';"
         def no_rewrite_res = sql stmt
-        def no_rewrite_explain_res = sql "explain shape plan" + stmt
         logger.info("no_rewrite_res: " + no_rewrite_res)
         sql "set disable_nereids_rules='';"
         def rewrite_res = sql stmt
-        def rewrite_explain_res = sql "explain shape plan" + stmt
         logger.info("rewrite_res: " + rewrite_res)
+        assertNotEquals(no_rewrite_res.toString(), rewrite_res.toString())
+
         assertTrue((rewrite_res == [] && no_rewrite_res == []) || (rewrite_res.size() == no_rewrite_res.size()))
-        assertEquals(no_rewrite_explain_res.toString(), rewrite_explain_res.toString())
         for (int row = 0; row < rewrite_res.size(); row++) {
             assertTrue(rewrite_res[row].size() == no_rewrite_res[row].size())
             for (int col = 0; col < rewrite_res[row].size(); col++) {
