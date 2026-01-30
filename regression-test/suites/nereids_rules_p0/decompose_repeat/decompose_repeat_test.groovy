@@ -188,10 +188,10 @@ suite("decompose_repeat_test") {
 //            ORDER BY a_new, b, c, d, e;"""
 
     sql_str =  """-- 验证在同一个 SQL 中对同一列多次调用 GROUPING 是否正常
-            SELECT a, b, c, d, e, GROUPING(a) as g1, GROUPING(a) as g2, SUM(f)
+            SELECT a, b, c, d, e, GROUPING(a) as g1, GROUPING(a) as g2, SUM(f) as g3
             FROM ${tb_name}
             GROUP BY ROLLUP(a, b, c, d, e)
-            ORDER BY a, b, c, d, e, g1, g2;"""
+            ORDER BY a, b, c, d, e, g1, g2, g3;"""
     judge_explain(sql_str, true)
     compare_res(sql_str)
 
