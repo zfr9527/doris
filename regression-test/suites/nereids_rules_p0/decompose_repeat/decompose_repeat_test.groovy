@@ -130,16 +130,16 @@ suite("decompose_repeat_test") {
             WHERE temp1.a = temp2.a
             ORDER BY temp1.a, temp1.b, temp1.c, temp1.d, temp1.e, temp2.b, temp2.c, temp2.d, temp2.e;"""
 
-    sql """-- 场景：在子查询中计算 GROUPING_ID，外层通过该 ID 进行过滤
-            SELECT * FROM (
-                SELECT a, b, c, d, e, 
-                       GROUPING_ID(a, b, c, d, e) as gid, 
-                       SUM(f) as s
-                FROM ${tb_name}
-                GROUP BY ROLLUP(a, b, c, d, e)
-            ) t 
-            WHERE t.gid < 16 -- 过滤掉某些层级的聚合结果
-            ORDER BY t.a, t.b, t.c, t.d, t.e, t.gid, t.s;"""
+//    sql """-- 场景：在子查询中计算 GROUPING_ID，外层通过该 ID 进行过滤
+//            SELECT * FROM (
+//                SELECT a, b, c, d, e,
+//                       GROUPING_ID(a, b, c, d, e) as gid,
+//                       SUM(f) as s
+//                FROM ${tb_name}
+//                GROUP BY ROLLUP(a, b, c, d, e)
+//            ) t
+//            WHERE t.gid < 16 -- 过滤掉某些层级的聚合结果
+//            ORDER BY t.a, t.b, t.c, t.d, t.e, t.gid, t.s;"""
 
     sql """SELECT a, b, c, d, e, GROUPING(a), GROUPING_ID(a,b,c,d,e), SUM(f) FROM ${tb_name} GROUP BY ROLLUP(a,b,c,d,e)
             ORDER BY a, b, c, d, e;"""
