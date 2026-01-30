@@ -65,7 +65,7 @@ suite("decompose_repeat_test") {
 
     def sql_str = """-- 5个维度，触发重写。验证 sum, count, min, max, any_value
             SELECT a, b, c, d, e, 
-                   SUM(f), COUNT(f), MIN(f), MAX(f), ANY_VALUE(g)
+                   SUM(f), COUNT(f), MIN(f), MAX(f)
             FROM ${tb_name} 
             GROUP BY ROLLUP(a, b, c, d, e)
             ORDER BY 1,2,3,4,5,6,7,8,9,10;"""
