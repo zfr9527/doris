@@ -35,6 +35,8 @@ suite("decompose_repeat_test") {
 
     }
 
+    sql """drop table if exists ${tb_name}"""
+
     sql """CREATE TABLE ${tb_name} (
             a INT,
             b INT,
