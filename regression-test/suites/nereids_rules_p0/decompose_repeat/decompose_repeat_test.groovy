@@ -266,7 +266,7 @@ suite("decompose_repeat_test") {
 
     sql_str =  """-- 场景：有5个维度 a,b,c,d,e，但 GROUPING SETS 中不包含 (a,b,c,d,e)
             -- 预期：触发重写，
-            SELECT a, b, c, d, e, SUM(f)
+            SELECT a, b, c, d, e, SUM(f) as g1
             FROM decompose_repeat_test_table
             GROUP BY GROUPING SETS (
                 (a, b, c, d, e),
@@ -275,7 +275,7 @@ suite("decompose_repeat_test") {
                 (a, b),
                 (a)
             )
-            ORDER BY a, b, c, d, e;"""
+            ORDER BY a, b, c, d, e, g1;"""
     judge_explain(sql_str, true)
     compare_res(sql_str)
 
