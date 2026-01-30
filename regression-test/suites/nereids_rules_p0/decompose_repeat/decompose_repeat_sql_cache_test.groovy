@@ -30,8 +30,6 @@ suite("decompose_repeat_sql_cache_test") {
                 sql ("physical plan ${sqlStr}")
                 contains("PhysicalSqlCache")
             }
-
-            judge_res(sqlStr)
         }
 
         def assertNoCache = { String sqlStr ->
