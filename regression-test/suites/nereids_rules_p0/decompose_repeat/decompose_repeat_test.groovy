@@ -320,7 +320,7 @@ suite("decompose_repeat_test") {
                 SELECT * FROM rollup_cte WHERE a = 2
             ) t
             ORDER BY a, b, c, d, e, total;"""
-    def mtmv_name = ""
+    def mtmv_name = "decompose_repeat_test_mtmv"
     async_create_mv(db_name, sql_str, mtmv_name)
     mv_rewrite_success(sql_str, mtmv_name)
 
