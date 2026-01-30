@@ -141,7 +141,7 @@ suite("decompose_repeat_test") {
                 (SELECT a, b, c, d, e, SUM(f) FROM ${tb_name} GROUP BY ROLLUP(a, b, c, d, e)) temp1,
                 (SELECT a, b, c, d, e, MIN(f) FROM ${tb_name} GROUP BY CUBE(a, b, c, d, e)) temp2
             WHERE temp1.a = temp2.a
-            ORDER BY temp1.a, temp1.b, temp1.c, temp1.d, temp1.e, temp2.b, temp2.c, temp2.d, temp2.e;"""
+            ORDER BY 1,2,3,4,5,6,7,8,9,10,11,12;"""
     judge_explain(sql_str, true)
     compare_res(sql_str)
 
