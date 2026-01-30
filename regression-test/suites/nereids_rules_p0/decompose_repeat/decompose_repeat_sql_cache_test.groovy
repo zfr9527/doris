@@ -61,7 +61,28 @@ suite("decompose_repeat_sql_cache_test") {
             return null
         }
 
-        String dbName = context.config.getDbNameByFile(context.file)
+        def compare_res = { def stmt ->
+            sql "set disable_nereids_rules='DECOMPOSE_REPEAT';"
+            def no_rewrite_res = sql stmt
+            logger.info("no_rewrite_res: " + no_rewrite_res)
+            sql "set disable_nereids_rules='';"
+            def rewrite_res = sql stmt
+            logger.info("rewrite_res: " + rewrite_res)
+            assertEquals(no_rewrite_res.toString(), rewrite_res.toString())
+        }
+
+        def judge_explain = { def stmt, def res ->
+            sql "set disable_nereids_rules='DECOMPOSE_REPEAT';"
+            def no_rewrite_explain_res = sql "explain shape plan" + stmt
+            sql "set disable_nereids_rules='';"
+            def rewrite_explain_res = sql "explain shape plan" + stmt
+            if (res) {
+                assertNotEquals(no_rewrite_explain_res.toString(), rewrite_explain_res.toString())
+            } else {
+                assertEquals(no_rewrite_explain_res.toString(), rewrite_explain_res.toString())
+            }
+
+        }
 
         for (def __ in 0..3) {
             combineFutures(
@@ -122,6 +143,9 @@ suite("decompose_repeat_sql_cache_test") {
                             assertNoCache sql_str
                             retryUntilHasSqlCache sql_str
                             assertHasCache sql_str
+
+                            judge_explain(sql_str, true)
+                            compare_res(sql_str)
 
                         }
                     })
