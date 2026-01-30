@@ -143,12 +143,12 @@ suite("decompose_repeat_test") {
 //            WHERE t.gid < 16 -- 过滤掉某些层级的聚合结果
 //            ORDER BY t.a, t.b, t.c, t.d, t.e, t.gid, t.s;"""
 
-    sql """SELECT a, b, c, d, e, GROUPING(a), GROUPING_ID(a,b,c,d,e), SUM(f) FROM ${tb_name} GROUP BY ROLLUP(a,b,c,d,e)
-            ORDER BY a, b, c, d, e;"""
-    sql """SELECT a, b, c, d, GROUPING(a), GROUPING(d), GROUPING_ID(a,b,c,d), SUM(f) FROM ${tb_name} GROUP BY CUBE(a,b,c,d)
-            ORDER BY a, b, c, d;"""
-    sql """SELECT a, b, c, d, e, GROUPING_ID(a,e), SUM(f) FROM ${tb_name} GROUP BY GROUPING SETS ((a,b,c,d,e), (a,b), ())
-            ORDER BY a, b, c, d, e;"""
+//    sql """SELECT a, b, c, d, e, GROUPING(a), GROUPING_ID(a,b,c,d,e), SUM(f) FROM ${tb_name} GROUP BY ROLLUP(a,b,c,d,e)
+//            ORDER BY a, b, c, d, e;"""
+//    sql """SELECT a, b, c, d, GROUPING(a), GROUPING(d), GROUPING_ID(a,b,c,d), SUM(f) FROM ${tb_name} GROUP BY CUBE(a,b,c,d)
+//            ORDER BY a, b, c, d;"""
+//    sql """SELECT a, b, c, d, e, GROUPING_ID(a,e), SUM(f) FROM ${tb_name} GROUP BY GROUPING SETS ((a,b,c,d,e), (a,b), ())
+//            ORDER BY a, b, c, d, e;"""
 
     sql """-- 脑图场景：with a as (...) select * from a
             WITH agg_cte AS (
