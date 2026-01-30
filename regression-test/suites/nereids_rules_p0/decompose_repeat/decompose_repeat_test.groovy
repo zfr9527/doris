@@ -62,7 +62,7 @@ suite("decompose_repeat_test") {
             (1, 10, 100, 1000, 10000, 5.0, 'duplicate_row'),
             (1, 10, 100, 1000, 10000, 5.0, 'duplicate_row');"""
 
-    def str_str = """-- 5个维度，触发重写。验证 sum, count, min, max, any_value
+    sql """-- 5个维度，触发重写。验证 sum, count, min, max, any_value
             SELECT a, b, c, d, e, 
                    SUM(f), COUNT(f), MIN(f), MAX(f), ANY_VALUE(g)
             FROM ${tb_name} 
