@@ -308,14 +308,30 @@ suite("decompose_repeat_test") {
     compare_res(sql_str)
 
 
-
     // mtmv
+    sql_str = """SELECT * FROM (
+                WITH rollup_cte AS (
+                    SELECT a, b, c, d, e, SUM(f) as total
+                    FROM ${tb_name}
+                    GROUP BY ROLLUP(a, b, c, d, e)
+                )
+                SELECT * FROM rollup_cte WHERE a = 1
+                UNION ALL
+                SELECT * FROM rollup_cte WHERE a = 2
+            ) t
+            ORDER BY a, b, c, d, e, total;"""
+    def mtmv_name = ""
+    async_create_mv(db_name, sql_str, mtmv_name)
+    mv_rewrite_success(sql_str, mtmv_name)
 
 
     // sql cache
 
 
     // query cache
+
+
+    // rec_cte
 
 
 }
