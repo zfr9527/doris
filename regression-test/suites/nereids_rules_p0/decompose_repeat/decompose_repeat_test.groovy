@@ -326,6 +326,17 @@ suite("decompose_repeat_test") {
 
 
     // sql cache
+    sql_str = """WITH agg_cte AS (
+                SELECT a, b, c, d, e, 
+                       GROUPING(a) as is_a_null,
+                       GROUPING_ID(a, b, c, d, e) as gid,
+                       MAX(f) as max_f
+                FROM ${tb_name}
+                GROUP BY CUBE(a, b, c, d, e)
+            )
+            SELECT * FROM agg_cte WHERE is_a_null = 0 AND gid > 0
+            ORDER BY a, b, c, d, e, is_a_null, gid, max_f;"""
+
 
 
     // query cache
