@@ -96,7 +96,8 @@ suite("decompose_repeat_test") {
                 GROUP BY CUBE(a, b, c, d, e)
             ) t1
             JOIN ${tb_name} t2 ON t1.a = t2.a
-            WHERE t1.total > 10;"""
+            WHERE t1.total > 10
+            ORDER BY t1.total, t2.g;"""
 
 
     sql """-- 子查询中包含 ROLLUP
@@ -105,7 +106,8 @@ suite("decompose_repeat_test") {
                 FROM ${tb_name}
                 GROUP BY ROLLUP(a, b, c, d, e)
             )
-            SELECT * FROM cte1 JOIN ${tb_name} t2 ON cte1.a = t2.a WHERE cte1.sum_f > 0;"""
+            SELECT * FROM cte1 JOIN ${tb_name} t2 ON cte1.a = t2.a WHERE cte1.sum_f > 0
+            ORDER BY cte1.a, cte1.b, cte1.c, cte1.d, cte1.e, cte1.sum_f, t2.b, t2.c, t2.d, t2.e, t2.f, t2.g;"""
 
 
     sql """-- 场景：聚合的数据源本身就是多个 CTE Join 的结果
@@ -118,13 +120,15 @@ suite("decompose_repeat_test") {
             )
             SELECT a, b, c, d, e, SUM(f)
             FROM complex_source
-            GROUP BY ROLLUP(a, b, c, d, e);"""
+            GROUP BY ROLLUP(a, b, c, d, e)
+            ORDER BY a, b, c, d, e;"""
 
     sql """-- 场景：SELECT 中有两个独立的聚合子查询，且都符合改写条件
             SELECT * FROM 
                 (SELECT a, b, c, d, e, SUM(f) FROM ${tb_name} GROUP BY ROLLUP(a, b, c, d, e)) temp1,
                 (SELECT a, b, c, d, e, MIN(f) FROM ${tb_name} GROUP BY CUBE(a, b, c, d, e)) temp2
-            WHERE temp1.a = temp2.a;"""
+            WHERE temp1.a = temp2.a
+            ORDER BY temp1.a, temp1.b, temp1.c, temp1.d, temp1.e, temp2.b, temp2.c, temp2.d, temp2.e;"""
 
     sql """-- 场景：在子查询中计算 GROUPING_ID，外层通过该 ID 进行过滤
             SELECT * FROM (
@@ -134,11 +138,15 @@ suite("decompose_repeat_test") {
                 FROM ${tb_name}
                 GROUP BY ROLLUP(a, b, c, d, e)
             ) t 
-            WHERE t.gid < 16; -- 过滤掉某些层级的聚合结果"""
+            WHERE t.gid < 16 -- 过滤掉某些层级的聚合结果
+            ORDER BY t.a, t.b, t.c, t.d, t.e, t.gid, t.s;"""
 
-    sql """SELECT a, b, c, d, e, GROUPING(a), GROUPING_ID(a,b,c,d,e), SUM(f) FROM ${tb_name} GROUP BY ROLLUP(a,b,c,d,e);"""
-    sql """SELECT a, b, c, d, GROUPING(a), GROUPING(d), GROUPING_ID(a,b,c,d), SUM(f) FROM ${tb_name} GROUP BY CUBE(a,b,c,d);"""
-    sql """SELECT a, b, c, d, e, GROUPING_ID(a,e), SUM(f) FROM ${tb_name} GROUP BY GROUPING SETS ((a,b,c,d,e), (a,b), ());"""
+    sql """SELECT a, b, c, d, e, GROUPING(a), GROUPING_ID(a,b,c,d,e), SUM(f) FROM ${tb_name} GROUP BY ROLLUP(a,b,c,d,e)
+            ORDER BY a, b, c, d, e;"""
+    sql """SELECT a, b, c, d, GROUPING(a), GROUPING(d), GROUPING_ID(a,b,c,d), SUM(f) FROM ${tb_name} GROUP BY CUBE(a,b,c,d)
+            ORDER BY a, b, c, d;"""
+    sql """SELECT a, b, c, d, e, GROUPING_ID(a,e), SUM(f) FROM ${tb_name} GROUP BY GROUPING SETS ((a,b,c,d,e), (a,b), ())
+            ORDER BY a, b, c, d, e;"""
 
     sql """-- 脑图场景：with a as (...) select * from a
             WITH agg_cte AS (
@@ -149,7 +157,8 @@ suite("decompose_repeat_test") {
                 FROM ${tb_name}
                 GROUP BY CUBE(a, b, c, d, e)
             )
-            SELECT * FROM agg_cte WHERE is_a_null = 0 AND gid > 0;"""
+            SELECT * FROM agg_cte WHERE is_a_null = 0 AND gid > 0
+            ORDER BY a, b, c, d, e, is_a_null, gid, max_f;"""
 
     sql """-- 场景：维度列参与运算后进行 ROLLUP
             -- 验证：GROUPING 函数是否能正确识别表达式维度的汇总状态
@@ -158,27 +167,33 @@ suite("decompose_repeat_test") {
                    GROUPING_ID(a_new, b, c, d, e), 
                    COUNT(*)
             FROM ${tb_name}
-            GROUP BY ROLLUP(a_new, b, c, d, e);"""
+            GROUP BY ROLLUP(a_new, b, c, d, e)
+            ORDER BY a_new, b, c, d, e;"""
 
     sql """-- 验证在同一个 SQL 中对同一列多次调用 GROUPING 是否正常
             SELECT a, b, c, d, e, GROUPING(a) as g1, GROUPING(a) as g2, SUM(f)
             FROM ${tb_name}
-            GROUP BY ROLLUP(a, b, c, d, e);"""
+            GROUP BY ROLLUP(a, b, c, d, e)
+            ORDER BY a, b, c, d, e, g1, g2;"""
 
     sql """-- 验证当数据源为空表时，重写后的 GROUPING_ID 是否依然返回预期的全汇总 ID
             SELECT a, b, c, d, e, GROUPING_ID(a,b,c,d,e), SUM(f)
             FROM ${tb_name} WHERE 1=0
-            GROUP BY ROLLUP(a,b,c,d,e);"""
+            GROUP BY ROLLUP(a,b,c,d,e)
+            ORDER BY a, b, c, d, e;"""
 
     sql """-- 场景：脑图中的“一个consumer和2个consumer”
-            WITH rollup_cte AS (
-                SELECT a, b, c, d, e, SUM(f) as total
-                FROM ${tb_name}
-                GROUP BY ROLLUP(a, b, c, d, e)
-            )
-            SELECT * FROM rollup_cte WHERE a = 1
-            UNION ALL
-            SELECT * FROM rollup_cte WHERE a = 2;"""
+            SELECT * FROM (
+                WITH rollup_cte AS (
+                    SELECT a, b, c, d, e, SUM(f) as total
+                    FROM ${tb_name}
+                    GROUP BY ROLLUP(a, b, c, d, e)
+                )
+                SELECT * FROM rollup_cte WHERE a = 1
+                UNION ALL
+                SELECT * FROM rollup_cte WHERE a = 2
+            ) t
+            ORDER BY a, b, c, d, e, total;"""
 
     sql """-- 场景：将改写后的聚合结果与其自身进行 Join
             WITH agg_result AS (
@@ -190,7 +205,8 @@ suite("decompose_repeat_test") {
             SELECT r1.a, r1.s - r2.s 
             FROM agg_result r1
             JOIN agg_result r2 ON r1.a = r2.a
-            WHERE r1.b IS NOT NULL AND r2.b IS NULL;"""
+            WHERE r1.b IS NOT NULL AND r2.b IS NULL
+            ORDER BY r1.a, (r1.s - r2.s);"""
 
 
     sql """-- 场景：数据中本身有 NULL，且触发 CUBE 改写
@@ -198,14 +214,16 @@ suite("decompose_repeat_test") {
             SELECT a, b, c, d, e, SUM(f)
             FROM ${tb_name} 
             WHERE a IS NULL 
-            GROUP BY CUBE(a, b, c, d, e);"""
+            GROUP BY CUBE(a, b, c, d, e)
+            ORDER BY a, b, c, d, e;"""
 
 
     sql """-- 场景：在一个 SQL 中同时写 SUM（支持）和 AVG（不支持）
             -- 预期：由于包含 AVG，整个 Repeat 算子不应触发改写
             SELECT a, b, c, d, e, SUM(f), AVG(f)
             FROM ${tb_name}
-            GROUP BY ROLLUP(a, b, c, d, e);"""
+            GROUP BY ROLLUP(a, b, c, d, e)
+            ORDER BY a, b, c, d, e;"""
 
     sql """-- 场景：有5个维度 a,b,c,d,e，但 GROUPING SETS 中不包含 (a,b,c,d,e)
             -- 预期：不触发重写，计划中仍为传统的 LogicalRepeat
@@ -216,7 +234,8 @@ suite("decompose_repeat_test") {
                 (a, b, c),
                 (a, b),
                 (a)
-            );"""
+            )
+            ORDER BY a, b, c, d, e;"""
 
     sql """-- 场景：存在两个较大的分组组合，但它们互不包含，且没有全集
             -- 验证：优化器是否会尝试拆分（通常该规则要求必须有一个唯一的最高层级聚合作为入口）
@@ -226,7 +245,8 @@ suite("decompose_repeat_test") {
                 (a, b, c, d),  -- 缺少 e
                 (b, c, d, e),  -- 缺少 a
                 (a, e)
-            );"""
+            )
+            ORDER BY a, b, c, d, e;"""
 
     sql """-- 场景：高维度无全集 + GROUPING_ID
             -- 预期：验证在规则未触发时，Doris 原生的聚合逻辑是否正确
@@ -237,13 +257,15 @@ suite("decompose_repeat_test") {
             GROUP BY GROUPING SETS (
                 (a, b, c, d),
                 (e)
-            );"""
+            )
+            ORDER BY a, b, c, d, e, gid;"""
 
     sql """-- 场景：有最大组 (a,b,c,d,e)，但使用了 DISTINCT（脑图明确不支持 distinct）
             -- 预期：异常拦截，不触发改写
             SELECT a, b, c, d, e, COUNT(DISTINCT f)
             FROM ${tb_name}
-            GROUP BY ROLLUP(a, b, c, d, e);"""
+            GROUP BY ROLLUP(a, b, c, d, e)
+            ORDER BY a, b, c, d, e;"""
 
 
 
