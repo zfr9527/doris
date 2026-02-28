@@ -22,6 +22,7 @@ suite("shuffle_key_prune_case") {
     sql "set enable_fallback_to_original_planner=false"
     sql "set enable_sql_cache=false"
     sql "set enable_query_cache=false"
+    sql "set agg_phase=4"
 
     def getSplitBlockHashComputeTime = { String sqlStr ->
         String tag = UUID.randomUUID().toString()
