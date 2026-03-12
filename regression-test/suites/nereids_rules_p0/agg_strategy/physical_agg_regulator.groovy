@@ -21,6 +21,7 @@ suite("physical_agg_regulator") {
     set runtime_filter_mode=OFF;
     set enable_parallel_result_sink=false;
     set be_number_for_test=1;
+    set parallel_pipeline_task_num=1;
     """
     multi_sql """
     analyze table t1025_skew5000 with sample rows 7000 with sync;
