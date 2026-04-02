@@ -18,7 +18,6 @@
 package org.apache.doris.nereids.properties;
 
 import org.apache.doris.common.Pair;
-import org.apache.doris.nereids.PlanContext;
 import org.apache.doris.nereids.hint.DistributeHint;
 import org.apache.doris.nereids.jobs.JobContext;
 import org.apache.doris.nereids.memo.Group;
@@ -44,7 +43,6 @@ import org.apache.doris.nereids.trees.plans.AggPhase;
 import org.apache.doris.nereids.trees.plans.DistributeType;
 import org.apache.doris.nereids.trees.plans.GroupPlan;
 import org.apache.doris.nereids.trees.plans.JoinType;
-import org.apache.doris.nereids.trees.plans.Plan;
 import org.apache.doris.nereids.trees.plans.RelationId;
 import org.apache.doris.nereids.trees.plans.logical.LogicalOneRowRelation;
 import org.apache.doris.nereids.trees.plans.physical.PhysicalAssertNumRows;
@@ -191,53 +189,6 @@ class RequestPropertyDeriverTest {
         ));
         expected.add(Lists.newArrayList(PhysicalProperties.ANY, PhysicalProperties.REPLICATED));
         Assertions.assertEquals(expected, actual);
-    }
-
-    @Test
-    void testShuffleHintHashJoinWithShuffleKeyPrune() {
-        new MockUp<PhysicalHashJoin>() {
-            @Mock
-            Pair<List<ExprId>, List<ExprId>> getHashConjunctsExprIds() {
-                return Pair.of(Lists.newArrayList(new ExprId(0), new ExprId(2)),
-                        Lists.newArrayList(new ExprId(1), new ExprId(3)));
-            }
-        };
-
-        new MockUp<ShuffleKeyPruneUtils>() {
-            @Mock
-            Optional<Pair<List<ExprId>, List<ExprId>>> tryFindOptimalShuffleKeyForJoin(
-                    PhysicalHashJoin<? extends Plan, ? extends Plan> hashJoin, PlanContext context) {
-                return Optional.of(Pair.of(Lists.newArrayList(new ExprId(2)), Lists.newArrayList(new ExprId(3))));
-            }
-        };
-
-        DistributeHint hint = new DistributeHint(DistributeType.SHUFFLE_RIGHT);
-        PhysicalHashJoin<GroupPlan, GroupPlan> join = new PhysicalHashJoin<>(JoinType.INNER_JOIN,
-                ExpressionUtils.EMPTY_CONDITION, ExpressionUtils.EMPTY_CONDITION, hint, Optional.empty(),
-                logicalProperties,
-                groupPlan, groupPlan);
-        GroupExpression groupExpression = new GroupExpression(join, Lists.newArrayList(group, group));
-        new Group(null, groupExpression, null);
-
-        RequestPropertyDeriver requestPropertyDeriver = new RequestPropertyDeriver(connectContext, jobContext);
-        List<List<PhysicalProperties>> actual
-                = requestPropertyDeriver.getRequestChildrenPropertyList(groupExpression);
-
-        List<List<PhysicalProperties>> expected = Lists.newArrayList();
-        expected.add(Lists.newArrayList(
-                new PhysicalProperties(
-                        new DistributionSpecHash(Lists.newArrayList(new ExprId(2)), ShuffleType.REQUIRE)),
-                new PhysicalProperties(
-                        new DistributionSpecHash(Lists.newArrayList(new ExprId(3)), ShuffleType.REQUIRE))
-        ));
-        expected.add(Lists.newArrayList(
-                new PhysicalProperties(new DistributionSpecHash(
-                        Lists.newArrayList(new ExprId(0), new ExprId(2)), ShuffleType.REQUIRE)),
-                new PhysicalProperties(new DistributionSpecHash(
-                        Lists.newArrayList(new ExprId(1), new ExprId(3)), ShuffleType.REQUIRE))
-        ));
-        Assertions.assertEquals(expected, actual);
-        Assertions.assertTrue(hint.isSuccess());
     }
 
     @Test

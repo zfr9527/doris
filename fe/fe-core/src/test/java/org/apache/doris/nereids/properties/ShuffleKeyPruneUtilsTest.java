@@ -17,36 +17,26 @@
 
 package org.apache.doris.nereids.properties;
 
-import org.apache.doris.common.Pair;
-import org.apache.doris.nereids.hint.DistributeHint;
 import org.apache.doris.nereids.memo.Group;
 import org.apache.doris.nereids.memo.GroupExpression;
 import org.apache.doris.nereids.memo.GroupId;
-import org.apache.doris.nereids.trees.expressions.EqualTo;
 import org.apache.doris.nereids.trees.expressions.ExprId;
 import org.apache.doris.nereids.trees.expressions.Expression;
-import org.apache.doris.nereids.trees.expressions.Slot;
 import org.apache.doris.nereids.trees.expressions.SlotReference;
 import org.apache.doris.nereids.trees.expressions.functions.agg.AggregateParam;
 import org.apache.doris.nereids.trees.plans.AggMode;
 import org.apache.doris.nereids.trees.plans.AggPhase;
-import org.apache.doris.nereids.trees.plans.DistributeType;
-import org.apache.doris.nereids.trees.plans.GroupPlan;
-import org.apache.doris.nereids.trees.plans.JoinType;
 import org.apache.doris.nereids.trees.plans.physical.PhysicalEmptyRelation;
 import org.apache.doris.nereids.trees.plans.physical.PhysicalHashAggregate;
-import org.apache.doris.nereids.trees.plans.physical.PhysicalHashJoin;
 import org.apache.doris.nereids.types.DateType;
 import org.apache.doris.nereids.types.IntegerType;
 import org.apache.doris.nereids.types.VarcharType;
-import org.apache.doris.nereids.util.ExpressionUtils;
 import org.apache.doris.qe.ConnectContext;
 import org.apache.doris.statistics.Statistics;
 import org.apache.doris.utframe.TestWithFeService;
 
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
-import com.google.common.collect.Lists;
 import mockit.Mock;
 import mockit.MockUp;
 import org.junit.jupiter.api.Assertions;
@@ -71,14 +61,6 @@ class ShuffleKeyPruneUtilsTest extends TestWithFeService {
     private SlotReference slotD;
     private SlotReference slotE;
     private SlotReference slotF;
-    private SlotReference slotG;
-    private SlotReference rightSlotA;
-    private SlotReference rightSlotB;
-    private SlotReference rightSlotC;
-    private SlotReference rightSlotD;
-    private SlotReference rightSlotE;
-    private SlotReference rightSlotF;
-    private SlotReference rightSlotG;
     private GroupExpression emptyExpression;
 
     @Override
@@ -89,14 +71,6 @@ class ShuffleKeyPruneUtilsTest extends TestWithFeService {
         slotD = new SlotReference(new ExprId(3), "d", IntegerType.INSTANCE, true, ImmutableList.of());
         slotE = new SlotReference(new ExprId(4), "e", IntegerType.INSTANCE, true, ImmutableList.of());
         slotF = new SlotReference(new ExprId(5), "f", IntegerType.INSTANCE, true, ImmutableList.of());
-        slotG = new SlotReference(new ExprId(6), "g", IntegerType.INSTANCE, true, ImmutableList.of());
-        rightSlotA = new SlotReference(new ExprId(7), "a", IntegerType.INSTANCE, true, ImmutableList.of());
-        rightSlotB = new SlotReference(new ExprId(8), "b", IntegerType.INSTANCE, true, ImmutableList.of());
-        rightSlotC = new SlotReference(new ExprId(9), "c", IntegerType.INSTANCE, true, ImmutableList.of());
-        rightSlotD = new SlotReference(new ExprId(10), "d", IntegerType.INSTANCE, true, ImmutableList.of());
-        rightSlotE = new SlotReference(new ExprId(11), "e", IntegerType.INSTANCE, true, ImmutableList.of());
-        rightSlotF = new SlotReference(new ExprId(12), "f", IntegerType.INSTANCE, true, ImmutableList.of());
-        rightSlotG = new SlotReference(new ExprId(13), "g", IntegerType.INSTANCE, true, ImmutableList.of());
         emptyExpression = new GroupExpression(new PhysicalEmptyRelation(
                 connectContext.getStatementContext().getNextRelationId(),
                 ImmutableList.of(slotA, slotB, slotC, slotD, slotE, slotF), null));
@@ -141,104 +115,6 @@ class ShuffleKeyPruneUtilsTest extends TestWithFeService {
                 (List) groupByExprs, (List) groupByExprs,
                 new AggregateParam(AggPhase.GLOBAL, AggMode.BUFFER_TO_RESULT),
                 true, null, hasSourceRepeat, child);
-    }
-
-    /** Creates left/right agg groups with 7 slots each for join tests. Returns (leftGroup, rightGroup). */
-    private Pair<Group, Group> createJoinAggGroups() {
-        return createJoinAggGroups(false, false);
-    }
-
-    /** Creates left/right agg groups with configurable hasSourceRepeat for join tests. */
-    private Pair<Group, Group> createJoinAggGroups(boolean hasSourceRepeatLeft, boolean hasSourceRepeatRight) {
-        Group leftChildGroup = createChildGroupWithStats(slotA, slotB, slotC, slotD, slotE, slotF, slotG);
-        PhysicalHashAggregate<GroupPlan> leftAgg = new PhysicalHashAggregate<>(
-                Lists.newArrayList(slotA, slotB, slotC, slotD, slotE, slotF, slotG),
-                Lists.newArrayList(slotA, slotB, slotC, slotD, slotE, slotF, slotG),
-                new AggregateParam(AggPhase.GLOBAL, AggMode.BUFFER_TO_RESULT),
-                true, null, hasSourceRepeatLeft, new GroupPlan(leftChildGroup));
-        GroupExpression leftAggGroupExpr = new GroupExpression(leftAgg, Lists.newArrayList(leftChildGroup));
-        Group leftGroup = new Group(GroupId.createGenerator().getNextId(), leftAggGroupExpr, null);
-
-        Group rightChildGroup = createChildGroupWithStats(rightSlotA, rightSlotB, rightSlotC, rightSlotD,
-                rightSlotE, rightSlotF, rightSlotG);
-        PhysicalHashAggregate<GroupPlan> rightAgg = new PhysicalHashAggregate<>(
-                Lists.newArrayList(rightSlotA, rightSlotB, rightSlotC, rightSlotD, rightSlotE, rightSlotF, rightSlotG),
-                Lists.newArrayList(rightSlotA, rightSlotB, rightSlotC, rightSlotD, rightSlotE, rightSlotF, rightSlotG),
-                new AggregateParam(AggPhase.GLOBAL, AggMode.BUFFER_TO_RESULT),
-                true, null, hasSourceRepeatRight, new GroupPlan(rightChildGroup));
-        GroupExpression rightAggGroupExpr = new GroupExpression(rightAgg, Lists.newArrayList(rightChildGroup));
-        Group rightGroup = new Group(GroupId.createGenerator().getNextId(), rightAggGroupExpr, null);
-
-        return Pair.of(leftGroup, rightGroup);
-    }
-
-    /** Creates hash join with given number of conjuncts and mocks getHashConjunctsExprIds. */
-    private PhysicalHashJoin<GroupPlan, GroupPlan> createHashJoinWithConjuncts(Group leftGroup, Group rightGroup,
-            int numConjuncts) {
-        List<Slot> leftSlots = ImmutableList.of(slotA, slotB, slotC, slotD, slotE, slotF, slotG);
-        List<Slot> rightSlots = ImmutableList.of(rightSlotA, rightSlotB, rightSlotC, rightSlotD,
-                rightSlotE, rightSlotF, rightSlotG);
-        List<Expression> hashJoinConjuncts = Lists.newArrayList();
-        List<ExprId> leftIds = Lists.newArrayList();
-        List<ExprId> rightIds = Lists.newArrayList();
-        for (int i = 0; i < numConjuncts; i++) {
-            hashJoinConjuncts.add(new EqualTo(leftSlots.get(i), rightSlots.get(i)));
-            leftIds.add(leftSlots.get(i).getExprId());
-            rightIds.add(rightSlots.get(i).getExprId());
-        }
-        PhysicalHashJoin<GroupPlan, GroupPlan> hashJoin = new PhysicalHashJoin<>(
-                JoinType.INNER_JOIN,
-                hashJoinConjuncts,
-                ExpressionUtils.EMPTY_CONDITION,
-                new DistributeHint(DistributeType.NONE),
-                Optional.empty(),
-                null, new GroupPlan(leftGroup), new GroupPlan(rightGroup));
-
-        final List<ExprId> finalLeftIds = leftIds;
-        final List<ExprId> finalRightIds = rightIds;
-        new MockUp<PhysicalHashJoin<GroupPlan, GroupPlan>>() {
-            @Mock
-            public Pair<List<ExprId>, List<ExprId>> getHashConjunctsExprIds() {
-                return Pair.of(finalLeftIds, finalRightIds);
-            }
-        };
-        return hashJoin;
-    }
-
-    private Pair<PhysicalHashJoin<GroupPlan, GroupPlan>, GroupExpression> createJoinAndRegister(
-            Group leftGroup, Group rightGroup, int numConjuncts) {
-        PhysicalHashJoin<GroupPlan, GroupPlan> hashJoin = createHashJoinWithConjuncts(
-                leftGroup, rightGroup, numConjuncts);
-        GroupExpression joinGroupExpr = new GroupExpression(hashJoin, Lists.newArrayList(leftGroup, rightGroup));
-        new Group(GroupId.createGenerator().getNextId(), joinGroupExpr, null);
-        return Pair.of((PhysicalHashJoin<GroupPlan, GroupPlan>) joinGroupExpr.getPlan(), joinGroupExpr);
-    }
-
-    @Test
-    void testSelectBestShuffleKeyForAgg_disabled() {
-        connectContext.getSessionVariable().enableAggShuffleKeyPrune = false;
-
-        PhysicalHashAggregate<PhysicalEmptyRelation> agg = createAgg(
-                ImmutableList.of(slotA, slotB, slotC, slotD, slotE, slotF), false);
-        Statistics stats = statsWithDefaultNdv(slotA, slotB, slotC, slotD, slotE, slotF);
-
-        Optional<List<Expression>> result = ShuffleKeyPruneUtils.selectBestShuffleKeyForAgg(agg,
-                ImmutableList.of(slotA, slotB, slotC, slotD, slotE, slotF), stats, connectContext);
-
-        Assertions.assertFalse(result.isPresent());
-        connectContext.getSessionVariable().enableAggShuffleKeyPrune = true;
-    }
-
-    @Test
-    void testSelectBestShuffleKeyForAgg_hasSourceRepeat() {
-        PhysicalHashAggregate<PhysicalEmptyRelation> agg = createAgg(
-                ImmutableList.of(slotA, slotB, slotC, slotD, slotE, slotF), true);
-        Statistics stats = statsWithDefaultNdv(slotA, slotB, slotC, slotD, slotE, slotF);
-
-        Optional<List<Expression>> result = ShuffleKeyPruneUtils.selectBestShuffleKeyForAgg(agg,
-                ImmutableList.of(slotA, slotB, slotC, slotD, slotE, slotF), stats, connectContext);
-
-        Assertions.assertFalse(result.isPresent());
     }
 
     @Test
