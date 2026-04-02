@@ -641,7 +641,7 @@ PhysicalResultSink
 ----PhysicalDistribute[DistributionSpecGather]
 ------PhysicalQuickSort[LOCAL_SORT]
 --------PhysicalProject
-----------hashJoin[INNER_JOIN shuffleBucket] hashCondition=((t1.a = t2.a) and (t1.b = t2.b) and (t1.c = t2.c) and (t1.d = t2.d) and (t1.e = t2.e) and (t1.f = t2.f) and (t1.g = t2.g)) otherCondition=()
+----------hashJoin[INNER_JOIN bucketShuffle] hashCondition=((t1.a = t2.a) and (t1.b = t2.b) and (t1.c = t2.c) and (t1.d = t2.d) and (t1.e = t2.e) and (t1.f = t2.f) and (t1.g = t2.g)) otherCondition=()
 ------------hashAgg[GLOBAL]
 --------------PhysicalDistribute[DistributionSpecHash] Hash Columns:[d]
 ----------------hashAgg[LOCAL]
@@ -735,7 +735,7 @@ PhysicalResultSink
 ----PhysicalDistribute[DistributionSpecGather]
 ------PhysicalQuickSort[LOCAL_SORT]
 --------PhysicalProject
-----------hashJoin[INNER_JOIN shuffleBucket] hashCondition=((t1.a = t2.a) and (t1.b = t2.b) and (t1.c = t2.c) and (t1.d = t2.d) and (t1.e = t2.e) and (t1.f = t2.f) and (t1.g = t2.g)) otherCondition=()
+----------hashJoin[INNER_JOIN bucketShuffle] hashCondition=((t1.a = t2.a) and (t1.b = t2.b) and (t1.c = t2.c) and (t1.d = t2.d) and (t1.e = t2.e) and (t1.f = t2.f) and (t1.g = t2.g)) otherCondition=()
 ------------hashAgg[GLOBAL]
 --------------PhysicalDistribute[DistributionSpecHash] Hash Columns:[d]
 ----------------hashAgg[LOCAL]

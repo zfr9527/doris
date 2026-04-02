@@ -17,7 +17,11 @@
 
 package org.apache.doris.nereids.processor.post;
 
+import org.apache.doris.nereids.CascadesContext;
+import org.apache.doris.nereids.StatementContext;
+import org.apache.doris.nereids.properties.DistributionSpec;
 import org.apache.doris.nereids.properties.DistributionSpecHash;
+import org.apache.doris.nereids.properties.PhysicalProperties;
 import org.apache.doris.nereids.trees.expressions.ExprId;
 import org.apache.doris.nereids.trees.expressions.SlotReference;
 import org.apache.doris.nereids.trees.expressions.functions.agg.AggregateParam;
@@ -32,6 +36,7 @@ import org.apache.doris.nereids.trees.plans.physical.PhysicalHashJoin;
 import org.apache.doris.nereids.trees.plans.physical.PhysicalProject;
 import org.apache.doris.nereids.types.IntegerType;
 import org.apache.doris.nereids.util.PlanChecker;
+import org.apache.doris.qe.OriginStatement;
 import org.apache.doris.utframe.TestWithFeService;
 
 import com.google.common.collect.ImmutableList;
@@ -306,5 +311,38 @@ class ShuffleKeyPrunerTest extends TestWithFeService {
         Assertions.assertInstanceOf(PhysicalFilter.class, out);
         Assertions.assertInstanceOf(PhysicalProject.class, out.child(0));
         Assertions.assertSame(newDist, out.child(0).child(0).child(0));
+    }
+
+    @Test
+    void testRecomputePhysicalPropertiesPostProcessorShouldRefreshWrapperDistribution() {
+        SlotReference slotB = new SlotReference(new ExprId(1), "b",
+                IntegerType.INSTANCE, true, ImmutableList.of());
+        PhysicalEmptyRelation relation = new PhysicalEmptyRelation(
+                connectContext.getStatementContext().getNextRelationId(),
+                ImmutableList.of(slotA, slotB), null);
+        DistributionSpecHash childSpec = new DistributionSpecHash(
+                ImmutableList.of(slotA.getExprId()), DistributionSpecHash.ShuffleType.REQUIRE);
+        DistributionSpecHash staleSpec = new DistributionSpecHash(
+                ImmutableList.of(slotB.getExprId()), DistributionSpecHash.ShuffleType.REQUIRE);
+        PhysicalDistribute<PhysicalEmptyRelation> distribute = new PhysicalDistribute<>(
+                childSpec,
+                Optional.empty(),
+                relation.getLogicalProperties(),
+                PhysicalProperties.createHash(childSpec),
+                null,
+                relation);
+        PhysicalFilter<? extends Plan> wrapper = new PhysicalFilter<>(ImmutableSet.of(), null, distribute)
+                .withPhysicalPropertiesAndStats(PhysicalProperties.createHash(staleSpec), null);
+
+        CascadesContext cascadesContext = CascadesContext.initContext(
+                new StatementContext(connectContext, new OriginStatement("", 0)),
+                wrapper, PhysicalProperties.ANY);
+        Plan output = new RecomputePhysicalPropertiesPostProcessor().processRoot(wrapper, cascadesContext);
+
+        Assertions.assertInstanceOf(PhysicalFilter.class, output);
+        DistributionSpec outputSpec = ((PhysicalFilter<?>) output).getPhysicalProperties().getDistributionSpec();
+        Assertions.assertInstanceOf(DistributionSpecHash.class, outputSpec);
+        Assertions.assertEquals(childSpec.getOrderedShuffledColumns(),
+                ((DistributionSpecHash) outputSpec).getOrderedShuffledColumns());
     }
 }
