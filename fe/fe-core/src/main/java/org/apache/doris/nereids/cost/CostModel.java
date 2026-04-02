@@ -332,16 +332,11 @@ class CostModel extends PlanVisitor<Cost, PlanContext> {
         double dataSizeFactor = childStatistics.dataSizeFactor(distribute.child().getOutput());
         // shuffle
         if (spec instanceof DistributionSpecHash) {
-            DistributionSpecHash hashSpec = (DistributionSpecHash) spec;
-            double hashKeyBytes = estimateHashShuffleKeyBytes(hashSpec, distribute);
-            double hashKeyCount = hashSpec.getOrderedShuffledColumns().size();
-            double hashCpuPenalty = Math.max(0, hashKeyCount - 1) * HASH_SHUFFLE_EXTRA_KEY_CPU_FACTOR
-                    + hashKeyBytes * HASH_SHUFFLE_KEY_BYTES_CPU_FACTOR;
             return Cost.of(context.getSessionVariable(),
-                    intputRowCount / beNumForDist * (1 + hashCpuPenalty),
+                    intputRowCount / beNumForDist,
                     0,
                     intputRowCount * dataSizeFactor / beNumForDist
-                    );
+            );
         }
 
         // replicate
