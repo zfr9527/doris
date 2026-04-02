@@ -385,8 +385,8 @@ public class ShuffleKeyPruner extends PlanPostProcessor {
             return Optional.empty();
         }
         Pair<List<ExprId>, List<ExprId>> keys = optimal.get();
-        DistributionSpecHash newLeftSpec = sliceHashSpec(leftSpec, keys.first);
-        DistributionSpecHash newRightSpec = sliceHashSpec(rightSpec, keys.second);
+        DistributionSpecHash newLeftSpec = leftSpec.withShuffleExprs(keys.first);
+        DistributionSpecHash newRightSpec = rightSpec.withShuffleExprs(keys.second);
         Plan rebuiltLeftDist = rebuildDistribute(leftDist, newLeftSpec, leftDist.child());
         Plan rebuiltRightDist = rebuildDistribute(rightDist, newRightSpec, rightDist.child());
         Plan replacedLeft = replaceDistributeUnderJoinChild(join.left(), rebuiltLeftDist);
