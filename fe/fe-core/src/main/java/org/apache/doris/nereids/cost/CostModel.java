@@ -34,9 +34,7 @@ import org.apache.doris.nereids.stats.HboPlanStatisticsProvider;
 import org.apache.doris.nereids.stats.HboUtils;
 import org.apache.doris.nereids.trees.expressions.Alias;
 import org.apache.doris.nereids.trees.expressions.ComparisonPredicate;
-import org.apache.doris.nereids.trees.expressions.ExprId;
 import org.apache.doris.nereids.trees.expressions.Expression;
-import org.apache.doris.nereids.trees.expressions.Slot;
 import org.apache.doris.nereids.trees.expressions.SlotReference;
 import org.apache.doris.nereids.trees.expressions.literal.Literal;
 import org.apache.doris.nereids.trees.plans.Plan;
@@ -78,9 +76,7 @@ import org.apache.logging.log4j.Logger;
 
 import java.util.ArrayList;
 import java.util.Collections;
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
 import java.util.Objects;
 import java.util.Optional;
 import java.util.Set;
@@ -90,10 +86,6 @@ class CostModel extends PlanVisitor<Cost, PlanContext> {
     // The cost of using external tables should be somewhat higher than using internal tables,
     // so when encountering a scan of an external table, a coefficient should be applied.
     static final double EXTERNAL_TABLE_SCAN_FACTOR = 5;
-    static final double HASH_SHUFFLE_EXTRA_KEY_CPU_FACTOR = 0.015;
-    static final double HASH_SHUFFLE_KEY_BYTES_CPU_FACTOR = 0.001;
-    static final double HASH_SHUFFLE_NON_STRING_KEY_BYTES = 8;
-    static final double HASH_SHUFFLE_STRING_KEY_BYTES = 24;
     private static final Logger LOG = LogManager.getLogger(CostModel.class);
     private final int beNumber;
     private final int parallelInstance;
@@ -366,29 +358,6 @@ class CostModel extends PlanVisitor<Cost, PlanContext> {
                 0,
                 intputRowCount * dataSizeFactor
                         * RANDOM_SHUFFLE_TO_HASH_SHUFFLE_FACTOR / beNumForDist);
-    }
-
-    private double estimateHashShuffleKeyBytes(DistributionSpecHash hashSpec,
-            PhysicalDistribute<? extends Plan> distribute) {
-        Map<ExprId, Slot> slotByExprId = new HashMap<>();
-        for (Slot outputSlot : distribute.child().getOutput()) {
-            slotByExprId.put(outputSlot.getExprId(), outputSlot);
-        }
-
-        double totalKeyBytes = 0;
-        for (ExprId exprId : hashSpec.getOrderedShuffledColumns()) {
-            Slot keySlot = slotByExprId.get(exprId);
-            if (keySlot == null) {
-                totalKeyBytes += HASH_SHUFFLE_NON_STRING_KEY_BYTES;
-                continue;
-            }
-            if (keySlot.getDataType().isStringLikeType()) {
-                totalKeyBytes += HASH_SHUFFLE_STRING_KEY_BYTES;
-            } else {
-                totalKeyBytes += HASH_SHUFFLE_NON_STRING_KEY_BYTES;
-            }
-        }
-        return totalKeyBytes;
     }
 
     private double expressionTreeCost(List<? extends Expression> expressions) {
