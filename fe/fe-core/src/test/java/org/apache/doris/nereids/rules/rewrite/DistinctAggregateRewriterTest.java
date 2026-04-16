@@ -22,6 +22,7 @@ import org.apache.doris.nereids.trees.expressions.functions.agg.AggregateFunctio
 import org.apache.doris.nereids.trees.expressions.functions.agg.Count;
 import org.apache.doris.nereids.trees.expressions.functions.agg.MultiDistinctCount;
 import org.apache.doris.nereids.trees.expressions.functions.agg.MultiDistinctGroupConcat;
+import org.apache.doris.nereids.trees.expressions.functions.agg.Sum0;
 import org.apache.doris.nereids.trees.expressions.functions.scalar.If;
 import org.apache.doris.nereids.trees.plans.AbstractPlan;
 import org.apache.doris.nereids.trees.plans.Plan;
@@ -78,7 +79,7 @@ public class DistinctAggregateRewriterTest extends TestWithFeService implements 
                                 logicalAggregate().when(agg -> agg.getGroupByExpressions().size() == 1
                                         && agg.getGroupByExpressions().get(0).toSql().equals("b")
                                         && agg.getAggregateFunctions().stream()
-                                        .anyMatch(f -> f instanceof MultiDistinctCount))
+                                        .anyMatch(f -> f instanceof Count))
                         )
                 );
     }
@@ -95,9 +96,7 @@ public class DistinctAggregateRewriterTest extends TestWithFeService implements 
                                 logicalAggregate().when(agg -> agg.getGroupByExpressions().size() == 1
                                         && agg.getGroupByExpressions().get(0).toSql().equals("b")
                                         && agg.getAggregateFunctions().stream()
-                                        .anyMatch(f -> f instanceof MultiDistinctCount)
-                                        && agg.getAggregateFunctions().stream()
-                                        .anyMatch(f -> f instanceof Count && !f.isDistinct()))
+                                        .allMatch(f -> f instanceof Count || f instanceof Sum0))
                         )
                 );
     }
@@ -114,8 +113,7 @@ public class DistinctAggregateRewriterTest extends TestWithFeService implements 
                                 logicalAggregate().when(agg -> agg.getGroupByExpressions().size() == 1
                                         && agg.getGroupByExpressions().get(0).toSql().equals("b")
                                         && agg.getAggregateFunctions().stream()
-                                        .anyMatch(f -> f instanceof MultiDistinctCount)
-                                        && agg.getAggregateFunctions().stream().noneMatch(AggregateFunction::isDistinct)
+                                        .anyMatch(f -> f instanceof Count  && !f.isDistinct())
                                 )));
     }
 
@@ -249,24 +247,6 @@ public class DistinctAggregateRewriterTest extends TestWithFeService implements 
                 colStats.put(expr, buildColumnStats(10000.0, false)));
         ((AbstractPlan) child).setStatistics(new Statistics(100000, colStats));
         aggregate.setStatistics(new Statistics(240, ImmutableMap.of()));
-
-        Assertions.assertFalse(rewriter.shouldUseMultiDistinct(aggregate));
-    }
-
-    @Test
-    void testShouldUseMultiDistinctWithStatsNotSelected() throws Exception {
-        DistinctAggregateRewriter rewriter = new DistinctAggregateRewriter();
-        LogicalAggregate<? extends Plan> aggregate = getLogicalAggregate(
-                "select b, count(distinct a) from test.distinct_agg_split_t group by b"
-        );
-        Plan child = aggregate.child();
-        Map<org.apache.doris.nereids.trees.expressions.Expression, ColumnStatistic> colStats = new HashMap<>();
-        aggregate.getGroupByExpressions().forEach(expr ->
-                colStats.put(expr, buildColumnStats(1000.0, false)));
-        aggregate.getDistinctArguments().forEach(expr ->
-                colStats.put(expr, buildColumnStats(10000.0, false)));
-        ((AbstractPlan) child).setStatistics(new Statistics(100000, colStats));
-        aggregate.setStatistics(new Statistics(1000.0, ImmutableMap.of()));
 
         Assertions.assertFalse(rewriter.shouldUseMultiDistinct(aggregate));
     }

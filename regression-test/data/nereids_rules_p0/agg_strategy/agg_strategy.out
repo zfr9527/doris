@@ -356,7 +356,10 @@ PhysicalResultSink
 --------hashAgg[GLOBAL]
 ----------PhysicalDistribute[DistributionSpecHash]
 ------------hashAgg[LOCAL]
---------------PhysicalOlapScan[t_gbykey_10_dstkey_10_1000_id]
+--------------hashAgg[GLOBAL]
+----------------PhysicalDistribute[DistributionSpecHash]
+------------------hashAgg[LOCAL]
+--------------------PhysicalOlapScan[t_gbykey_10_dstkey_10_1000_id]
 
 -- !agg_distinct_satisfy_gby_key --
 PhysicalResultSink
@@ -364,7 +367,8 @@ PhysicalResultSink
 ----PhysicalDistribute[DistributionSpecGather]
 ------PhysicalQuickSort[LOCAL_SORT]
 --------hashAgg[GLOBAL]
-----------PhysicalOlapScan[t_gbykey_10_dstkey_10_1000_id]
+----------hashAgg[GLOBAL]
+------------PhysicalOlapScan[t_gbykey_10_dstkey_10_1000_id]
 
 -- !agg_distinct_satisfy_dst_key --
 PhysicalResultSink
@@ -382,18 +386,22 @@ PhysicalResultSink
 --PhysicalQuickSort[MERGE_SORT]
 ----PhysicalDistribute[DistributionSpecGather]
 ------PhysicalQuickSort[LOCAL_SORT]
---------hashAgg[GLOBAL]
+--------hashAgg[DISTINCT_GLOBAL]
 ----------PhysicalDistribute[DistributionSpecHash]
-------------hashAgg[LOCAL]
---------------PhysicalOlapScan[t_gbykey_10_dstkey_10_1000_id]
+------------hashAgg[DISTINCT_LOCAL]
+--------------hashAgg[GLOBAL]
+----------------PhysicalDistribute[DistributionSpecHash]
+------------------hashAgg[LOCAL]
+--------------------PhysicalOlapScan[t_gbykey_10_dstkey_10_1000_id]
 
 -- !agg_distinct_satisfy_gby_key_with_other_func --
 PhysicalResultSink
 --PhysicalQuickSort[MERGE_SORT]
 ----PhysicalDistribute[DistributionSpecGather]
 ------PhysicalQuickSort[LOCAL_SORT]
---------hashAgg[GLOBAL]
-----------PhysicalOlapScan[t_gbykey_10_dstkey_10_1000_id]
+--------hashAgg[DISTINCT_GLOBAL]
+----------hashAgg[GLOBAL]
+------------PhysicalOlapScan[t_gbykey_10_dstkey_10_1000_id]
 
 -- !agg_distinct_satisfy_dst_key_with_other_func --
 PhysicalResultSink
@@ -694,7 +702,10 @@ PhysicalResultSink
 --------hashAgg[GLOBAL]
 ----------PhysicalDistribute[DistributionSpecHash]
 ------------hashAgg[LOCAL]
---------------PhysicalOlapScan[t_gbykey_2_dstkey_10_30_id]
+--------------hashAgg[GLOBAL]
+----------------PhysicalDistribute[DistributionSpecHash]
+------------------hashAgg[LOCAL]
+--------------------PhysicalOlapScan[t_gbykey_2_dstkey_10_30_id]
 
 -- !agg_distinct_satisfy_gby_key_low_ndv --
 PhysicalResultSink
@@ -702,7 +713,8 @@ PhysicalResultSink
 ----PhysicalDistribute[DistributionSpecGather]
 ------PhysicalQuickSort[LOCAL_SORT]
 --------hashAgg[GLOBAL]
-----------PhysicalOlapScan[t_gbykey_2_dstkey_10_30_id]
+----------hashAgg[GLOBAL]
+------------PhysicalOlapScan[t_gbykey_2_dstkey_10_30_id]
 
 -- !agg_distinct_satisfy_dst_key_low_ndv --
 PhysicalResultSink
@@ -720,18 +732,22 @@ PhysicalResultSink
 --PhysicalQuickSort[MERGE_SORT]
 ----PhysicalDistribute[DistributionSpecGather]
 ------PhysicalQuickSort[LOCAL_SORT]
---------hashAgg[GLOBAL]
+--------hashAgg[DISTINCT_GLOBAL]
 ----------PhysicalDistribute[DistributionSpecHash]
-------------hashAgg[LOCAL]
---------------PhysicalOlapScan[t_gbykey_2_dstkey_10_30_id]
+------------hashAgg[DISTINCT_LOCAL]
+--------------hashAgg[GLOBAL]
+----------------PhysicalDistribute[DistributionSpecHash]
+------------------hashAgg[LOCAL]
+--------------------PhysicalOlapScan[t_gbykey_2_dstkey_10_30_id]
 
 -- !agg_distinct_satisfy_gby_key_with_other_func_low_ndv --
 PhysicalResultSink
 --PhysicalQuickSort[MERGE_SORT]
 ----PhysicalDistribute[DistributionSpecGather]
 ------PhysicalQuickSort[LOCAL_SORT]
---------hashAgg[GLOBAL]
-----------PhysicalOlapScan[t_gbykey_2_dstkey_10_30_id]
+--------hashAgg[DISTINCT_GLOBAL]
+----------hashAgg[GLOBAL]
+------------PhysicalOlapScan[t_gbykey_2_dstkey_10_30_id]
 
 -- !agg_distinct_satisfy_dst_key_with_other_func_low_ndv --
 PhysicalResultSink

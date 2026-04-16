@@ -24,6 +24,7 @@ import org.apache.doris.catalog.OlapTable;
 import org.apache.doris.nereids.rules.Rule;
 import org.apache.doris.nereids.rules.RuleType;
 import org.apache.doris.nereids.rules.rewrite.StatsDerive.DeriveContext;
+import org.apache.doris.nereids.stats.ExpressionEstimation;
 import org.apache.doris.nereids.trees.expressions.Alias;
 import org.apache.doris.nereids.trees.expressions.Expression;
 import org.apache.doris.nereids.trees.expressions.NamedExpression;
@@ -46,6 +47,7 @@ import org.apache.doris.nereids.util.AggregateUtils;
 import org.apache.doris.nereids.util.ExpressionUtils;
 import org.apache.doris.nereids.util.Utils;
 import org.apache.doris.qe.ConnectContext;
+import org.apache.doris.statistics.ColumnStatistic;
 import org.apache.doris.statistics.Statistics;
 
 import com.google.common.annotations.VisibleForTesting;
@@ -128,19 +130,17 @@ public class DistinctAggregateRewriter implements RewriteRuleFactory {
         }
 
         double gbyNdv = aggStats.getRowCount();
-        int instanceNum = getParallelExecInstanceNum(ConnectContext.get());
-        if (instanceNum <= 0) {
-            instanceNum = 1;
+        Expression dstKey = dstArgs.iterator().next();
+        ColumnStatistic dstKeyStats = aggChildStats.findColumnStatistics(dstKey);
+        if (dstKeyStats == null) {
+            dstKeyStats = ExpressionEstimation.estimate(dstKey, aggChildStats);
         }
-        return gbyNdv / instanceNum <= MULTI_DISTINCT_GBY_PER_INSTANCE_THRESHOLD;
-    }
-
-    private int getParallelExecInstanceNum(ConnectContext ctx) {
-        if (ctx == null) {
-            return 1;
-        }
-        return ctx.getSessionVariable()
-                .getParallelExecInstanceNum(ctx.getSessionVariable().resolveCloudClusterName(ctx));
+        double dstNdv = dstKeyStats.ndv;
+        double inputRows = aggChildStats.getRowCount();
+        // group by key ndv is low, distinct key ndv is high, multi_distinct is better
+        // otherwise split to bottom and top agg
+        return gbyNdv < inputRows * AggregateUtils.LOW_CARDINALITY_THRESHOLD
+                && dstNdv > inputRows * AggregateUtils.HIGH_CARDINALITY_THRESHOLD;
     }
 
     private boolean isDistinctKeySatisfyDistribution(LogicalAggregate<? extends Plan> aggregate) {

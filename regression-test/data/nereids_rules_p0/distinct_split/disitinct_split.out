@@ -494,10 +494,14 @@ PhysicalCteAnchor ( cteId=CTEId#0 )
 ----hashJoin[INNER_JOIN] hashCondition=((c <=> .c)) otherCondition=()
 ------hashAgg[GLOBAL]
 --------hashAgg[LOCAL]
-----------PhysicalCteConsumer ( cteId=CTEId#0 )
+----------hashAgg[GLOBAL]
+------------hashAgg[LOCAL]
+--------------PhysicalCteConsumer ( cteId=CTEId#0 )
 ------hashAgg[GLOBAL]
 --------hashAgg[LOCAL]
-----------PhysicalCteConsumer ( cteId=CTEId#0 )
+----------hashAgg[GLOBAL]
+------------hashAgg[LOCAL]
+--------------PhysicalCteConsumer ( cteId=CTEId#0 )
 
 -- !multi_sum_with_gby --
 PhysicalCteAnchor ( cteId=CTEId#0 )
@@ -507,10 +511,14 @@ PhysicalCteAnchor ( cteId=CTEId#0 )
 ----hashJoin[INNER_JOIN] hashCondition=((c <=> .c)) otherCondition=()
 ------hashAgg[GLOBAL]
 --------hashAgg[LOCAL]
-----------PhysicalCteConsumer ( cteId=CTEId#0 )
+----------hashAgg[GLOBAL]
+------------hashAgg[LOCAL]
+--------------PhysicalCteConsumer ( cteId=CTEId#0 )
 ------hashAgg[GLOBAL]
 --------hashAgg[LOCAL]
-----------PhysicalCteConsumer ( cteId=CTEId#0 )
+----------hashAgg[GLOBAL]
+------------hashAgg[LOCAL]
+--------------PhysicalCteConsumer ( cteId=CTEId#0 )
 
 -- !sum_count_with_gby --
 PhysicalCteAnchor ( cteId=CTEId#0 )
@@ -520,10 +528,13 @@ PhysicalCteAnchor ( cteId=CTEId#0 )
 ----hashJoin[INNER_JOIN] hashCondition=((a <=> .a)) otherCondition=()
 ------hashAgg[GLOBAL]
 --------hashAgg[LOCAL]
-----------PhysicalCteConsumer ( cteId=CTEId#0 )
+----------hashAgg[GLOBAL]
+------------hashAgg[LOCAL]
+--------------PhysicalCteConsumer ( cteId=CTEId#0 )
 ------hashAgg[GLOBAL]
---------hashAgg[LOCAL]
-----------PhysicalCteConsumer ( cteId=CTEId#0 )
+--------hashAgg[GLOBAL]
+----------hashAgg[LOCAL]
+------------PhysicalCteConsumer ( cteId=CTEId#0 )
 
 -- !has_grouping --
 PhysicalResultSink
