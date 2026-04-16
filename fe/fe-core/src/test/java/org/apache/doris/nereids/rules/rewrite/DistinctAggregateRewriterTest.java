@@ -113,7 +113,7 @@ public class DistinctAggregateRewriterTest extends TestWithFeService implements 
                                 logicalAggregate().when(agg -> agg.getGroupByExpressions().size() == 1
                                         && agg.getGroupByExpressions().get(0).toSql().equals("b")
                                         && agg.getAggregateFunctions().stream()
-                                        .anyMatch(f -> f instanceof Count  && !f.isDistinct())
+                                        .anyMatch(f -> f instanceof Count && !f.isDistinct())
                                 )));
     }
 
